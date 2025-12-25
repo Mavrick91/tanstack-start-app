@@ -16,8 +16,8 @@ export const Route = createFileRoute('/$lang/products/$productId')({
     meta: [
       {
         title: loaderData
-          ? `${loaderData.name} | Obelisk`
-          : 'Product | Obelisk',
+          ? `${loaderData.name} | FineNail Season`
+          : 'Product | FineNail Season',
       },
     ],
   }),
@@ -156,7 +156,7 @@ function ProductDetailPage() {
                 {t('Shipping')}
               </h5>
               <p className="text-sm">
-                {t('Free worldwide delivery on orders over $150.')}
+                {t('Free worldwide delivery on orders over $50.')}
               </p>
             </div>
             <div>

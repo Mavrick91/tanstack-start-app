@@ -63,17 +63,22 @@ export const useCart = (products: Array<Product>) => {
   const { items, addItem, removeItem, updateQuantity, clearCart } =
     useCartStore()
 
-  const cartItems: Array<CartItem> = items.map((item) => {
-    const product = products.find((p) => p.id === item.productId)
-    if (!product)
-      throw new Error(
-        `Product ${item.productId} not found during cart hydration`,
-      )
-    return {
-      ...item,
-      product,
-    }
-  })
+  const cartItems: Array<CartItem> = items
+    .map((item) => {
+      const product = products.find((p) => p.id === item.productId)
+      if (!product) {
+        // Product was removed from catalog, skip it
+        console.warn(
+          `Product ${item.productId} not found during cart hydration, removing from cart.`,
+        )
+        return null
+      }
+      return {
+        ...item,
+        product,
+      }
+    })
+    .filter((item): item is CartItem => item !== null)
 
   const { totalItems, totalPrice } = calculateCartTotals(cartItems)
 

@@ -8,9 +8,9 @@ export const Route = createFileRoute('/$lang/products/')({
   loader: () => getProducts(),
   head: ({ params }) => {
     const titles: Record<string, string> = {
-      en: 'All Products | Obelisk',
-      fr: 'Tous les produits | Obelisk',
-      id: 'Semua Produk | Obelisk',
+      en: 'All Products | FineNail Season',
+      fr: 'Tous les produits | FineNail Season',
+      id: 'Semua Produk | FineNail Season',
     }
     return {
       meta: [{ title: titles[params.lang] || titles.en }],
@@ -31,7 +31,7 @@ function ProductsPage() {
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
           {t(
-            'Explore our curated collection of minimalist essentials, designed for the modern obelisk.',
+            'Explore our complete collection of nail art essentials, from polishes to tools.',
           )}
         </p>
       </div>

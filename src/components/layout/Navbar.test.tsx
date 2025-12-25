@@ -46,7 +46,7 @@ describe('Navbar Component', () => {
     await act(async () => {
       render(<Navbar />)
     })
-    expect(screen.getByText(/Obelisk/i)).toBeInTheDocument()
+    expect(screen.getByText(/FineNail Season/i)).toBeInTheDocument()
   })
 
   it('should render navigation links', async () => {

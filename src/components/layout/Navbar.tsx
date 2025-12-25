@@ -34,10 +34,10 @@ export function Navbar() {
             params={{ lang: currentLang }}
             className="text-xl font-bold tracking-tighter flex items-center gap-2"
           >
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              O
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-black">
+              FN
             </div>
-            <span>OBELISK</span>
+            <span>FineNail Season</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
