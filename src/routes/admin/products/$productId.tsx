@@ -6,12 +6,6 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '../../../components/ui/card'
 import { Input } from '../../../components/ui/input'
 import { Label } from '../../../components/ui/label'
 import {
@@ -122,33 +116,57 @@ function EditProductPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-500" />
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-pink-500/20 border-t-pink-500" />
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
+          Loading Product...
+        </p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">{t('Failed to load product')}</p>
+      <div className="text-center py-24 bg-card rounded-3xl border border-destructive/10 max-w-2xl mx-auto shadow-sm">
+        <p className="text-destructive font-bold text-lg mb-2">
+          {t('Failed to load product')}
+        </p>
+        <p className="text-muted-foreground text-xs">
+          {t('Check your connection or catalog access.')}
+        </p>
       </div>
     )
   }
 
+  const generateHandle = () => {
+    const name = form.getFieldValue('name')
+    const handle = name.en
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+    form.setFieldValue('handle', handle)
+  }
+
   return (
-    <div className="max-w-4xl">
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.navigate({ to: '/admin/products' })}
-          className="gap-2 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('Back to Products')}
-        </Button>
-        <h1 className="text-2xl font-bold">{t('Edit Product')}</h1>
+    <div className="max-w-5xl mx-auto pb-32">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.navigate({ to: '/admin/products' })}
+            className="gap-2 mb-2 hover:bg-pink-500/5 hover:text-pink-600 rounded-lg transition-all font-medium text-xs text-muted-foreground"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            {t('Back to Products')}
+          </Button>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            {t('Edit Product')}
+          </h1>
+          <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest mt-1">
+            ID: <span className="text-foreground">{productId}</span>
+          </p>
+        </div>
       </div>
 
       <form
@@ -156,151 +174,177 @@ function EditProductPage() {
           e.preventDefault()
           form.handleSubmit()
         }}
-        className="space-y-6"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
       >
-        {/* Product Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('Product Details')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Name with locale tabs */}
-            <div className="space-y-2">
-              <Label>{t('Name')}</Label>
-              <form.Field name="name">
-                {(field) => (
-                  <Tabs defaultValue="en" className="w-full">
-                    <TabsList className="mb-2">
-                      <TabsTrigger value="en">EN</TabsTrigger>
-                      <TabsTrigger value="fr">FR</TabsTrigger>
-                      <TabsTrigger value="id">ID</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="en">
-                      <Input
-                        value={field.state.value.en || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            en: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product name in English')}
-                      />
-                    </TabsContent>
-                    <TabsContent value="fr">
-                      <Input
-                        value={field.state.value.fr || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            fr: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product name in French')}
-                      />
-                    </TabsContent>
-                    <TabsContent value="id">
-                      <Input
-                        value={field.state.value.id || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            id: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product name in Indonesian')}
-                      />
-                    </TabsContent>
-                  </Tabs>
-                )}
-              </form.Field>
-            </div>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Main Details Section */}
+          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
+              {t('Product Details')}
+            </h2>
 
-            {/* Handle */}
-            <div className="space-y-2">
-              <Label htmlFor="handle">{t('Handle (URL slug)')}</Label>
-              <form.Field name="handle">
-                {(field) => (
-                  <Input
-                    id="handle"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder={t('product-url-slug')}
-                  />
-                )}
-              </form.Field>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <form.Field name="description">
-                {(field) => (
-                  <Tabs defaultValue="en" className="w-full">
-                    <TabsList className="mb-2">
-                      <TabsTrigger value="en">EN</TabsTrigger>
-                      <TabsTrigger value="fr">FR</TabsTrigger>
-                      <TabsTrigger value="id">ID</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="en">
-                      <Textarea
-                        value={field.state.value.en || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            en: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product description in English')}
-                        rows={4}
-                      />
-                    </TabsContent>
-                    <TabsContent value="fr">
-                      <Textarea
-                        value={field.state.value.fr || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            fr: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product description in French')}
-                        rows={4}
-                      />
-                    </TabsContent>
-                    <TabsContent value="id">
-                      <Textarea
-                        value={field.state.value.id || ''}
-                        onChange={(e) =>
-                          field.handleChange({
-                            ...field.state.value,
-                            id: e.target.value,
-                          })
-                        }
-                        placeholder={t('Product description in Indonesian')}
-                        rows={4}
-                      />
-                    </TabsContent>
-                  </Tabs>
-                )}
-              </form.Field>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Organization */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('Organization')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              {/* Name Locale Tabs */}
               <div className="space-y-2">
-                <Label htmlFor="vendor">{t('Vendor')}</Label>
+                <Label className="text-xs font-semibold">{t('Name')}</Label>
+                <form.Field name="name">
+                  {(field) => (
+                    <Tabs defaultValue="en" className="w-full">
+                      <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
+                        <TabsTrigger
+                          value="en"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          EN
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="fr"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          FR
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="id"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          ID
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="en" className="mt-0">
+                        <Input
+                          className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                          value={field.state.value.en || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              en: e.target.value,
+                            })
+                          }
+                          onBlur={generateHandle}
+                          placeholder={t('Product name in English')}
+                        />
+                      </TabsContent>
+                      <TabsContent value="fr" className="mt-0">
+                        <Input
+                          className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                          value={field.state.value.fr || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              fr: e.target.value,
+                            })
+                          }
+                          placeholder={t('Product name in French')}
+                        />
+                      </TabsContent>
+                      <TabsContent value="id" className="mt-0">
+                        <Input
+                          className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                          value={field.state.value.id || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              id: e.target.value,
+                            })
+                          }
+                          placeholder={t('Product name in Indonesian')}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </form.Field>
+              </div>
+
+              {/* Description Tabs */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">
+                  {t('Description')}
+                </Label>
+                <form.Field name="description">
+                  {(field) => (
+                    <Tabs defaultValue="en" className="w-full">
+                      <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
+                        <TabsTrigger
+                          value="en"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          EN
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="fr"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          FR
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="id"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                        >
+                          ID
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="en" className="mt-0">
+                        <Textarea
+                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                          value={field.state.value.en || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              en: e.target.value,
+                            })
+                          }
+                          placeholder={t('Product description in English')}
+                        />
+                      </TabsContent>
+                      <TabsContent value="fr" className="mt-0">
+                        <Textarea
+                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                          value={field.state.value.fr || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              fr: e.target.value,
+                            })
+                          }
+                          placeholder={t('Product description in French')}
+                        />
+                      </TabsContent>
+                      <TabsContent value="id" className="mt-0">
+                        <Textarea
+                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                          value={field.state.value.id || ''}
+                          onChange={(e) =>
+                            field.handleChange({
+                              ...field.state.value,
+                              id: e.target.value,
+                            })
+                          }
+                          placeholder={t('Product description in Indonesian')}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </form.Field>
+              </div>
+            </div>
+          </section>
+
+          {/* Organization Section */}
+          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
+              {t('Organization')}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Label htmlFor="vendor" className="text-xs font-semibold">
+                  {t('Vendor')}
+                </Label>
                 <form.Field name="vendor">
                   {(field) => (
                     <Input
                       id="vendor"
+                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder={t('Brand name')}
@@ -308,13 +352,15 @@ function EditProductPage() {
                   )}
                 </form.Field>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="productType">{t('Product Type')}</Label>
+              <div className="space-y-4">
+                <Label htmlFor="productType" className="text-xs font-semibold">
+                  {t('Product Type')}
+                </Label>
                 <form.Field name="productType">
                   {(field) => (
                     <Input
                       id="productType"
+                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder={t('e.g., Nail Polish')}
@@ -323,70 +369,133 @@ function EditProductPage() {
                 </form.Field>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('Status')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form.Field name="status">
-              {(field) => (
-                <Select
-                  value={field.state.value}
-                  onValueChange={(value) =>
-                    field.handleChange(value as 'draft' | 'active' | 'archived')
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('Select status')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">{t('Draft')}</SelectItem>
-                    <SelectItem value="active">{t('Active')}</SelectItem>
-                    <SelectItem value="archived">{t('Archived')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </form.Field>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.navigate({ to: '/admin/products' })}
-          >
-            {t('Cancel')}
-          </Button>
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(isSubmitting) => (
-              <Button
-                type="submit"
-                disabled={isSubmitting || updateProduct.isPending}
-                className="gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {updateProduct.isPending ? t('Saving...') : t('Save Changes')}
-              </Button>
-            )}
-          </form.Subscribe>
+          {/* Search engine listing */}
+          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
+              {t('Search engine listing')}
+            </h2>
+            <div className="space-y-4">
+              <Label htmlFor="handle" className="text-xs font-semibold">
+                {t('Handle (URL slug)')}
+              </Label>
+              <form.Field name="handle">
+                {(field) => (
+                  <div className="relative group">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 font-medium text-sm">
+                      .../products/
+                    </span>
+                    <Input
+                      id="handle"
+                      className="h-11 pl-28 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder={t('product-url-slug')}
+                    />
+                  </div>
+                )}
+              </form.Field>
+              <p className="text-[10px] text-muted-foreground px-2">
+                {t('The handle is used to generate the product URL.')}
+              </p>
+            </div>
+          </section>
         </div>
 
-        {updateProduct.isSuccess && (
-          <p className="text-green-500 text-sm">
-            {t('Product saved successfully!')}
-          </p>
-        )}
+        <aside className="space-y-6">
+          {/* Status Panel */}
+          <section className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
+              {t('Status')}
+            </h2>
+
+            <form.Field name="status">
+              {(field) => (
+                <div className="space-y-4">
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(value) =>
+                      field.handleChange(
+                        value as 'draft' | 'active' | 'archived',
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 font-medium">
+                      <SelectValue placeholder={t('Select status')} />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border shadow-lg">
+                      <SelectItem value="draft" className="py-2.5 font-medium">
+                        {t('Draft')}
+                      </SelectItem>
+                      <SelectItem
+                        value="active"
+                        className="py-2.5 font-medium text-emerald-600"
+                      >
+                        {t('Active')}
+                      </SelectItem>
+                      <SelectItem
+                        value="archived"
+                        className="py-2.5 font-medium text-muted-foreground"
+                      >
+                        {t('Archived')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+                    {field.state.value === 'draft'
+                      ? t('Draft products are invisible to customers.')
+                      : field.state.value === 'active'
+                        ? t('This product will be live in your catalog.')
+                        : t('Archived products are hidden from admins.')}
+                  </p>
+                </div>
+              )}
+            </form.Field>
+          </section>
+
+          {/* Quick Actions Panel */}
+          <div className="bg-card border border-border/50 rounded-3xl p-4 shadow-sm sticky top-8">
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(isSubmitting) => (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="submit"
+                    className="h-12 rounded-xl bg-pink-500 hover:bg-pink-600 shadow-sm font-bold text-white disabled:opacity-50 gap-2"
+                    disabled={isSubmitting || updateProduct.isPending}
+                  >
+                    <Save className="w-4 h-4" />
+                    {updateProduct.isPending
+                      ? t('Saving...')
+                      : t('Save Changes')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 rounded-xl text-muted-foreground font-semibold text-xs"
+                    onClick={() => router.navigate({ to: '/admin/products' })}
+                  >
+                    {t('Cancel')}
+                  </Button>
+                </div>
+              )}
+            </form.Subscribe>
+
+            {updateProduct.isSuccess && (
+              <p className="text-emerald-500 text-[10px] font-bold text-center mt-3 animate-pulse uppercase tracking-widest">
+                {t('Saved successfully!')}
+              </p>
+            )}
+          </div>
+        </aside>
 
         {updateProduct.isError && (
-          <p className="text-red-500 text-sm">
-            {t('Error')}: {updateProduct.error.message}
-          </p>
+          <div className="lg:col-span-3 p-4 bg-destructive/5 border border-destructive/20 rounded-2xl">
+            <p className="text-destructive text-xs font-bold text-center">
+              {t('Error')}: {updateProduct.error.message}
+            </p>
+          </div>
         )}
       </form>
     </div>

@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { desc, eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { products, productVariants } from '../../../db/schema'
+import { products, productVariants, productImages } from '../../../db/schema'
 import { validateSession } from '../../../lib/auth'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
@@ -93,8 +93,26 @@ export const Route = createFileRoute('/api/products/')({
           }
 
           const body = await request.json()
-          const { name, handle, description, vendor, productType, status } =
-            body
+          const {
+            name,
+            handle,
+            description,
+            vendor,
+            productType,
+            status,
+            tags,
+            metaTitle,
+            metaDescription,
+            // Price & Inventory for the default variant
+            price,
+            compareAtPrice,
+            sku,
+            barcode,
+            inventoryQuantity,
+            weight,
+            // Images
+            images,
+          } = body
 
           // Validate name is an object with 'en' property
           if (
@@ -120,17 +138,53 @@ export const Route = createFileRoute('/api/products/')({
             )
           }
 
-          const [product] = await db
-            .insert(products)
-            .values({
-              name,
-              handle: handle.trim(),
-              description,
-              vendor,
-              productType,
-              status: status || 'draft',
+          // Start a transaction to ensure product and variant are created together
+          const product = await db.transaction(async (tx) => {
+            const [newProduct] = await tx
+              .insert(products)
+              .values({
+                name,
+                handle: handle.trim(),
+                description,
+                vendor,
+                productType,
+                status: status || 'draft',
+                tags: tags || [],
+                metaTitle,
+                metaDescription,
+              })
+              .returning()
+
+            // Create default variant
+            await tx.insert(productVariants).values({
+              productId: newProduct.id,
+              price: price || '0.00',
+              compareAtPrice,
+              sku,
+              barcode,
+              inventoryQuantity: inventoryQuantity || 0,
+              weight: weight || '0.00',
             })
-            .returning()
+
+            // Create images if provided
+            if (Array.isArray(images) && images.length > 0) {
+              await tx.insert(productImages).values(
+                images.map(
+                  (
+                    img: { url: string; altText?: LocalizedString },
+                    index: number,
+                  ) => ({
+                    productId: newProduct.id,
+                    url: img.url,
+                    altText: img.altText,
+                    position: index,
+                  }),
+                ),
+              )
+            }
+
+            return newProduct
+          })
 
           return Response.json({ success: true, product }, { status: 201 })
         } catch (error) {

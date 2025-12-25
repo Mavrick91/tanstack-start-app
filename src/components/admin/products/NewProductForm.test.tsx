@@ -3,22 +3,39 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NewProductForm } from './NewProductForm'
+import { createProductFn } from '../../../server/products'
 
-// Mock fetch
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+// Mock server functions
+vi.mock('../../../server/products', () => ({
+  createProductFn: vi.fn(),
+}))
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
 
+const mockProduct = {
+  id: '123',
+  name: { en: 'Test' },
+  status: 'draft' as const,
+  handle: 'test',
+  description: null,
+  vendor: null,
+  productType: null,
+  tags: [],
+  metaTitle: null,
+  metaDescription: null,
+  publishedAt: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 describe('New Product Form', () => {
   let queryClient: QueryClient
   const mockOnBack = vi.fn()
 
   beforeEach(() => {
-    mockFetch.mockReset()
     mockOnBack.mockReset()
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -110,43 +127,39 @@ describe('New Product Form', () => {
     expect(mockOnBack).toHaveBeenCalled()
   })
 
-  it('should submit form and call API', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: true,
-          product: { id: '123', name: { en: 'Test' } },
-        }),
+  it('should submit form and call server function', async () => {
+    vi.mocked(createProductFn).mockResolvedValue({
+      success: true,
+      data: mockProduct,
     })
 
     renderWithProviders(<NewProductForm onBack={mockOnBack} />)
 
     const nameInput = screen.getByPlaceholderText('Product name in English')
     fireEvent.change(nameInput, { target: { value: 'Test Product' } })
+    fireEvent.blur(nameInput)
 
     const handleInput = screen.getByPlaceholderText('product-url-slug')
     fireEvent.change(handleInput, { target: { value: 'test-product' } })
+    fireEvent.blur(handleInput)
 
     const submitButton = screen.getByRole('button', { name: /create product/i })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: expect.any(String),
+      expect(createProductFn).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: expect.objectContaining({ en: 'Test Product' }),
+          handle: 'test-product',
+        }),
       })
     })
   })
 
   it('should call onBack after successful submission', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: true,
-          product: { id: '123', name: { en: 'Test' } },
-        }),
+    vi.mocked(createProductFn).mockResolvedValue({
+      success: true,
+      data: mockProduct,
     })
 
     renderWithProviders(<NewProductForm onBack={mockOnBack} />)
@@ -166,13 +179,7 @@ describe('New Product Form', () => {
   })
 
   it('should show error message on failed submission', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: false,
-          error: 'Validation failed',
-        }),
-    })
+    vi.mocked(createProductFn).mockRejectedValue(new Error('validation failed'))
 
     renderWithProviders(<NewProductForm onBack={mockOnBack} />)
 
@@ -188,5 +195,118 @@ describe('New Product Form', () => {
     await waitFor(() => {
       expect(screen.getByText(/error: validation failed/i)).toBeInTheDocument()
     })
+  })
+
+  it('should handle adding and removing media items', () => {
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const addButton = screen.getByRole('button', { name: /add image url/i })
+    fireEvent.click(addButton)
+
+    expect(screen.getByText('Image URL')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('https://example.com/image.jpg'),
+    ).toBeInTheDocument()
+
+    const urlInput = screen.getByPlaceholderText(
+      'https://example.com/image.jpg',
+    )
+    fireEvent.change(urlInput, {
+      target: { value: 'https://test.com/img.jpg' },
+    })
+    expect(urlInput).toHaveValue('https://test.com/img.jpg')
+
+    const removeButton = screen.getByRole('button', { name: /remove image/i })
+    fireEvent.click(removeButton)
+
+    expect(
+      screen.queryByPlaceholderText('https://test.com/img.jpg'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('should update pricing fields', () => {
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const priceInput = screen.getByLabelText(/^price/i)
+    fireEvent.change(priceInput, { target: { value: '29.99' } })
+    expect(priceInput).toHaveValue(29.99)
+
+    const compareAtInput = screen.getByLabelText(/^compare-at price/i)
+    fireEvent.change(compareAtInput, { target: { value: '39.99' } })
+    expect(compareAtInput).toHaveValue(39.99)
+  })
+
+  it('should update inventory fields', () => {
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const skuInput = screen.getByLabelText(/sku/i)
+    fireEvent.change(skuInput, { target: { value: 'SKU-123' } })
+    expect(skuInput).toHaveValue('SKU-123')
+
+    const barcodeInput = screen.getByLabelText(/barcode/i)
+    fireEvent.change(barcodeInput, { target: { value: '12345678' } })
+    expect(barcodeInput).toHaveValue('12345678')
+
+    const qtyInput = screen.getByLabelText(/quantity available/i)
+    fireEvent.change(qtyInput, { target: { value: '50' } })
+    expect(qtyInput).toHaveValue(50)
+  })
+
+  it('should update shipping fields', () => {
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const weightInput = screen.getByLabelText(/weight/i)
+    fireEvent.change(weightInput, { target: { value: '1.5' } })
+    expect(weightInput).toHaveValue(1.5)
+  })
+
+  it('should parse tags correctly', async () => {
+    vi.mocked(createProductFn).mockResolvedValue({
+      success: true,
+      data: mockProduct,
+    })
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const nameInput = screen.getByPlaceholderText('Product name in English')
+    fireEvent.change(nameInput, { target: { value: 'Test Product' } })
+    fireEvent.blur(nameInput)
+
+    const handleInput = screen.getByPlaceholderText('product-url-slug')
+    fireEvent.change(handleInput, { target: { value: 'test-product' } })
+    fireEvent.blur(handleInput)
+
+    const tagsInput = screen.getByPlaceholderText(/separate with commas/i)
+    fireEvent.change(tagsInput, {
+      target: { value: 'summer, red, bestseller' },
+    })
+    fireEvent.blur(tagsInput)
+
+    const submitButton = screen.getByRole('button', { name: /create product/i })
+    fireEvent.submit(submitButton.closest('form')!)
+
+    await waitFor(() => {
+      expect(createProductFn).toHaveBeenCalled()
+      const calls = vi.mocked(createProductFn).mock.calls
+      const callArgs = calls[calls.length - 1][0].data
+      expect(callArgs.tags).toEqual(['summer', 'red', 'bestseller'])
+    })
+  })
+
+  it('should update SEO metadata fields', () => {
+    renderWithProviders(<NewProductForm onBack={mockOnBack} />)
+
+    const metaTitleInput = screen.getByPlaceholderText(
+      /seo title \(defaults to product name\)/i,
+    )
+    fireEvent.change(metaTitleInput, { target: { value: 'SEO Title' } })
+    expect(metaTitleInput).toHaveValue('SEO Title')
+
+    const metaDescInput = screen.getByPlaceholderText(
+      /seo description \(defaults to product description\)/i,
+    )
+    fireEvent.change(metaDescInput, {
+      target: { value: 'SEO Description' },
+    })
+    expect(metaDescInput).toHaveValue('SEO Description')
   })
 })
