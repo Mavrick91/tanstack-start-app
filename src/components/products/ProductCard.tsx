@@ -1,5 +1,6 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCartStore } from '../../hooks/useCart'
 import { formatCurrency } from '../../lib/format'
@@ -14,6 +15,9 @@ type ProductCardProps = {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { lang } = useParams({ strict: false }) as { lang?: string }
+  const { t } = useTranslation()
+  const currentLang = lang || 'en'
   const addItem = useCartStore((state) => state.addItem)
 
   return (
@@ -21,13 +25,13 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-0 relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary/30">
         {product.isFeatured && (
           <Badge className="absolute top-4 left-4 z-10 glass-dark text-white border-white/10 px-3 py-1">
-            Featured
+            {t('Featured')}
           </Badge>
         )}
 
         <Link
-          to="/products/$productId"
-          params={{ productId: product.slug }}
+          to="/$lang/products/$productId"
+          params={{ lang: currentLang, productId: product.slug }}
           className="block w-full h-full"
         >
           <img
@@ -43,15 +47,15 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={() => addItem(product.id)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add to Cart
+            {t('Add to Cart')}
           </Button>
         </div>
       </CardContent>
 
       <CardFooter className="px-0 py-4 flex flex-col items-start gap-1">
         <Link
-          to="/products/$productId"
-          params={{ productId: product.slug }}
+          to="/$lang/products/$productId"
+          params={{ lang: currentLang, productId: product.slug }}
           className="text-sm font-semibold tracking-tight hover:underline underline-offset-4"
         >
           {product.name}

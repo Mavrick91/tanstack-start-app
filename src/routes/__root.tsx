@@ -1,5 +1,10 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useParams,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { Navbar } from '../components/layout/Navbar'
@@ -16,7 +21,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Obelisk | Premium Minimalist Storefront',
       },
     ],
     links: [
@@ -31,8 +36,11 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const { lang } = useParams({ strict: false }) as { lang?: string }
+  const currentLang = lang || 'en'
+
   return (
-    <html lang="en">
+    <html lang={currentLang}>
       <head>
         <HeadContent />
       </head>

@@ -18,6 +18,14 @@ vi.mock('@tanstack/react-router', () => ({
       {children}
     </a>
   ),
+  useParams: () => ({ lang: 'en' }),
+}))
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: 'en', changeLanguage: vi.fn() },
+  }),
 }))
 
 vi.mock('../../hooks/useCart', () => ({

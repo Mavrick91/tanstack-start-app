@@ -1,32 +1,47 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowLeft, Minus, Plus } from 'lucide-react'
+import { ChevronLeft, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import { Separator } from '../../components/ui/separator'
-import { getProductBySlug } from '../../data/products'
-import { useCartStore } from '../../hooks/useCart'
-import { formatCurrency } from '../../lib/format'
+import { Badge } from '../../../components/ui/badge'
+import { Button } from '../../../components/ui/button'
+import { Separator } from '../../../components/ui/separator'
+import { getProductBySlug } from '../../../data/products'
+import { useCartStore } from '../../../hooks/useCart'
+import { formatCurrency } from '../../../lib/format'
 
-export const Route = createFileRoute('/products/$productId')({
+export const Route = createFileRoute('/$lang/products/$productId')({
   loader: ({ params }) => getProductBySlug(params.productId),
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData
+          ? `${loaderData.name} | Obelisk`
+          : 'Product | Obelisk',
+      },
+    ],
+  }),
   component: ProductDetailPage,
 })
 
 function ProductDetailPage() {
+  const { lang } = Route.useParams()
+  const { t } = useTranslation()
   const product = Route.useLoaderData()
   const addItem = useCartStore((state) => state.addItem)
   const [quantity, setQuantity] = useState(1)
 
+  if (!product) return null
+
   return (
     <div className="container mx-auto px-4 py-16">
       <Link
-        to="/products"
+        to="/$lang/products"
+        params={{ lang }}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-12 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Back to all products
+        <ChevronLeft className="w-4 h-4" />
+        {t('Back to all products')}
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
@@ -67,7 +82,7 @@ function ProductDetailPage() {
               </Badge>
               {product.isFeatured && (
                 <Badge className="rounded-full glass-dark text-white border-white/10 uppercase tracking-widest text-[10px]">
-                  Featured
+                  {t('Featured')}
                 </Badge>
               )}
             </div>
@@ -127,7 +142,7 @@ function ProductDetailPage() {
                     }
                   }}
                 >
-                  Add to Bag
+                  {t('Add to Bag')}
                 </Button>
               </div>
             </div>
@@ -138,17 +153,17 @@ function ProductDetailPage() {
           <div className="grid grid-cols-2 gap-8 py-4">
             <div>
               <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                Shipping
+                {t('Shipping')}
               </h5>
               <p className="text-sm">
-                Free worldwide delivery on orders over $150.
+                {t('Free worldwide delivery on orders over $150.')}
               </p>
             </div>
             <div>
               <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                Returns
+                {t('Returns')}
               </h5>
-              <p className="text-sm">30-day effortless return policy.</p>
+              <p className="text-sm">{t('30-day effortless return policy.')}</p>
             </div>
           </div>
         </div>

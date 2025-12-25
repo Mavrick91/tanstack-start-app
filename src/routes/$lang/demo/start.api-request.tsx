@@ -7,7 +7,7 @@ function getNames() {
   )
 }
 
-export const Route = createFileRoute('/demo/start/api-request')({
+export const Route = createFileRoute('/$lang/demo/start/api-request')({
   component: Home,
 })
 

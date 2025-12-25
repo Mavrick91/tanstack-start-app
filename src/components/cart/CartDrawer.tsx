@@ -1,4 +1,5 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCart } from '../../hooks/useCart'
 import { formatCurrency } from '../../lib/format'
@@ -26,6 +27,7 @@ export function CartDrawer({
   onOpenChange,
   products = [],
 }: CartDrawerProps) {
+  const { t } = useTranslation()
   const { items, totalPrice, totalItems, removeItem, updateQuantity } =
     useCart(products)
 
@@ -35,7 +37,7 @@ export function CartDrawer({
         <SheetHeader className="p-6 border-b border-white/10">
           <SheetTitle className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
-            Your Bag ({totalItems})
+            {t('Your Bag')} ({t('item', { count: totalItems })})
           </SheetTitle>
         </SheetHeader>
 
@@ -46,14 +48,14 @@ export function CartDrawer({
                 <ShoppingBag className="w-8 h-8 text-white/20" />
               </div>
               <p className="text-muted-foreground font-medium">
-                Your bag is currently empty.
+                {t('Your bag is currently empty.')}
               </p>
               <Button
                 variant="outline"
                 className="mt-2 border-white/20 hover:bg-white/10 text-white"
                 onClick={() => onOpenChange(false)}
               >
-                Start Shopping
+                {t('Start Shopping')}
               </Button>
             </div>
           ) : (
@@ -133,7 +135,7 @@ export function CartDrawer({
           <SheetFooter className="p-6 bg-white/5 border-t border-white/10 mt-auto flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Subtotal</span>
+                <span>{t('Subtotal')}</span>
                 <span>
                   {formatCurrency({
                     value: totalPrice,
@@ -142,12 +144,12 @@ export function CartDrawer({
                 </span>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Shipping</span>
-                <span>Calculated at checkout</span>
+                <span>{t('Shipping')}</span>
+                <span>{t('Calculated at checkout')}</span>
               </div>
               <Separator className="bg-white/10 my-2" />
               <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
+                <span>{t('Total')}</span>
                 <span>
                   {formatCurrency({
                     value: totalPrice,
@@ -157,7 +159,7 @@ export function CartDrawer({
               </div>
             </div>
             <Button className="w-full bg-white text-black hover:bg-white/90 font-bold py-6 text-base">
-              Checkout
+              {t('Checkout')}
             </Button>
           </SheetFooter>
         )}

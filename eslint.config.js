@@ -77,6 +77,17 @@ export default tseslint.config(
           },
         },
       ],
+
+      // Enforce literal strings for i18n
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.name='t'][arguments.0.type!='Literal'][arguments.0.type!='TemplateLiteral']",
+          message:
+            'The t() function must be called with a string literal to support static analysis. For dynamic keys, use the td() helper instead.',
+        },
+      ],
     },
   },
   prettierConfig,

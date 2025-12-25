@@ -1,19 +1,25 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
 import { Menu, Search, ShoppingBag } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { getProducts } from '../../data/products'
 import { useCartStore } from '../../hooks/useCart'
+import { cn } from '../../lib/utils'
 import { CartDrawer } from '../cart/CartDrawer'
 import { Button } from '../ui/button'
 
 import type { Product } from '../../types/store'
 
 export function Navbar() {
+  const { lang } = useParams({ strict: false }) as { lang?: string }
+  const { t } = useTranslation()
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [products, setProducts] = useState<Array<Product>>([])
   const items = useCartStore((state) => state.items)
   const totalItems = items.reduce((acc: number, item) => acc + item.quantity, 0)
+
+  const currentLang = lang || 'en'
 
   useEffect(() => {
     getProducts().then(setProducts)
@@ -24,7 +30,8 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link
-            to="/"
+            to="/$lang"
+            params={{ lang: currentLang }}
             className="text-xl font-bold tracking-tighter flex items-center gap-2"
           >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
@@ -35,30 +42,51 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
             <Link
-              to="/"
+              to="/$lang"
+              params={{ lang: currentLang }}
               className="hover:text-foreground transition-colors"
               activeProps={{ className: 'text-foreground' }}
             >
-              Home
+              {t('Home')}
             </Link>
             <Link
-              to="/products"
+              to="/$lang/products"
+              params={{ lang: currentLang }}
               className="hover:text-foreground transition-colors"
               activeProps={{ className: 'text-foreground' }}
             >
-              Products
+              {t('Products')}
             </Link>
             <Link
-              to="/"
+              to="/$lang"
+              params={{ lang: currentLang }}
               className="hover:text-foreground transition-colors"
               activeProps={{ className: 'text-foreground' }}
             >
-              Story
+              {t('Story')}
             </Link>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 mr-2 px-2 py-1 rounded-full bg-secondary/50 border border-border">
+            {['en', 'fr', 'id'].map((l) => (
+              <Link
+                key={l}
+                to="/$lang"
+                params={{ lang: l }}
+                className={cn(
+                  'text-[10px] font-bold uppercase w-6 h-6 flex items-center justify-center rounded-full transition-all',
+                  currentLang === l
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-primary/10',
+                )}
+              >
+                {l}
+              </Link>
+            ))}
+          </div>
+
           <Button variant="ghost" size="icon" className="hover:bg-primary/5">
             <Search className="w-5 h-5" />
           </Button>

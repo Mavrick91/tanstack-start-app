@@ -9,159 +9,182 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProductsIndexRouteImport } from './routes/products/index'
-import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
-import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
-import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
-import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
-import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
-import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
-import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
-import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
+import { Route as LangIndexRouteImport } from './routes/$lang/index'
+import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
+import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
+import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
+import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo/start.api-request'
+import { Route as LangDemoApiNamesRouteImport } from './routes/$lang/demo/api.names'
+import { Route as LangDemoStartSsrIndexRouteImport } from './routes/$lang/demo/start.ssr.index'
+import { Route as LangDemoStartSsrSpaModeRouteImport } from './routes/$lang/demo/start.ssr.spa-mode'
+import { Route as LangDemoStartSsrFullSsrRouteImport } from './routes/$lang/demo/start.ssr.full-ssr'
+import { Route as LangDemoStartSsrDataOnlyRouteImport } from './routes/$lang/demo/start.ssr.data-only'
 
+const LangRoute = LangRouteImport.update({
+  id: '/$lang',
+  path: '/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductsIndexRoute = ProductsIndexRouteImport.update({
+const LangIndexRoute = LangIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
+const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
   id: '/products/$productId',
   path: '/products/$productId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
-  id: '/demo/start/server-funcs',
-  path: '/demo/start/server-funcs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoStartApiRequestRoute = DemoStartApiRequestRouteImport.update({
+const LangDemoStartServerFuncsRoute =
+  LangDemoStartServerFuncsRouteImport.update({
+    id: '/demo/start/server-funcs',
+    path: '/demo/start/server-funcs',
+    getParentRoute: () => LangRoute,
+  } as any)
+const LangDemoStartApiRequestRoute = LangDemoStartApiRequestRouteImport.update({
   id: '/demo/start/api-request',
   path: '/demo/start/api-request',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
+const LangDemoApiNamesRoute = LangDemoApiNamesRouteImport.update({
   id: '/demo/api/names',
   path: '/demo/api/names',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
+const LangDemoStartSsrIndexRoute = LangDemoStartSsrIndexRouteImport.update({
   id: '/demo/start/ssr/',
   path: '/demo/start/ssr/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoStartSsrSpaModeRoute = DemoStartSsrSpaModeRouteImport.update({
+const LangDemoStartSsrSpaModeRoute = LangDemoStartSsrSpaModeRouteImport.update({
   id: '/demo/start/ssr/spa-mode',
   path: '/demo/start/ssr/spa-mode',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoStartSsrFullSsrRoute = DemoStartSsrFullSsrRouteImport.update({
+const LangDemoStartSsrFullSsrRoute = LangDemoStartSsrFullSsrRouteImport.update({
   id: '/demo/start/ssr/full-ssr',
   path: '/demo/start/ssr/full-ssr',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => LangRoute,
 } as any)
-const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
-  id: '/demo/start/ssr/data-only',
-  path: '/demo/start/ssr/data-only',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const LangDemoStartSsrDataOnlyRoute =
+  LangDemoStartSsrDataOnlyRouteImport.update({
+    id: '/demo/start/ssr/data-only',
+    path: '/demo/start/ssr/data-only',
+    getParentRoute: () => LangRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/products/$productId': typeof ProductsProductIdRoute
-  '/products': typeof ProductsIndexRoute
-  '/demo/api/names': typeof DemoApiNamesRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
-  '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
-  '/demo/start/ssr': typeof DemoStartSsrIndexRoute
+  '/$lang': typeof LangRouteWithChildren
+  '/$lang/': typeof LangIndexRoute
+  '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/$lang/products': typeof LangProductsIndexRoute
+  '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
+  '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
+  '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
+  '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
+  '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
+  '/$lang/demo/start/ssr': typeof LangDemoStartSsrIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/products/$productId': typeof ProductsProductIdRoute
-  '/products': typeof ProductsIndexRoute
-  '/demo/api/names': typeof DemoApiNamesRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
-  '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
-  '/demo/start/ssr': typeof DemoStartSsrIndexRoute
+  '/$lang': typeof LangIndexRoute
+  '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/$lang/products': typeof LangProductsIndexRoute
+  '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
+  '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
+  '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
+  '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
+  '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
+  '/$lang/demo/start/ssr': typeof LangDemoStartSsrIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/products/$productId': typeof ProductsProductIdRoute
-  '/products/': typeof ProductsIndexRoute
-  '/demo/api/names': typeof DemoApiNamesRoute
-  '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
-  '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
-  '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
-  '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
-  '/demo/start/ssr/': typeof DemoStartSsrIndexRoute
+  '/$lang': typeof LangRouteWithChildren
+  '/$lang/': typeof LangIndexRoute
+  '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/$lang/products/': typeof LangProductsIndexRoute
+  '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
+  '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
+  '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
+  '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
+  '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
+  '/$lang/demo/start/ssr/': typeof LangDemoStartSsrIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/products/$productId'
-    | '/products'
-    | '/demo/api/names'
-    | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
-    | '/demo/start/ssr/spa-mode'
-    | '/demo/start/ssr'
+    | '/$lang'
+    | '/$lang/'
+    | '/$lang/products/$productId'
+    | '/$lang/products'
+    | '/$lang/demo/api/names'
+    | '/$lang/demo/start/api-request'
+    | '/$lang/demo/start/server-funcs'
+    | '/$lang/demo/start/ssr/data-only'
+    | '/$lang/demo/start/ssr/full-ssr'
+    | '/$lang/demo/start/ssr/spa-mode'
+    | '/$lang/demo/start/ssr'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/products/$productId'
-    | '/products'
-    | '/demo/api/names'
-    | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
-    | '/demo/start/ssr/spa-mode'
-    | '/demo/start/ssr'
+    | '/$lang'
+    | '/$lang/products/$productId'
+    | '/$lang/products'
+    | '/$lang/demo/api/names'
+    | '/$lang/demo/start/api-request'
+    | '/$lang/demo/start/server-funcs'
+    | '/$lang/demo/start/ssr/data-only'
+    | '/$lang/demo/start/ssr/full-ssr'
+    | '/$lang/demo/start/ssr/spa-mode'
+    | '/$lang/demo/start/ssr'
   id:
     | '__root__'
     | '/'
-    | '/products/$productId'
-    | '/products/'
-    | '/demo/api/names'
-    | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
-    | '/demo/start/ssr/data-only'
-    | '/demo/start/ssr/full-ssr'
-    | '/demo/start/ssr/spa-mode'
-    | '/demo/start/ssr/'
+    | '/$lang'
+    | '/$lang/'
+    | '/$lang/products/$productId'
+    | '/$lang/products/'
+    | '/$lang/demo/api/names'
+    | '/$lang/demo/start/api-request'
+    | '/$lang/demo/start/server-funcs'
+    | '/$lang/demo/start/ssr/data-only'
+    | '/$lang/demo/start/ssr/full-ssr'
+    | '/$lang/demo/start/ssr/spa-mode'
+    | '/$lang/demo/start/ssr/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ProductsProductIdRoute: typeof ProductsProductIdRoute
-  ProductsIndexRoute: typeof ProductsIndexRoute
-  DemoApiNamesRoute: typeof DemoApiNamesRoute
-  DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
-  DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
-  DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
-  DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
-  DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
-  DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
+  LangRoute: typeof LangRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/$lang': {
+      id: '/$lang'
+      path: '/$lang'
+      fullPath: '/$lang'
+      preLoaderRoute: typeof LangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -169,83 +192,110 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products/': {
-      id: '/products/'
+    '/$lang/': {
+      id: '/$lang/'
+      path: '/'
+      fullPath: '/$lang/'
+      preLoaderRoute: typeof LangIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/products/': {
+      id: '/$lang/products/'
       path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/products'
+      preLoaderRoute: typeof LangProductsIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/products/$productId': {
-      id: '/products/$productId'
+    '/$lang/products/$productId': {
+      id: '/$lang/products/$productId'
       path: '/products/$productId'
-      fullPath: '/products/$productId'
-      preLoaderRoute: typeof ProductsProductIdRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/products/$productId'
+      preLoaderRoute: typeof LangProductsProductIdRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/server-funcs': {
-      id: '/demo/start/server-funcs'
+    '/$lang/demo/start/server-funcs': {
+      id: '/$lang/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
-      fullPath: '/demo/start/server-funcs'
-      preLoaderRoute: typeof DemoStartServerFuncsRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/server-funcs'
+      preLoaderRoute: typeof LangDemoStartServerFuncsRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/api-request': {
-      id: '/demo/start/api-request'
+    '/$lang/demo/start/api-request': {
+      id: '/$lang/demo/start/api-request'
       path: '/demo/start/api-request'
-      fullPath: '/demo/start/api-request'
-      preLoaderRoute: typeof DemoStartApiRequestRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/api-request'
+      preLoaderRoute: typeof LangDemoStartApiRequestRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/api/names': {
-      id: '/demo/api/names'
+    '/$lang/demo/api/names': {
+      id: '/$lang/demo/api/names'
       path: '/demo/api/names'
-      fullPath: '/demo/api/names'
-      preLoaderRoute: typeof DemoApiNamesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/api/names'
+      preLoaderRoute: typeof LangDemoApiNamesRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/ssr/': {
-      id: '/demo/start/ssr/'
+    '/$lang/demo/start/ssr/': {
+      id: '/$lang/demo/start/ssr/'
       path: '/demo/start/ssr'
-      fullPath: '/demo/start/ssr'
-      preLoaderRoute: typeof DemoStartSsrIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/ssr'
+      preLoaderRoute: typeof LangDemoStartSsrIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/ssr/spa-mode': {
-      id: '/demo/start/ssr/spa-mode'
+    '/$lang/demo/start/ssr/spa-mode': {
+      id: '/$lang/demo/start/ssr/spa-mode'
       path: '/demo/start/ssr/spa-mode'
-      fullPath: '/demo/start/ssr/spa-mode'
-      preLoaderRoute: typeof DemoStartSsrSpaModeRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/ssr/spa-mode'
+      preLoaderRoute: typeof LangDemoStartSsrSpaModeRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/ssr/full-ssr': {
-      id: '/demo/start/ssr/full-ssr'
+    '/$lang/demo/start/ssr/full-ssr': {
+      id: '/$lang/demo/start/ssr/full-ssr'
       path: '/demo/start/ssr/full-ssr'
-      fullPath: '/demo/start/ssr/full-ssr'
-      preLoaderRoute: typeof DemoStartSsrFullSsrRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/ssr/full-ssr'
+      preLoaderRoute: typeof LangDemoStartSsrFullSsrRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/demo/start/ssr/data-only': {
-      id: '/demo/start/ssr/data-only'
+    '/$lang/demo/start/ssr/data-only': {
+      id: '/$lang/demo/start/ssr/data-only'
       path: '/demo/start/ssr/data-only'
-      fullPath: '/demo/start/ssr/data-only'
-      preLoaderRoute: typeof DemoStartSsrDataOnlyRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$lang/demo/start/ssr/data-only'
+      preLoaderRoute: typeof LangDemoStartSsrDataOnlyRouteImport
+      parentRoute: typeof LangRoute
     }
   }
 }
 
+interface LangRouteChildren {
+  LangIndexRoute: typeof LangIndexRoute
+  LangProductsProductIdRoute: typeof LangProductsProductIdRoute
+  LangProductsIndexRoute: typeof LangProductsIndexRoute
+  LangDemoApiNamesRoute: typeof LangDemoApiNamesRoute
+  LangDemoStartApiRequestRoute: typeof LangDemoStartApiRequestRoute
+  LangDemoStartServerFuncsRoute: typeof LangDemoStartServerFuncsRoute
+  LangDemoStartSsrDataOnlyRoute: typeof LangDemoStartSsrDataOnlyRoute
+  LangDemoStartSsrFullSsrRoute: typeof LangDemoStartSsrFullSsrRoute
+  LangDemoStartSsrSpaModeRoute: typeof LangDemoStartSsrSpaModeRoute
+  LangDemoStartSsrIndexRoute: typeof LangDemoStartSsrIndexRoute
+}
+
+const LangRouteChildren: LangRouteChildren = {
+  LangIndexRoute: LangIndexRoute,
+  LangProductsProductIdRoute: LangProductsProductIdRoute,
+  LangProductsIndexRoute: LangProductsIndexRoute,
+  LangDemoApiNamesRoute: LangDemoApiNamesRoute,
+  LangDemoStartApiRequestRoute: LangDemoStartApiRequestRoute,
+  LangDemoStartServerFuncsRoute: LangDemoStartServerFuncsRoute,
+  LangDemoStartSsrDataOnlyRoute: LangDemoStartSsrDataOnlyRoute,
+  LangDemoStartSsrFullSsrRoute: LangDemoStartSsrFullSsrRoute,
+  LangDemoStartSsrSpaModeRoute: LangDemoStartSsrSpaModeRoute,
+  LangDemoStartSsrIndexRoute: LangDemoStartSsrIndexRoute,
+}
+
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ProductsProductIdRoute: ProductsProductIdRoute,
-  ProductsIndexRoute: ProductsIndexRoute,
-  DemoApiNamesRoute: DemoApiNamesRoute,
-  DemoStartApiRequestRoute: DemoStartApiRequestRoute,
-  DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
-  DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
-  DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
-  DemoStartSsrSpaModeRoute: DemoStartSsrSpaModeRoute,
-  DemoStartSsrIndexRoute: DemoStartSsrIndexRoute,
+  LangRoute: LangRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
