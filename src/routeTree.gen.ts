@@ -16,6 +16,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
 import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo/start.api-request'
@@ -59,6 +60,11 @@ const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
   getParentRoute: () => LangRoute,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
   id: '/products/$productId',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
   '/$lang/products/': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/products/$productId'
+    | '/api/auth/login'
     | '/$lang/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/$lang/products/$productId'
+    | '/api/auth/login'
     | '/$lang/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/products/$productId'
+    | '/api/auth/login'
     | '/$lang/products/'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/products'
       preLoaderRoute: typeof LangProductsIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$lang/products/$productId': {
       id: '/$lang/products/$productId'
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

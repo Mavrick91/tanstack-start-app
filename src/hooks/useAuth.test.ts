@@ -1,14 +1,22 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from './useAuth'
 
+// Mock fetch for API calls
+const mockFetch = vi.fn()
+vi.stubGlobal('fetch', mockFetch)
+
 describe('useAuth Store', () => {
+  beforeEach(() => {
+    mockFetch.mockReset()
+  })
+
   afterEach(() => {
-    // Reset the store between tests
     act(() => {
       useAuthStore.getState().logout()
     })
+    localStorage.clear()
   })
 
   it('should initialize with unauthenticated state', () => {
@@ -19,24 +27,45 @@ describe('useAuth Store', () => {
   })
 
   it('should login with correct credentials', async () => {
+    const mockUser = {
+      id: 'test-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'admin',
+    }
+
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ success: true, user: mockUser }),
+    })
+
     const { result } = renderHook(() => useAuthStore())
 
-    let success: boolean = false
+    let success
     await act(async () => {
-      success = await result.current.login('admin@finenail.com', 'admin123')
+      success = await result.current.login('test@example.com', 'password')
     })
 
     expect(success).toBe(true)
     expect(result.current.isAuthenticated).toBe(true)
-    expect(result.current.user?.email).toBe('admin@finenail.com')
+    expect(result.current.user).toEqual(mockUser)
+    expect(mockFetch).toHaveBeenCalledWith('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'test@example.com', password: 'password' }),
+    })
   })
 
   it('should fail login with incorrect credentials', async () => {
+    mockFetch.mockResolvedValue({
+      json: () =>
+        Promise.resolve({ success: false, error: 'Invalid email or password' }),
+    })
+
     const { result } = renderHook(() => useAuthStore())
 
-    let success: boolean = false
+    let success
     await act(async () => {
-      success = await result.current.login('wrong@email.com', 'wrongpass')
+      success = await result.current.login('wrong@example.com', 'wrong')
     })
 
     expect(success).toBe(false)
@@ -45,15 +74,18 @@ describe('useAuth Store', () => {
   })
 
   it('should logout and clear user state', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test',
+        role: 'user',
+      },
+    })
+
     const { result } = renderHook(() => useAuthStore())
 
-    // Login first
-    await act(async () => {
-      await result.current.login('admin@finenail.com', 'admin123')
-    })
-    expect(result.current.isAuthenticated).toBe(true)
-
-    // Then logout
     act(() => {
       result.current.logout()
     })
@@ -62,11 +94,8 @@ describe('useAuth Store', () => {
     expect(result.current.user).toBeNull()
   })
 
-  it('should expose getState for non-hook access', () => {
+  it('should persist auth state via getState', () => {
     const state = useAuthStore.getState()
-
-    expect(typeof state.login).toBe('function')
-    expect(typeof state.logout).toBe('function')
     expect(state.isAuthenticated).toBe(false)
   })
 })

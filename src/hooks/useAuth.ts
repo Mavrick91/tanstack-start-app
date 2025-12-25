@@ -2,8 +2,10 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 type User = {
+  id: string
   email: string
   name: string
+  role: string
 }
 
 type AuthState = {
@@ -13,33 +15,34 @@ type AuthState = {
   logout: () => void
 }
 
-// Mock credentials for demo purposes
-const MOCK_CREDENTIALS = {
-  email: 'admin@finenail.com',
-  password: 'admin123',
-}
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuthenticated: false,
       user: null,
 
-      login: async (email: string, password: string) => {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        if (
-          email === MOCK_CREDENTIALS.email &&
-          password === MOCK_CREDENTIALS.password
-        ) {
-          set({
-            isAuthenticated: true,
-            user: { email, name: 'Admin User' },
+      login: async (email, password) => {
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
           })
-          return true
+
+          const result = await response.json()
+
+          if (result.success && result.user) {
+            set({
+              isAuthenticated: true,
+              user: result.user,
+            })
+            return true
+          }
+          return false
+        } catch (error) {
+          console.error('Login failed:', error)
+          return false
         }
-        return false
       },
 
       logout: () => {
