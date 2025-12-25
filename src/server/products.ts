@@ -147,11 +147,11 @@ export const createProductFn = createServerFn({ method: 'POST' })
       await tx.insert(productVariants).values({
         productId: newProduct.id,
         price: price || '0.00',
-        compareAtPrice,
-        sku,
-        barcode,
+        compareAtPrice: compareAtPrice || null,
+        sku: sku?.trim() || null,
+        barcode: barcode?.trim() || null,
         inventoryQuantity: inventoryQuantity || 0,
-        weight: weight || '0.00',
+        weight: weight || null,
       })
 
       if (Array.isArray(images) && images.length > 0) {
