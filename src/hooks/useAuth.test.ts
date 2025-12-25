@@ -14,7 +14,11 @@ describe('useAuth Store', () => {
 
   afterEach(() => {
     act(() => {
-      useAuthStore.getState().logout()
+      useAuthStore.setState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: true,
+      })
     })
     localStorage.clear()
   })
@@ -30,7 +34,6 @@ describe('useAuth Store', () => {
     const mockUser = {
       id: 'test-id',
       email: 'test@example.com',
-      name: 'Test User',
       role: 'admin',
     }
 
@@ -52,6 +55,7 @@ describe('useAuth Store', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'test@example.com', password: 'password' }),
+      credentials: 'include',
     })
   })
 
@@ -74,28 +78,48 @@ describe('useAuth Store', () => {
   })
 
   it('should logout and clear user state', async () => {
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ success: true }),
+    })
+
     useAuthStore.setState({
       isAuthenticated: true,
       user: {
         id: '1',
         email: 'test@example.com',
-        name: 'Test',
         role: 'user',
       },
     })
 
     const { result } = renderHook(() => useAuthStore())
 
-    act(() => {
-      result.current.logout()
+    await act(async () => {
+      await result.current.logout()
     })
 
     expect(result.current.isAuthenticated).toBe(false)
     expect(result.current.user).toBeNull()
   })
 
-  it('should persist auth state via getState', () => {
-    const state = useAuthStore.getState()
-    expect(state.isAuthenticated).toBe(false)
+  it('should check session and update state', async () => {
+    const mockUser = {
+      id: 'test-id',
+      email: 'test@example.com',
+      role: 'admin',
+    }
+
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ success: true, user: mockUser }),
+    })
+
+    const { result } = renderHook(() => useAuthStore())
+
+    await act(async () => {
+      await result.current.checkSession()
+    })
+
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(result.current.user).toEqual(mockUser)
+    expect(result.current.isLoading).toBe(false)
   })
 })

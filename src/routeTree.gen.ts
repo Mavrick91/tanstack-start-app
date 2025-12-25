@@ -16,6 +16,8 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
+import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
@@ -60,6 +62,16 @@ const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
   getParentRoute: () => LangRoute,
+} as any)
+const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
+  id: '/api/auth/me',
+  path: '/api/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   id: '/api/auth/login',
@@ -118,6 +130,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -134,6 +148,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -153,6 +169,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/$lang/products/': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -173,6 +191,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/$lang/products/$productId'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
     | '/$lang/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -189,6 +209,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/$lang/products/$productId'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
     | '/$lang/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -207,6 +229,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/$lang/products/$productId'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
     | '/$lang/products/'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -222,6 +246,8 @@ export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthMeRoute: typeof ApiAuthMeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -274,6 +300,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/products'
       preLoaderRoute: typeof LangProductsIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/api/auth/me': {
+      id: '/api/auth/me'
+      path: '/api/auth/me'
+      fullPath: '/api/auth/me'
+      preLoaderRoute: typeof ApiAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/login': {
       id: '/api/auth/login'
@@ -386,6 +426,8 @@ const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthMeRoute: ApiAuthMeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

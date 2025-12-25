@@ -14,16 +14,18 @@ describe('Auth Guard Logic', () => {
 
   afterEach(() => {
     act(() => {
-      useAuthStore.getState().logout()
+      useAuthStore.setState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: true,
+      })
     })
     localStorage.clear()
   })
 
   it('should return isAuthenticated false when not logged in', () => {
     const state = useAuthStore.getState()
-    state.logout()
-
-    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+    expect(state.isAuthenticated).toBe(false)
   })
 
   it('should return isAuthenticated true after login', async () => {
@@ -35,7 +37,6 @@ describe('Auth Guard Logic', () => {
             id: '1',
             email: 'admin@finenail.com',
             role: 'admin',
-            name: 'Admin User',
           },
         }),
     })
@@ -56,7 +57,6 @@ describe('Auth Guard Logic', () => {
             id: '1',
             email: 'admin@finenail.com',
             role: 'admin',
-            name: 'Admin User',
           },
         }),
     })
@@ -67,10 +67,11 @@ describe('Auth Guard Logic', () => {
     const user = useAuthStore.getState().user
     expect(user).not.toBeNull()
     expect(user?.email).toBe('admin@finenail.com')
-    expect(user?.name).toBe('Admin User')
+    expect(user?.role).toBe('admin')
   })
 
   it('should clear user info after logout', async () => {
+    // Setup: login first
     mockFetch.mockResolvedValue({
       json: () =>
         Promise.resolve({
@@ -79,7 +80,6 @@ describe('Auth Guard Logic', () => {
             id: '1',
             email: 'admin@finenail.com',
             role: 'admin',
-            name: 'Admin User',
           },
         }),
     })
@@ -88,7 +88,13 @@ describe('Auth Guard Logic', () => {
     await state.login('admin@finenail.com', 'admin123')
     expect(useAuthStore.getState().user).not.toBeNull()
 
-    state.logout()
+    // Mock logout response
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ success: true }),
+    })
+
+    // Logout
+    await state.logout()
 
     expect(useAuthStore.getState().user).toBeNull()
     expect(useAuthStore.getState().isAuthenticated).toBe(false)

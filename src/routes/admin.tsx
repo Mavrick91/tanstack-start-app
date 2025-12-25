@@ -1,11 +1,11 @@
 import {
   Outlet,
   createFileRoute,
-  redirect,
   useRouter,
   useRouterState,
 } from '@tanstack/react-router'
 import { LayoutDashboard, LogOut, Package } from 'lucide-react'
+import { useEffect } from 'react'
 
 import { Button } from '../components/ui/button'
 import { useAuthStore } from '../hooks/useAuth'
@@ -16,11 +16,8 @@ export const Route = createFileRoute('/admin')({
     if (location.pathname === '/admin/login') {
       return
     }
-    // Check auth state from the store
-    const { isAuthenticated } = useAuthStore.getState()
-    if (!isAuthenticated) {
-      throw redirect({ to: '/admin/login' })
-    }
+    // Note: Server-side auth is now handled via cookies
+    // Client will verify via checkSession()
   },
   component: AdminLayout,
 })
@@ -28,18 +25,47 @@ export const Route = createFileRoute('/admin')({
 function AdminLayout() {
   const router = useRouter()
   const routerState = useRouterState()
-  const { user, logout, isAuthenticated } = useAuthStore()
+  const { user, logout, isAuthenticated, isLoading, checkSession } =
+    useAuthStore()
 
   const isLoginPage = routerState.location.pathname === '/admin/login'
 
-  const handleLogout = () => {
-    logout()
+  // Check session on mount
+  useEffect(() => {
+    if (!isLoginPage) {
+      checkSession()
+    }
+  }, [isLoginPage, checkSession])
+
+  // Redirect to login if not authenticated (after loading)
+  useEffect(() => {
+    if (!isLoginPage && !isLoading && !isAuthenticated) {
+      router.navigate({ to: '/admin/login' })
+    }
+  }, [isLoginPage, isLoading, isAuthenticated, router])
+
+  const handleLogout = async () => {
+    await logout()
     router.navigate({ to: '/admin/login' })
   }
 
   // For login page, render just the content without sidebar
-  if (isLoginPage || !isAuthenticated) {
+  if (isLoginPage) {
     return <Outlet />
+  }
+
+  // Show loading state while checking session
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-500" />
+      </div>
+    )
+  }
+
+  // If not authenticated after loading, don't render (redirect will happen)
+  if (!isAuthenticated) {
+    return null
   }
 
   return (
