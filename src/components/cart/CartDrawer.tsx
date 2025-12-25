@@ -15,7 +15,6 @@ import {
 
 import type { Product } from '../../types/store'
 
-
 type CartDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void

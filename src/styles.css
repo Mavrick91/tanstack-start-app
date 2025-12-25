@@ -135,6 +135,9 @@ code {
     @apply bg-background text-foreground antialiased selection:bg-primary/10 selection:text-primary;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
   }
+  button {
+    cursor: pointer;
+  }
 }
 
 @layer utilities {

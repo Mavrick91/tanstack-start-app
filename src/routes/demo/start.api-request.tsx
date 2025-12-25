@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
-
 function getNames() {
-  return fetch('/demo/api/names').then((res) => res.json() as Promise<Array<string>>)
+  return fetch('/demo/api/names').then(
+    (res) => res.json() as Promise<Array<string>>,
+  )
 }
 
 export const Route = createFileRoute('/demo/start/api-request')({
