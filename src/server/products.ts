@@ -175,3 +175,72 @@ export const createProductFn = createServerFn({ method: 'POST' })
 
     return { success: true, data: product }
   })
+
+export const deleteProductFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { productId: string }) => d)
+  .handler(async ({ data }) => {
+    const request = getRequest()
+    if (!request) throw new Error('No request found')
+
+    const auth = await validateSession(request)
+    if (!auth.success) {
+      throw new Error(auth.error || 'Unauthorized')
+    }
+
+    await db.delete(products).where(eq(products.id, data.productId))
+    return { success: true }
+  })
+
+export const duplicateProductFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { productId: string }) => d)
+  .handler(async ({ data }) => {
+    const request = getRequest()
+    if (!request) throw new Error('No request found')
+
+    const auth = await validateSession(request)
+    if (!auth.success) {
+      throw new Error(auth.error || 'Unauthorized')
+    }
+
+    const [original] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, data.productId))
+
+    if (!original) throw new Error('Product not found')
+
+    const [newProduct] = await db
+      .insert(products)
+      .values({
+        ...original,
+        id: undefined,
+        handle: `${original.handle}-copy-${Date.now()}`,
+        status: 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning()
+
+    return { success: true, data: newProduct }
+  })
+
+export const updateProductStatusFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { productId: string; status: 'draft' | 'active' | 'archived' }) => d,
+  )
+  .handler(async ({ data }) => {
+    const request = getRequest()
+    if (!request) throw new Error('No request found')
+
+    const auth = await validateSession(request)
+    if (!auth.success) {
+      throw new Error(auth.error || 'Unauthorized')
+    }
+
+    await db
+      .update(products)
+      .set({ status: data.status, updatedAt: new Date() })
+      .where(eq(products.id, data.productId))
+
+    return { success: true }
+  })

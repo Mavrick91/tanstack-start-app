@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { useState } from 'react'
+import { Toaster } from 'sonner'
 
 import { Navbar } from '../components/layout/Navbar'
 import appCss from '../styles.css?url'
@@ -66,6 +67,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           {!isAdminRoute && <Navbar />}
           {children}
+          <Toaster richColors position="top-right" />
         </QueryClientProvider>
         <TanStackDevtools
           config={{
