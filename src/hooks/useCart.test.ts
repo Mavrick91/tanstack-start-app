@@ -1,9 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { Product } from '../types/store'
 
 // Use importActual to ensure we get the UNMOCKED version for this test
-const { useCart, useCartStore } = await vi.importActual<any>('./useCart')
+const { useCart, useCartStore } = await vi.importActual<{
+  useCart: typeof import('./useCart').useCart
+  useCartStore: typeof import('./useCart').useCartStore
+}>('./useCart')
 
 const MOCK_PRODUCTS: Array<Product> = [
   {

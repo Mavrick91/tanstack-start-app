@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
-import { ReactNode } from 'react'
 import { render, screen, act } from '@testing-library/react'
+import { ReactNode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+
 import { Navbar } from './Navbar'
 
 vi.mock('@tanstack/react-router', () => ({

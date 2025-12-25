@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getProducts } from '../../data/products'
+
 import { ProductCard } from '../../components/products/ProductCard'
+import { getProducts } from '../../data/products'
 
 export const Route = createFileRoute('/products/')({
   loader: () => getProducts(),

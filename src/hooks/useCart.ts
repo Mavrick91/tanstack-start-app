@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CartItem, Product } from '../types/store'
+
 import { calculateCartTotals } from '../lib/cart'
+
+import type { CartItem, Product } from '../types/store'
 
 type CartState = {
   items: Array<{ productId: string; variantId?: string; quantity: number }>

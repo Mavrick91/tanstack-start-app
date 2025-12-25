@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Menu, Search, ShoppingBag } from 'lucide-react'
-import { Button } from '../ui/button'
+import { useEffect, useState } from 'react'
+
+import { getProducts } from '../../data/products'
 import { useCartStore } from '../../hooks/useCart'
 import { CartDrawer } from '../cart/CartDrawer'
-import { getProducts } from '../../data/products'
+import { Button } from '../ui/button'
+
 import type { Product } from '../../types/store'
 
 export function Navbar() {

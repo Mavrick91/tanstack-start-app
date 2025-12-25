@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ReactNode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+
 import { CartDrawer } from './CartDrawer'
+
 import type { Product } from '../../types/store'
 
 vi.mock('@tanstack/react-router', () => ({

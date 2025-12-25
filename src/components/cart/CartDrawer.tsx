@@ -1,6 +1,10 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+
 import { useCart } from '../../hooks/useCart'
+import { formatCurrency } from '../../lib/format'
 import { Button } from '../ui/button'
+import { ScrollArea } from '../ui/scroll-area'
+import { Separator } from '../ui/separator'
 import {
   Sheet,
   SheetContent,
@@ -8,9 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '../ui/sheet'
-import { ScrollArea } from '../ui/scroll-area'
-import { Separator } from '../ui/separator'
-import { formatCurrency } from '../../lib/format'
+
 import type { Product } from '../../types/store'
 
 

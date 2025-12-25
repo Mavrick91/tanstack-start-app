@@ -1,8 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
-import { getFeaturedProducts } from '../data/products'
+
 import { ProductCard } from '../components/products/ProductCard'
 import { Button } from '../components/ui/button'
+import { getFeaturedProducts } from '../data/products'
 
 export const Route = createFileRoute('/')({
   loader: () => getFeaturedProducts(),
@@ -91,7 +92,7 @@ function HomePage() {
                 Built on the belief that less is more, but and better.
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                We don't just sell objects; we curate a lifestyle of
+                {"We don't just sell objects;"} we curate a lifestyle of
                 intentionality. Every piece in our collection is rigorously
                 tested for form, function, and longevity.
               </p>

@@ -1,15 +1,83 @@
-//  @ts-check
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import reactPlugin from 'eslint-plugin-react'
+import hooksPlugin from 'eslint-plugin-react-hooks'
+import importPlugin from 'eslint-plugin-import'
+import prettierConfig from 'eslint-config-prettier'
+import globals from 'globals'
+import { fixupPluginRules } from '@eslint/compat'
 
-import { tanstackConfig } from '@tanstack/eslint-config'
-
-export default [
+export default tseslint.config(
   {
     ignores: [
       'eslint.config.js',
       'prettier.config.js',
       'routeTree.gen.ts',
       '.output/**',
+      'dist/**',
+      'node_modules/**',
     ],
   },
-  ...tanstackConfig,
-]
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': hooksPlugin,
+      import: fixupPluginRules(importPlugin),
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+    },
+    rules: {
+      ...reactPlugin.configs.recommended.rules,
+      ...hooksPlugin.configs.recommended.rules,
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+
+      // Import rules - disabled no-unresolved temporarily due to resolver issues
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'object',
+            'type',
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+    },
+  },
+  prettierConfig,
+)

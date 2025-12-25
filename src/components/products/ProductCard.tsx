@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
-import { Card, CardContent, CardFooter } from '../ui/card'
-import { useCartStore } from '../../hooks/useCart'
 
+import { useCartStore } from '../../hooks/useCart'
 import { formatCurrency } from '../../lib/format'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Card, CardContent, CardFooter } from '../ui/card'
+
 import type { Product } from '../../types/store'
 
 type ProductCardProps = {

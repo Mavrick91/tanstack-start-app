@@ -1,10 +1,11 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { getProductBySlug } from '../../data/products'
-import { Button } from '../../components/ui/button'
+
 import { Badge } from '../../components/ui/badge'
+import { Button } from '../../components/ui/button'
 import { Separator } from '../../components/ui/separator'
+import { getProductBySlug } from '../../data/products'
 import { useCartStore } from '../../hooks/useCart'
 import { formatCurrency } from '../../lib/format'
 
