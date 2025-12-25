@@ -154,80 +154,77 @@ export function NewProductForm({ onBack }: NewProductFormProps) {
                     },
                   }}
                 >
-                  {(field) => {
-                    console.log('🚀 field:', field)
-                    return (
-                      <>
-                        <Tabs defaultValue="en" className="w-full">
-                          <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
-                            <TabsTrigger
-                              value="en"
-                              className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
-                            >
-                              EN
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="fr"
-                              className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
-                            >
-                              FR
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="id"
-                              className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
-                            >
-                              ID
-                            </TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="en" className="mt-0">
-                            <Input
-                              className={`h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
-                              value={field.state.value.en || ''}
-                              onChange={(e) =>
-                                field.handleChange({
-                                  ...field.state.value,
-                                  en: e.target.value,
-                                })
-                              }
-                              onBlur={generateHandle}
-                              placeholder={t('Product name in English')}
-                            />
-                          </TabsContent>
-                          <TabsContent value="fr" className="mt-0">
-                            <Input
-                              className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                              value={field.state.value.fr || ''}
-                              onChange={(e) =>
-                                field.handleChange({
-                                  ...field.state.value,
-                                  fr: e.target.value,
-                                })
-                              }
-                              placeholder={t('Product name in French')}
-                            />
-                          </TabsContent>
-                          <TabsContent value="id" className="mt-0">
-                            <Input
-                              className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                              value={field.state.value.id || ''}
-                              onChange={(e) =>
-                                field.handleChange({
-                                  ...field.state.value,
-                                  id: e.target.value,
-                                })
-                              }
-                              placeholder={t('Product name in Indonesian')}
-                            />
-                          </TabsContent>
-                        </Tabs>
-                        {field.state.meta.errors.length > 0 && (
-                          <p className="text-destructive text-xs mt-1">
-                            {field.state.meta.errors[0]}
-                          </p>
-                        )}
-                      </>
-                    )
-                  }}
+                  {(field) => (
+                    <>
+                      <Tabs defaultValue="en" className="w-full">
+                        <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
+                          <TabsTrigger
+                            value="en"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          >
+                            EN
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="fr"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          >
+                            FR
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="id"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          >
+                            ID
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="en" className="mt-0">
+                          <Input
+                            className={`h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
+                            value={field.state.value.en || ''}
+                            onChange={(e) =>
+                              field.handleChange({
+                                ...field.state.value,
+                                en: e.target.value,
+                              })
+                            }
+                            onBlur={generateHandle}
+                            placeholder={t('Product name in English')}
+                          />
+                        </TabsContent>
+                        <TabsContent value="fr" className="mt-0">
+                          <Input
+                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                            value={field.state.value.fr || ''}
+                            onChange={(e) =>
+                              field.handleChange({
+                                ...field.state.value,
+                                fr: e.target.value,
+                              })
+                            }
+                            placeholder={t('Product name in French')}
+                          />
+                        </TabsContent>
+                        <TabsContent value="id" className="mt-0">
+                          <Input
+                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                            value={field.state.value.id || ''}
+                            onChange={(e) =>
+                              field.handleChange({
+                                ...field.state.value,
+                                id: e.target.value,
+                              })
+                            }
+                            placeholder={t('Product name in Indonesian')}
+                          />
+                        </TabsContent>
+                      </Tabs>
+                      {field.state.meta.errors.length > 0 && (
+                        <p className="text-destructive text-xs mt-1">
+                          {field.state.meta.errors[0]}
+                        </p>
+                      )}
+                    </>
+                  )}
                 </form.Field>
               </div>
 
