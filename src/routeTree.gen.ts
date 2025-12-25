@@ -9,9 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
@@ -22,6 +25,11 @@ import { Route as LangDemoStartSsrSpaModeRouteImport } from './routes/$lang/demo
 import { Route as LangDemoStartSsrFullSsrRouteImport } from './routes/$lang/demo/start.ssr.full-ssr'
 import { Route as LangDemoStartSsrDataOnlyRouteImport } from './routes/$lang/demo/start.ssr.data-only'
 
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LangRoute = LangRouteImport.update({
   id: '/$lang',
   path: '/$lang',
@@ -32,10 +40,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LangRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
 } as any)
 const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
@@ -88,7 +106,10 @@ const LangDemoStartSsrDataOnlyRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -101,7 +122,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/login': typeof AdminLoginRoute
   '/$lang': typeof LangIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -116,7 +139,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
   '/$lang/products/': typeof LangProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -132,7 +158,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$lang'
+    | '/admin'
+    | '/admin/login'
     | '/$lang/'
+    | '/admin/'
     | '/$lang/products/$productId'
     | '/$lang/products'
     | '/$lang/demo/api/names'
@@ -145,7 +174,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin/login'
     | '/$lang'
+    | '/admin'
     | '/$lang/products/$productId'
     | '/$lang/products'
     | '/$lang/demo/api/names'
@@ -159,7 +190,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$lang'
+    | '/admin'
+    | '/admin/login'
     | '/$lang/'
+    | '/admin/'
     | '/$lang/products/$productId'
     | '/$lang/products/'
     | '/$lang/demo/api/names'
@@ -174,10 +208,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$lang': {
       id: '/$lang'
       path: '/$lang'
@@ -192,12 +234,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$lang/': {
       id: '/$lang/'
       path: '/'
       fullPath: '/$lang/'
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/$lang/products/': {
       id: '/$lang/products/'
@@ -293,9 +349,22 @@ const LangRouteChildren: LangRouteChildren = {
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
+interface AdminRouteChildren {
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

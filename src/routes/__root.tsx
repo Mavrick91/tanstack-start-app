@@ -4,6 +4,7 @@ import {
   Scripts,
   createRootRoute,
   useParams,
+  useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
@@ -21,7 +22,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Obelisk | Premium Minimalist Storefront',
+        title: 'FineNail Season | Premium Nail Art & Manicure',
       },
     ],
     links: [
@@ -38,6 +39,8 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const currentLang = lang || 'en'
+  const routerState = useRouterState()
+  const isAdminRoute = routerState.location.pathname.startsWith('/admin')
 
   return (
     <html lang={currentLang}>
@@ -45,7 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Navbar />
+        {!isAdminRoute && <Navbar />}
         {children}
         <TanStackDevtools
           config={{

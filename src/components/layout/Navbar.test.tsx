@@ -28,6 +28,11 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+vi.mock('../../lib/i18n', () => ({
+  default: { language: 'en', t: (key: string) => key },
+  changeLanguage: vi.fn(),
+}))
+
 vi.mock('../../hooks/useCart', () => ({
   useCartStore: (fn: (state: { items: Array<unknown> }) => unknown) =>
     fn({ items: [] }),
