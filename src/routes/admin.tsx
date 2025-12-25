@@ -69,9 +69,9 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-card p-6 flex flex-col">
+    <div className="h-screen bg-background flex overflow-hidden">
+      {/* Sidebar - Fixed */}
+      <aside className="w-64 border-r border-border bg-card p-6 flex flex-col shrink-0">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-black">
             FN
@@ -112,8 +112,8 @@ function AdminLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8">
+      {/* Main Content - Scrollable */}
+      <main className="flex-1 overflow-y-auto p-8">
         <Outlet />
       </main>
     </div>

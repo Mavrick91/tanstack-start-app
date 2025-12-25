@@ -1,4 +1,5 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   HeadContent,
   Scripts,
@@ -7,6 +8,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { useState } from 'react'
 
 import { Navbar } from '../components/layout/Navbar'
 import appCss from '../styles.css?url'
@@ -42,14 +44,29 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const routerState = useRouterState()
   const isAdminRoute = routerState.location.pathname.startsWith('/admin')
 
+  // Create QueryClient once per app instance
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 minute
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  )
+
   return (
     <html lang={currentLang}>
       <head>
         <HeadContent />
       </head>
       <body>
-        {!isAdminRoute && <Navbar />}
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {!isAdminRoute && <Navbar />}
+          {children}
+        </QueryClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
