@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { BackButton } from '../../../components/ui/back-button'
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
+import { RichTextContent } from '../../../components/ui/rich-text-content'
 import { Separator } from '../../../components/ui/separator'
 import { getProductBySlug } from '../../../data/storefront'
 import { useCartStore } from '../../../hooks/useCart'
@@ -97,9 +98,10 @@ function ProductDetailPage() {
             </p>
           </div>
 
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            {product.description}
-          </p>
+          <RichTextContent
+            html={product.description}
+            className="text-muted-foreground text-lg"
+          />
 
           <div className="space-y-6">
             {product.features && (

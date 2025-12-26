@@ -21,6 +21,7 @@ import { createProductFn } from '../../../server/products'
 import { Button } from '../../ui/button'
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
+import { RichTextEditor } from '../../ui/rich-text-editor'
 import {
   Select,
   SelectContent,
@@ -144,10 +145,11 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
   }
 
   const handleAIGenerate = async () => {
-    const images = form.getFieldValue('images')
-    const firstImage = images[0]
+    // In edit mode, images are stored in state; in create mode, in form field
+    const imageList = isEditMode ? images : form.getFieldValue('images')
+    const firstImage = imageList[0]
 
-    if (!firstImage) {
+    if (!firstImage || !firstImage.url) {
       toast.error(t('Please add an image URL first'))
       return
     }
@@ -482,39 +484,36 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                         </TabsTrigger>
                       </TabsList>
                       <TabsContent value="en" className="mt-0">
-                        <Textarea
-                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                        <RichTextEditor
                           value={field.state.value.en || ''}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             field.handleChange({
                               ...field.state.value,
-                              en: e.target.value,
+                              en: val,
                             })
                           }
                           placeholder={t('Product description in English')}
                         />
                       </TabsContent>
                       <TabsContent value="fr" className="mt-0">
-                        <Textarea
-                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                        <RichTextEditor
                           value={field.state.value.fr || ''}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             field.handleChange({
                               ...field.state.value,
-                              fr: e.target.value,
+                              fr: val,
                             })
                           }
                           placeholder={t('Product description in French')}
                         />
                       </TabsContent>
                       <TabsContent value="id" className="mt-0">
-                        <Textarea
-                          className="bg-background/50 border-border rounded-xl font-medium p-4 focus:ring-pink-500/20 shadow-sm resize-none min-h-[120px]"
+                        <RichTextEditor
                           value={field.state.value.id || ''}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             field.handleChange({
                               ...field.state.value,
-                              id: e.target.value,
+                              id: val,
                             })
                           }
                           placeholder={t('Product description in Indonesian')}

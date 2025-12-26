@@ -3,73 +3,68 @@ import { describe, expect, it, vi } from 'vitest'
 import { aiProductDetailsSchema, generateProductDetails } from './ai'
 
 // Mock Gemini
-vi.mock('@google/generative-ai', () => {
-  return {
-    GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-      getGenerativeModel: vi.fn().mockImplementation(() => ({
-        generateContent: vi.fn().mockResolvedValue({
-          response: {
-            text: () =>
-              JSON.stringify({
-                name: {
-                  en: 'Silk Scarf',
-                  fr: 'Écharpe en soie',
-                  id: 'Syal Sutra',
-                },
-                description: {
-                  en: 'A beautiful handmade silk scarf.',
-                  fr: 'Une belle écharpe en soie faite à la main.',
-                  id: 'Syal sutra buatan tangan yang indah.',
-                },
-                metaTitle: { en: 'Handmade Silk Scarf' },
-                metaDescription: {
-                  en: 'Buy premium silk scarves online.',
-                },
-                handle: 'silk-scarf',
-                tags: ['silk', 'scarf', 'handmade'],
-              }),
-          },
-        }),
-      })),
+vi.mock('@google/generative-ai', () => ({
+  GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
+    getGenerativeModel: vi.fn().mockImplementation(() => ({
+      generateContent: vi.fn().mockResolvedValue({
+        response: {
+          text: () =>
+            JSON.stringify({
+              name: {
+                en: 'Silk Scarf',
+                fr: 'Écharpe en soie',
+                id: 'Syal Sutra',
+              },
+              description: {
+                en: 'A beautiful handmade silk scarf.',
+                fr: 'Une belle écharpe en soie faite à la main.',
+                id: 'Syal sutra buatan tangan yang indah.',
+              },
+              metaTitle: { en: 'Handmade Silk Scarf' },
+              metaDescription: { en: 'Buy premium silk scarves online.' },
+              handle: 'silk-scarf',
+              tags: ['silk', 'scarf', 'handmade'],
+              targetAudience: 'fashion-conscious women 25-40',
+            }),
+        },
+      }),
     })),
-  }
-})
+  })),
+}))
 
 // Mock OpenAI
-vi.mock('openai', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      chat: {
-        completions: {
-          create: vi.fn().mockResolvedValue({
-            choices: [
-              {
-                message: {
-                  content: JSON.stringify({
-                    name: {
-                      en: 'Leather Bag',
-                      fr: 'Sac en cuir',
-                      id: 'Tas Kulit',
-                    },
-                    description: {
-                      en: 'Premium leather bag.',
-                      fr: 'Sac en cuir premium.',
-                      id: 'Tas kulit premium.',
-                    },
-                    metaTitle: { en: 'Premium Leather Bag' },
-                    metaDescription: { en: 'Shop leather bags.' },
-                    handle: 'leather-bag',
-                    tags: ['leather', 'bag', 'premium'],
-                  }),
-                },
+vi.mock('openai', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    chat: {
+      completions: {
+        create: vi.fn().mockResolvedValue({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  name: {
+                    en: 'Leather Bag',
+                    fr: 'Sac en cuir',
+                    id: 'Tas Kulit',
+                  },
+                  description: {
+                    en: 'Premium leather bag.',
+                    fr: 'Sac en cuir premium.',
+                    id: 'Tas kulit premium.',
+                  },
+                  metaTitle: { en: 'Premium Leather Bag' },
+                  metaDescription: { en: 'Shop leather bags.' },
+                  handle: 'leather-bag',
+                  tags: ['leather', 'bag', 'premium'],
+                }),
               },
-            ],
-          }),
-        },
+            },
+          ],
+        }),
       },
-    })),
-  }
-})
+    },
+  })),
+}))
 
 // Mock fetch
 global.fetch = vi.fn().mockResolvedValue({
@@ -129,6 +124,37 @@ describe('AI Detail Generation Logic', () => {
       })
       // Gemini mock returns 'Silk Scarf'
       expect(result.name.en).toBe('Silk Scarf')
+    })
+
+    it('should pass mimeType to OpenAI for base64 images', async () => {
+      const result = await generateProductDetails({
+        imageBase64: 'SGVsbG8gV29ybGQ=',
+        mimeType: 'image/png',
+        provider: 'openai',
+        apiKey: 'test-key',
+      })
+      // Should succeed without error
+      expect(result.name.en).toBe('Leather Bag')
+    })
+
+    it('should pass mimeType to Gemini for base64 images', async () => {
+      const result = await generateProductDetails({
+        imageBase64: 'SGVsbG8gV29ybGQ=',
+        mimeType: 'image/webp',
+        provider: 'gemini',
+        apiKey: 'test-key',
+      })
+      // Should succeed without error
+      expect(result.name.en).toBe('Silk Scarf')
+    })
+
+    it('should include targetAudience when returned by AI', async () => {
+      const result = await generateProductDetails({
+        imageUrl: 'https://example.com/image.jpg',
+        provider: 'gemini',
+        apiKey: 'test-key',
+      })
+      expect(result.targetAudience).toBe('fashion-conscious women 25-40')
     })
   })
 
@@ -201,6 +227,38 @@ describe('AI Detail Generation Logic', () => {
 
       const result = aiProductDetailsSchema.safeParse(invalidData)
       expect(result.success).toBe(false)
+    })
+
+    it('should allow optional targetAudience field', () => {
+      const validData = {
+        name: { en: 'Test' },
+        description: { en: 'Desc' },
+        metaTitle: { en: 'Meta' },
+        metaDescription: { en: 'Meta Desc' },
+        handle: 'test-handle',
+        tags: [],
+        targetAudience: 'busy professionals 30-45',
+      }
+
+      const result = aiProductDetailsSchema.safeParse(validData)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.targetAudience).toBe('busy professionals 30-45')
+      }
+    })
+
+    it('should pass validation without targetAudience', () => {
+      const validData = {
+        name: { en: 'Test' },
+        description: { en: 'Desc' },
+        metaTitle: { en: 'Meta' },
+        metaDescription: { en: 'Meta Desc' },
+        handle: 'test-handle',
+        tags: [],
+      }
+
+      const result = aiProductDetailsSchema.safeParse(validData)
+      expect(result.success).toBe(true)
     })
   })
 })

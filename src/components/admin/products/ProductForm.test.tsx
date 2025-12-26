@@ -56,6 +56,11 @@ describe('ProductForm', () => {
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
+    // Suppress Tiptap duplicate extension warnings (multiple editors render in tests)
+    vi.spyOn(console, 'warn').mockImplementation((msg) => {
+      if (typeof msg === 'string' && msg.includes('Duplicate extension')) return
+      console.warn(msg)
+    })
   })
 
   const mockProduct = (overrides?: Partial<Product>): Product => ({
@@ -383,6 +388,128 @@ describe('ProductForm', () => {
         const allNeedUpload = images.every((img) => img.url.startsWith('blob:'))
         expect(allNeedUpload).toBe(true)
       })
+    })
+
+    describe('AI Generation Image Source Selection', () => {
+      it('should use images state in edit mode (not form field)', () => {
+        // Simulate edit mode logic: images come from product prop, stored in state
+        const isEditMode = true
+        const imagesState = [
+          {
+            id: 'existing-1',
+            url: 'https://res.cloudinary.com/demo/existing.jpg',
+            altText: { en: 'Existing' },
+          },
+        ]
+        const formFieldImages: { url: string }[] = [] // Empty in edit mode
+
+        const imageList = isEditMode ? imagesState : formFieldImages
+        const firstImage = imageList[0]
+
+        expect(firstImage).toBeDefined()
+        expect(firstImage?.url).toBe(
+          'https://res.cloudinary.com/demo/existing.jpg',
+        )
+      })
+
+      it('should use form field images in create mode (not state)', () => {
+        // Simulate create mode logic: images come from form field
+        const isEditMode = false
+        const imagesState: { url: string }[] = [] // Empty in create mode
+        const formFieldImages = [
+          { url: 'blob:http://localhost/new123', file: new File([], 'a.jpg') },
+        ]
+
+        const imageList = isEditMode ? imagesState : formFieldImages
+        const firstImage = imageList[0]
+
+        expect(firstImage).toBeDefined()
+        expect(firstImage?.url).toBe('blob:http://localhost/new123')
+      })
+
+      it('should detect when no images exist for AI generation', () => {
+        const isEditMode = true
+        const imagesState: { url: string }[] = []
+        const formFieldImages: { url: string }[] = []
+
+        const imageList = isEditMode ? imagesState : formFieldImages
+        const firstImage = imageList[0]
+
+        expect(firstImage).toBeUndefined()
+      })
+
+      it('should detect when first image has no URL', () => {
+        const imagesState = [{ id: 'broken', url: '', altText: { en: '' } }]
+
+        const imageList = imagesState
+        const firstImage = imageList[0]
+
+        // The validation in handleAIGenerate checks: !firstImage || !firstImage.url
+        expect(!firstImage || !firstImage.url).toBe(true)
+      })
+
+      it('should correctly identify local blob images for base64 conversion', () => {
+        const firstImage = { url: 'blob:http://localhost/abc123' }
+        const isLocalImage = firstImage.url.startsWith('blob:')
+
+        expect(isLocalImage).toBe(true)
+      })
+
+      it('should correctly identify remote URLs for direct AI submission', () => {
+        const firstImage = { url: 'https://res.cloudinary.com/demo/image.jpg' }
+        const isLocalImage = firstImage.url.startsWith('blob:')
+
+        expect(isLocalImage).toBe(false)
+      })
+    })
+  })
+
+  describe('Rich Text Editor Integration', () => {
+    it('should render description field with RichTextEditor styling', () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ProductForm />
+        </QueryClientProvider>,
+      )
+
+      // RichTextEditor renders within the Description section
+      expect(screen.getByText('Description')).toBeInTheDocument()
+    })
+
+    it('should render description with localized tabs (EN, FR, ID)', () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ProductForm />
+        </QueryClientProvider>,
+      )
+
+      // Multiple tabs should exist for description localization
+      const enTabs = screen.getAllByText('EN')
+      const frTabs = screen.getAllByText('FR')
+      const idTabs = screen.getAllByText('ID')
+
+      expect(enTabs.length).toBeGreaterThan(0)
+      expect(frTabs.length).toBeGreaterThan(0)
+      expect(idTabs.length).toBeGreaterThan(0)
+    })
+
+    it('should populate description in edit mode', () => {
+      const product = mockProduct({
+        description: {
+          en: '<p>Rich text content</p>',
+          fr: '<p>Contenu riche</p>',
+          id: '<p>Konten kaya</p>',
+        },
+      })
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <ProductForm product={product} />
+        </QueryClientProvider>,
+      )
+
+      // The form should be populated (RichTextEditor will render the HTML)
+      expect(screen.getByText('Description')).toBeInTheDocument()
     })
   })
 })

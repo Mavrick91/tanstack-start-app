@@ -19,31 +19,89 @@ export const aiProductDetailsSchema = z.object({
   metaDescription: localizedStringSchema,
   handle: z.string(),
   tags: z.array(z.string()),
+  targetAudience: z.string().optional(),
 })
 
 export type AIProductDetails = z.infer<typeof aiProductDetailsSchema>
 export type AIProvider = 'gemini' | 'openai'
 
 const AI_PROMPT = `
-Analyze this product image and generate the following details in JSON format:
-1. Name (English, French, Indonesian)
-2. Description (English, French, Indonesian) - compelling and professional
-3. Meta Title (English)
-4. Meta Description (English)
-5. Handle (URL-friendly slug, e.g., "blue-silk-scarf")
-6. Tags (Array of relevant keywords)
+You are a senior e-commerce copywriter for a premium nail art and beauty brand. Your copy converts browsers into buyers.
 
-The output MUST be a valid JSON object matching this schema:
+## Brand Context
+- Industry: Nail art / Press-on nails / Beauty accessories
+- Tone: Elegant, confident, empowering (NOT cutesy or overly casual)
+- Target Market: Style-conscious women who value quality and convenience
+
+## Content Requirements
+
+### 1. Product Name (EN, FR, ID)
+- Format: [Style/Collection Name] + [Product Type]
+- Example: "Parisian Elegance Press-On Nail Set"
+- Max 50 characters, capitalize each word
+
+### 2. Description (EN, FR, ID) - HTML Formatted
+Use the AIDA framework:
+
+**Attention** (opening hook):
+<p><strong>[One compelling sentence that creates desire]</strong></p>
+
+**Interest** (key benefits - NOT features):
+<h3>Why You'll Love These</h3>
+<ul>
+  <li>[Benefit 1: What problem does it solve?]</li>
+  <li>[Benefit 2: How does it make them feel?]</li>
+  <li>[Benefit 3: What makes it better than alternatives?]</li>
+</ul>
+
+**Desire** (paint the picture):
+<p>[Describe the experience/result they'll have]</p>
+
+**Action** (CTA):
+<p><strong>Add to cart and [specific outcome].</strong></p>
+
+IMPORTANT: Write BENEFITS, not features.
+- BAD Feature: "Made with high-quality gel"
+- GOOD Benefit: "Stays flawless for 2+ weeks without chipping"
+
+### 3. SEO Meta Title (EN only)
+- Format: [Primary Keyword] | [Benefit] | [Brand Feel]
+- 50-60 characters
+- Example: "French Tip Nails | Salon-Quality at Home | Shop Now"
+
+### 4. SEO Meta Description (EN only)
+- 150-160 characters
+- Include: primary keyword, key benefit, soft CTA
+- Example: "Achieve salon-perfect French tips in minutes. Our premium press-on nails last 2+ weeks. Free shipping on orders over $35."
+
+### 5. Handle (URL slug)
+- Lowercase, hyphens only
+- Format: [style]-[type]-[key-attribute]
+- Example: "french-tip-press-on-nails-elegant"
+
+### 6. Tags (for search/filtering)
+Array of 6-8 terms:
+- Product type (press-on nails, nail set)
+- Style (french tip, ombre, glitter)
+- Occasion (wedding, everyday, party)
+- Attribute (long-lasting, easy-apply)
+- Collection name if applicable
+
+### 7. Target Audience
+Specific segment, e.g., "busy professionals who want salon results without appointments"
+
+## Output Format (JSON only):
 {
   "name": { "en": "...", "fr": "...", "id": "..." },
-  "description": { "en": "...", "fr": "...", "id": "..." },
+  "description": { "en": "<p><strong>...</strong></p><h3>Why You'll Love These</h3><ul><li>...</li></ul><p>...</p><p><strong>...</strong></p>", "fr": "...", "id": "..." },
   "metaTitle": { "en": "..." },
   "metaDescription": { "en": "..." },
   "handle": "...",
-  "tags": ["...", "..."]
+  "tags": ["...", "..."],
+  "targetAudience": "..."
 }
 
-Only return the JSON object, no other text or explanation.
+Return ONLY valid JSON. No markdown, no explanations.
 `
 
 async function generateWithGemini(
@@ -83,12 +141,22 @@ async function generateWithGemini(
   const response = await result.response
   const text = response.text()
   const jsonStr = text.replace(/```json\n?|\n?```/g, '').trim()
-  return aiProductDetailsSchema.parse(JSON.parse(jsonStr))
+
+  let parsed
+  try {
+    parsed = JSON.parse(jsonStr)
+  } catch {
+    throw new Error(
+      `Gemini returned invalid JSON: ${jsonStr.substring(0, 200)}...`,
+    )
+  }
+  return aiProductDetailsSchema.parse(parsed)
 }
 
 async function generateWithOpenAI(
   imageUrl: string | undefined,
   imageBase64: string | undefined,
+  mimeType: string | undefined,
   apiKey: string,
 ): Promise<AIProductDetails> {
   const openai = new OpenAI({ apiKey })
@@ -104,7 +172,7 @@ async function generateWithOpenAI(
       image_url: {
         url: imageBase64.startsWith('data:')
           ? imageBase64
-          : `data:image/jpeg;base64,${imageBase64}`,
+          : `data:${mimeType || 'image/jpeg'};base64,${imageBase64}`,
       },
     })
   } else if (imageUrl) {
@@ -121,12 +189,24 @@ async function generateWithOpenAI(
         content,
       },
     ],
-    max_tokens: 1000,
+    max_tokens: 1500,
   })
 
-  const text = response.choices[0]?.message?.content || ''
+  const text = response.choices[0]?.message?.content
+  if (!text) {
+    throw new Error('OpenAI returned empty response')
+  }
   const jsonStr = text.replace(/```json\n?|\n?```/g, '').trim()
-  return aiProductDetailsSchema.parse(JSON.parse(jsonStr))
+
+  let parsed
+  try {
+    parsed = JSON.parse(jsonStr)
+  } catch {
+    throw new Error(
+      `OpenAI returned invalid JSON: ${jsonStr.substring(0, 200)}...`,
+    )
+  }
+  return aiProductDetailsSchema.parse(parsed)
 }
 
 export async function generateProductDetails(params: {
@@ -140,6 +220,7 @@ export async function generateProductDetails(params: {
     return generateWithOpenAI(
       params.imageUrl,
       params.imageBase64,
+      params.mimeType,
       params.apiKey,
     )
   }
