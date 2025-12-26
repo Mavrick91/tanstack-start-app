@@ -8,6 +8,13 @@
       "when": 1766726546222,
       "tag": "0000_remove_variants_add_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766732592012,
+      "tag": "0001_greedy_green_goblin",
+      "breakpoints": true
     }
   ]
 }

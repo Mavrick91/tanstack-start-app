@@ -1,8 +1,9 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { ChevronLeft, Minus, Plus } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '../../../components/ui/back-button'
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
 import { Separator } from '../../../components/ui/separator'
@@ -36,14 +37,12 @@ function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      <Link
+      <BackButton
         to="/$lang/products"
         params={{ lang }}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-12 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        {t('Back to all products')}
-      </Link>
+        label={t('Back to all products')}
+        className="mb-12"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
         <div className="space-y-4">

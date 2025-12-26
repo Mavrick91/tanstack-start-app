@@ -101,6 +101,8 @@ export const collections = pgTable('collections', {
   description: jsonb('description').$type<LocalizedString>(),
   imageUrl: text('image_url'),
   sortOrder: collectionSortEnum('sort_order').default('manual').notNull(),
+  metaTitle: jsonb('meta_title').$type<LocalizedString>(),
+  metaDescription: jsonb('meta_description').$type<LocalizedString>(),
   publishedAt: timestamp('published_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

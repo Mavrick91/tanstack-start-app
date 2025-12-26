@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { desc, eq } from 'drizzle-orm'
+import { asc, desc, eq } from 'drizzle-orm'
 
 import { db } from '../db'
 import { products, productImages } from '../db/schema'
@@ -43,7 +43,23 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
       .from(products)
       .orderBy(desc(products.createdAt))
 
-    return { success: true, data: allProducts }
+    const productsWithImages = await Promise.all(
+      allProducts.map(async (product) => {
+        const images = await db
+          .select({ url: productImages.url })
+          .from(productImages)
+          .where(eq(productImages.productId, product.id))
+          .orderBy(asc(productImages.position))
+          .limit(1)
+
+        return {
+          ...product,
+          image: images[0]?.url || null,
+        }
+      }),
+    )
+
+    return { success: true, data: productsWithImages }
   },
 )
 

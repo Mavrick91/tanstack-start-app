@@ -5,7 +5,13 @@ import {
   useRouterState,
   Link,
 } from '@tanstack/react-router'
-import { LayoutDashboard, LogOut, Package, User } from 'lucide-react'
+import {
+  LayoutDashboard,
+  LogOut,
+  Package,
+  FolderOpen,
+  User,
+} from 'lucide-react'
 import { useEffect } from 'react'
 
 import { Button } from '../components/ui/button'
@@ -70,6 +76,7 @@ function AdminLayout() {
   const navItems = [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { label: 'Products', path: '/admin/products', icon: Package },
+    { label: 'Collections', path: '/admin/collections', icon: FolderOpen },
   ]
 
   return (

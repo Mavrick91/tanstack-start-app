@@ -18,14 +18,19 @@ import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
+import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
+import { Route as LangCollectionsIndexRouteImport } from './routes/$lang/collections/index'
 import { Route as ApiProductsProductIdRouteImport } from './routes/api/products/$productId'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as AdminProductsNewRouteImport } from './routes/admin/products/new'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products/$productId'
+import { Route as AdminCollectionsNewRouteImport } from './routes/admin/collections/new'
+import { Route as AdminCollectionsCollectionIdRouteImport } from './routes/admin/collections/$collectionId'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
+import { Route as LangCollectionsHandleRouteImport } from './routes/$lang/collections/$handle'
 import { Route as ApiProductsProductIdImagesRouteImport } from './routes/api/products/$productId/images'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
 import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo/start.api-request'
@@ -80,9 +85,19 @@ const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   path: '/products/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCollectionsIndexRoute = LangCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
   getParentRoute: () => LangRoute,
 } as any)
 const ApiProductsProductIdRoute = ApiProductsProductIdRouteImport.update({
@@ -115,9 +130,25 @@ const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCollectionsNewRoute = AdminCollectionsNewRouteImport.update({
+  id: '/collections/new',
+  path: '/collections/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCollectionsCollectionIdRoute =
+  AdminCollectionsCollectionIdRouteImport.update({
+    id: '/collections/$collectionId',
+    path: '/collections/$collectionId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
   id: '/products/$productId',
   path: '/products/$productId',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCollectionsHandleRoute = LangCollectionsHandleRouteImport.update({
+  id: '/collections/$handle',
+  path: '/collections/$handle',
   getParentRoute: () => LangRoute,
 } as any)
 const ApiProductsProductIdImagesRoute =
@@ -172,14 +203,19 @@ export interface FileRoutesByFullPath {
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
+  '/admin/collections/new': typeof AdminCollectionsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -197,14 +233,19 @@ export interface FileRoutesByTo {
   '/api/upload': typeof ApiUploadRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
+  '/admin/collections/new': typeof AdminCollectionsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -225,14 +266,19 @@ export interface FileRoutesById {
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
+  '/admin/collections/new': typeof AdminCollectionsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/$lang/collections/': typeof LangCollectionsIndexRoute
   '/$lang/products/': typeof LangProductsIndexRoute
+  '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/api/products/': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -254,14 +300,19 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/admin/collections/$collectionId'
+    | '/admin/collections/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/$lang/collections'
     | '/$lang/products'
+    | '/admin/collections'
     | '/admin/products'
     | '/api/products'
     | '/$lang/demo/api/names'
@@ -279,14 +330,19 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/$lang'
     | '/admin'
+    | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/admin/collections/$collectionId'
+    | '/admin/collections/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/$lang/collections'
     | '/$lang/products'
+    | '/admin/collections'
     | '/admin/products'
     | '/api/products'
     | '/$lang/demo/api/names'
@@ -306,14 +362,19 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/admin/collections/$collectionId'
+    | '/admin/collections/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/$lang/collections/'
     | '/$lang/products/'
+    | '/admin/collections/'
     | '/admin/products/'
     | '/api/products/'
     | '/$lang/demo/api/names'
@@ -403,11 +464,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/collections/': {
+      id: '/admin/collections/'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminCollectionsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$lang/products/': {
       id: '/$lang/products/'
       path: '/products'
       fullPath: '/$lang/products'
       preLoaderRoute: typeof LangProductsIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/collections/': {
+      id: '/$lang/collections/'
+      path: '/collections'
+      fullPath: '/$lang/collections'
+      preLoaderRoute: typeof LangCollectionsIndexRouteImport
       parentRoute: typeof LangRoute
     }
     '/api/products/$productId': {
@@ -452,11 +527,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsProductIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/collections/new': {
+      id: '/admin/collections/new'
+      path: '/collections/new'
+      fullPath: '/admin/collections/new'
+      preLoaderRoute: typeof AdminCollectionsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/collections/$collectionId': {
+      id: '/admin/collections/$collectionId'
+      path: '/collections/$collectionId'
+      fullPath: '/admin/collections/$collectionId'
+      preLoaderRoute: typeof AdminCollectionsCollectionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$lang/products/$productId': {
       id: '/$lang/products/$productId'
       path: '/products/$productId'
       fullPath: '/$lang/products/$productId'
       preLoaderRoute: typeof LangProductsProductIdRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/collections/$handle': {
+      id: '/$lang/collections/$handle'
+      path: '/collections/$handle'
+      fullPath: '/$lang/collections/$handle'
+      preLoaderRoute: typeof LangCollectionsHandleRouteImport
       parentRoute: typeof LangRoute
     }
     '/api/products/$productId/images': {
@@ -520,7 +616,9 @@ declare module '@tanstack/react-router' {
 
 interface LangRouteChildren {
   LangIndexRoute: typeof LangIndexRoute
+  LangCollectionsHandleRoute: typeof LangCollectionsHandleRoute
   LangProductsProductIdRoute: typeof LangProductsProductIdRoute
+  LangCollectionsIndexRoute: typeof LangCollectionsIndexRoute
   LangProductsIndexRoute: typeof LangProductsIndexRoute
   LangDemoApiNamesRoute: typeof LangDemoApiNamesRoute
   LangDemoStartApiRequestRoute: typeof LangDemoStartApiRequestRoute
@@ -533,7 +631,9 @@ interface LangRouteChildren {
 
 const LangRouteChildren: LangRouteChildren = {
   LangIndexRoute: LangIndexRoute,
+  LangCollectionsHandleRoute: LangCollectionsHandleRoute,
   LangProductsProductIdRoute: LangProductsProductIdRoute,
+  LangCollectionsIndexRoute: LangCollectionsIndexRoute,
   LangProductsIndexRoute: LangProductsIndexRoute,
   LangDemoApiNamesRoute: LangDemoApiNamesRoute,
   LangDemoStartApiRequestRoute: LangDemoStartApiRequestRoute,
@@ -549,16 +649,22 @@ const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCollectionsCollectionIdRoute: typeof AdminCollectionsCollectionIdRoute
+  AdminCollectionsNewRoute: typeof AdminCollectionsNewRoute
   AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
   AdminProductsNewRoute: typeof AdminProductsNewRoute
+  AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
   AdminProductsIndexRoute: typeof AdminProductsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminCollectionsCollectionIdRoute: AdminCollectionsCollectionIdRoute,
+  AdminCollectionsNewRoute: AdminCollectionsNewRoute,
   AdminProductsProductIdRoute: AdminProductsProductIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,
+  AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
 }
 
