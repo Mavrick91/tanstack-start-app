@@ -10,11 +10,6 @@ vi.mock('../../../server/products', () => ({
   createProductFn: vi.fn(),
 }))
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}))
-
 const mockProduct = {
   id: '123',
   name: { en: 'Test' },

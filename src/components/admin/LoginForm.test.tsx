@@ -3,11 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Button } from '../../components/ui/button'
 
-// Mock react-i18next to prevent warning
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}))
-
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => ({
     component: undefined,

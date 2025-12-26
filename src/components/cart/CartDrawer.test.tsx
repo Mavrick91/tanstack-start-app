@@ -6,16 +6,6 @@ import { CartDrawer } from './CartDrawer'
 
 import type { Product } from '../../types/store'
 
-// Mock react-i18next to prevent warning
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}))
-
-vi.mock('../../lib/i18n', () => ({
-  default: { language: 'en', t: (key: string) => key },
-  changeLanguage: vi.fn(),
-}))
-
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,

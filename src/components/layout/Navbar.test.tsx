@@ -21,18 +21,6 @@ vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ lang: 'en' }),
 }))
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-}))
-
-vi.mock('../../lib/i18n', () => ({
-  default: { language: 'en', t: (key: string) => key },
-  changeLanguage: vi.fn(),
-}))
-
 vi.mock('../../hooks/useCart', () => ({
   useCartStore: (fn: (state: { items: Array<unknown> }) => unknown) =>
     fn({ items: [] }),
