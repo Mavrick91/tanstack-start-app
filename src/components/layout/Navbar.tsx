@@ -58,6 +58,14 @@ export function Navbar() {
               {t('Products')}
             </Link>
             <Link
+              to="/$lang/collections"
+              params={{ lang: currentLang }}
+              className="hover:text-foreground transition-colors"
+              activeProps={{ className: 'text-foreground' }}
+            >
+              {t('Collections')}
+            </Link>
+            <Link
               to="/$lang"
               params={{ lang: currentLang }}
               className="hover:text-foreground transition-colors"

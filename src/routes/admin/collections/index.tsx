@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CollectionListActions } from '../../../components/admin/collections/components/CollectionListActions'
-import { CollectionThumbnail } from '../../../components/admin/collections/components/CollectionThumbnail'
+import { CollectionThumbnail } from '../../../components/collections/CollectionThumbnail'
 import { Button } from '../../../components/ui/button'
 import { cn } from '../../../lib/utils'
 import { getCollectionsFn } from '../../../server/collections'

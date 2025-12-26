@@ -15,9 +15,9 @@ export default {
   },
 
   // Default value to use for new keys
-  // Since we use the key as the value for English, we setting it accordingly
+  // We return the key itself for English, and a labeled placeholder for other languages
   defaultValue: (locale, namespace, key) => {
-    return locale === 'en' ? key : ''
+    return locale === 'en' ? key : `__NOT_GENERATED: ${key}__`
   },
 
   // Locales to generate

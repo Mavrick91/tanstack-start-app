@@ -49,17 +49,22 @@ export const getCollectionsFn = createServerFn({ method: 'GET' }).handler(
           WHERE collection_id = ${collections.id}
         )::int`,
         previewImages: sql<string[]>`(
-          SELECT COALESCE(array_agg(url), '{}')
+          SELECT COALESCE(json_agg(url), '[]'::json)
           FROM (
             SELECT pi.url
             FROM ${collectionProducts} cp
-            JOIN ${productImages} pi ON cp.product_id = pi.product_id
-            WHERE cp.collection_id = ${collections.id}
-            AND pi.position = 0
+            CROSS JOIN LATERAL (
+              SELECT url
+              FROM ${productImages} pi
+              WHERE pi.product_id = cp.product_id
+              ORDER BY pi.position ASC
+              LIMIT 1
+            ) pi
+            WHERE cp.collection_id = collections.id
             ORDER BY cp.position ASC
             LIMIT 4
           ) as sub
-        )::text[]`,
+        )`.mapWith((val) => val as string[]),
       })
       .from(collections)
       .orderBy(desc(collections.createdAt))

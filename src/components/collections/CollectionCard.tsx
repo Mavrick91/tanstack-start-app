@@ -1,7 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { ArrowRight, Package } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { CollectionThumbnail } from './CollectionThumbnail'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter } from '../ui/card'
 
@@ -11,6 +12,7 @@ type CollectionCardProps = {
     handle: string
     name: string
     imageUrl: string | null
+    previewImages?: string[]
     productCount: number
   }
 }
@@ -35,12 +37,10 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/50 text-muted-foreground gap-2">
-              <Package className="w-12 h-12 opacity-20" />
-              <span className="text-xs font-medium uppercase tracking-widest opacity-50">
-                {t('No Image')}
-              </span>
-            </div>
+            <CollectionThumbnail
+              images={collection.previewImages || []}
+              className="w-full h-full"
+            />
           )}
         </Link>
 

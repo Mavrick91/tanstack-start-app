@@ -1,14 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
 
+import { CollectionSort } from '../../../components/collections/CollectionSort'
 import { ProductCard } from '../../../components/products/ProductCard'
-import { BackButton } from '../../../components/ui/back-button'
+import { Breadcrumbs } from '../../../components/ui/Breadcrumbs'
 import { getCollectionByHandle } from '../../../data/storefront'
 
+const collectionSearchSchema = z.object({
+  sort: z.string().optional(),
+})
+
 export const Route = createFileRoute('/$lang/collections/$handle')({
-  loader: ({ params }) =>
+  validateSearch: collectionSearchSchema,
+  loader: ({ params, ...rest }) =>
     getCollectionByHandle({
-      data: { handle: params.handle, lang: params.lang },
+      data: {
+        handle: params.handle,
+        lang: params.lang,
+        sort: (rest as any).search?.sort,
+      },
     }),
   head: ({ loaderData }) => ({
     meta: [
@@ -29,80 +40,80 @@ export const Route = createFileRoute('/$lang/collections/$handle')({
 function CollectionPage() {
   const collection = Route.useLoaderData()
   const { lang } = Route.useParams()
+  const { sort } = Route.useSearch()
   const { t } = useTranslation()
 
   if (!collection) return null
 
-  return (
-    <div className="container mx-auto px-4 py-16">
-      <BackButton
-        to="/$lang/products"
-        params={{ lang }}
-        label={t('Back to all products')}
-        className="mb-12"
-      />
+  const breadcrumbItems = [
+    { label: t('Collections'), to: '/$lang/collections', params: { lang } },
+    { label: collection.name },
+  ]
 
-      {/* Collection Header */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24">
-        <div className="space-y-4">
-          <div className="aspect-[16/9] md:aspect-[4/5] rounded-3xl overflow-hidden bg-secondary/30 shadow-2xl shadow-black/5">
-            {collection.imageUrl ? (
-              <img
-                src={collection.imageUrl}
-                alt={collection.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-secondary/50">
-                <span className="text-muted-foreground font-medium">
-                  {t('No image available')}
+  return (
+    <div className="bg-background min-h-screen">
+      {/* Hero Section */}
+      <div className="relative border-b bg-muted/30">
+        <div className="container mx-auto px-4 py-8 md:py-12">
+          <Breadcrumbs items={breadcrumbItems} lang={lang} className="mb-8" />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+                {collection.name}
+              </h1>
+              {collection.description && (
+                <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
+                  {collection.description}
+                </p>
+              )}
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider text-[10px]">
+                  {collection.products.length} {t('Products')}
                 </span>
+              </div>
+            </div>
+
+            {collection.imageUrl && (
+              <div className="hidden md:block relative aspect-[16/6] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border">
+                <img
+                  src={collection.imageUrl}
+                  alt={collection.name}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                />
               </div>
             )}
           </div>
         </div>
-
-        <div className="flex flex-col justify-center gap-8">
-          <div className="space-y-4">
-            <h1 className="text-5xl font-bold tracking-tight">
-              {collection.name}
-            </h1>
-            <div className="h-1 w-20 bg-primary rounded-full" />
-          </div>
-
-          {collection.description && (
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              {collection.description}
-            </p>
-          )}
-
-          <div className="pt-4">
-            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {t('Collection Stats')}
-            </p>
-            <p className="text-2xl font-medium">
-              {collection.products.length} {t('Products')}
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="space-y-12">
-        <div className="flex items-center justify-between border-b border-border/50 pb-6">
-          <h2 className="text-2xl font-bold tracking-tight">
-            {t('Shop the Collection')}
-          </h2>
+      <div className="container mx-auto px-4 py-8">
+        {/* Toolbar */}
+        <div className="sticky top-[var(--header-height,64px)] z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b mb-12 -mx-4 px-4 py-4 sm:-mx-0 sm:px-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              {t('All Products')}
+              <span className="text-muted-foreground font-normal text-sm">
+                ({collection.products.length})
+              </span>
+            </h2>
+
+            <CollectionSort currentSort={sort || collection.sortOrder} />
+          </div>
         </div>
 
+        {/* Product Grid */}
         {collection.products.length === 0 ? (
-          <div className="py-20 text-center space-y-4">
-            <p className="text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-2xl text-muted-foreground">📭</span>
+            </div>
+            <p className="text-xl font-medium text-muted-foreground">
               {t('No products in this collection')}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
             {collection.products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

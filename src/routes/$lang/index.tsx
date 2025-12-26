@@ -2,12 +2,19 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { CollectionCard } from '../../components/collections/CollectionCard'
 import { ProductCard } from '../../components/products/ProductCard'
 import { Button } from '../../components/ui/button'
-import { getFeaturedProducts } from '../../data/storefront'
+import { getCollections, getFeaturedProducts } from '../../data/storefront'
 
 export const Route = createFileRoute('/$lang/')({
-  loader: ({ params }) => getFeaturedProducts({ data: { lang: params.lang } }),
+  loader: async ({ params }) => {
+    const [featuredProducts, collections] = await Promise.all([
+      getFeaturedProducts({ data: { lang: params.lang } }),
+      getCollections({ data: { lang: params.lang } }),
+    ])
+    return { featuredProducts, collections }
+  },
   head: ({ params }) => {
     const titles: Record<string, string> = {
       en: 'Home | FineNail Season',
@@ -35,7 +42,7 @@ export const Route = createFileRoute('/$lang/')({
 function HomePage() {
   const { lang } = Route.useParams()
   const { t } = useTranslation()
-  const featuredProducts = Route.useLoaderData()
+  const { featuredProducts, collections } = Route.useLoaderData()
 
   return (
     <div className="flex flex-col">
@@ -109,6 +116,34 @@ function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-secondary/10">
+        <div className="container mx-auto px-4 space-y-12">
+          <div className="flex items-end justify-between">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tight">
+                {t('Shop by Collection')}
+              </h2>
+              <p className="text-muted-foreground">
+                {t('Explore our curated themes and seasonal edits.')}
+              </p>
+            </div>
+            <Link
+              to="/$lang/collections"
+              params={{ lang }}
+              className="text-sm font-semibold hover:underline underline-offset-4"
+            >
+              {t('View all collections')}
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {collections.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} />
             ))}
           </div>
         </div>

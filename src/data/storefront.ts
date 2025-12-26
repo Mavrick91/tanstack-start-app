@@ -73,6 +73,23 @@ export const getCollections = createServerFn({ method: 'GET' })
           SELECT COUNT(*) FROM collection_products 
           WHERE collection_id = ${collections.id}
         )::int`,
+        previewImages: sql<string[]>`(
+          SELECT COALESCE(json_agg(url), '[]'::json)
+          FROM (
+            SELECT pi.url
+            FROM ${collectionProducts} cp
+            CROSS JOIN LATERAL (
+              SELECT url
+              FROM ${productImages} pi
+              WHERE pi.product_id = cp.product_id
+              ORDER BY pi.position ASC
+              LIMIT 1
+            ) pi
+            WHERE cp.collection_id = collections.id
+            ORDER BY cp.position ASC
+            LIMIT 4
+          ) as sub
+        )`.mapWith((val) => val as string[]),
       })
       .from(collections)
       .where(isNotNull(collections.publishedAt))
@@ -84,6 +101,7 @@ export const getCollections = createServerFn({ method: 'GET' })
       name: getLocalizedText(c.name, lang),
       description: getLocalizedText(c.description, lang),
       imageUrl: c.imageUrl,
+      previewImages: c.previewImages,
       productCount: c.productCount,
     }))
   })
@@ -146,9 +164,9 @@ export const getProductBySlug = createServerFn({ method: 'GET' })
   })
 
 export const getCollectionByHandle = createServerFn({ method: 'GET' })
-  .inputValidator((d: { handle: string; lang?: string }) => d)
+  .inputValidator((d: { handle: string; lang?: string; sort?: string }) => d)
   .handler(async ({ data }) => {
-    const { handle, lang = 'en' } = data
+    const { handle, lang = 'en', sort } = data
 
     const [collection] = await db
       .select()
@@ -164,12 +182,13 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       throw new Error('Collection not found')
     }
 
-    // Determine sort order based on collection.sortOrder
-    const sortOrder = collection.sortOrder || 'manual'
+    // Determine sort order
+    // If explicit sort is provided from UI, use it. Otherwise, use collection default.
+    const effectiveSort = sort || collection.sortOrder || 'manual'
 
-    // Build order clause based on sortOrder
+    // Build order clause
     let orderByClause
-    switch (sortOrder) {
+    switch (effectiveSort) {
       case 'newest':
         orderByClause = desc(products.createdAt)
         break
@@ -178,11 +197,6 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
         break
       case 'price_desc':
         orderByClause = desc(products.price)
-        break
-      case 'best_selling':
-        // Fallback to manual order if no sales data available
-        // Could be: desc(products.soldCount) if that field existed
-        orderByClause = asc(collectionProducts.position)
         break
       case 'manual':
       default:
@@ -218,5 +232,6 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       description: getLocalizedText(collection.description, lang),
       imageUrl: collection.imageUrl,
       products: productsList,
+      sortOrder: collection.sortOrder,
     }
   })
