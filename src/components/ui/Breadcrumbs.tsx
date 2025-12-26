@@ -22,7 +22,7 @@ export function Breadcrumbs({ items, className, lang }: BreadcrumbsProps) {
   return (
     <nav
       className={cn(
-        'flex items-center space-x-2 text-sm text-muted-foreground',
+        'flex items-center space-x-1 text-xs text-muted-foreground',
         className,
       )}
       aria-label="Breadcrumb"
@@ -32,17 +32,17 @@ export function Breadcrumbs({ items, className, lang }: BreadcrumbsProps) {
         params={{ lang }}
         className="hover:text-foreground transition-colors flex items-center"
       >
-        <Home className="h-4 w-4" />
+        <Home className="h-3 w-3" />
         <span className="sr-only">{t('Home')}</span>
       </Link>
 
       {items.map((item, index) => (
-        <div key={index} className="flex items-center space-x-2">
-          <ChevronRight className="h-4 w-4 shrink-0" />
+        <div key={index} className="flex items-center space-x-1">
+          <ChevronRight className="h-3 w-3 shrink-0" />
           {item.to ? (
             <Link
               to={item.to as '.'}
-              params={item.params as any}
+              params={item.params as Record<string, string>}
               className="hover:text-foreground transition-colors"
             >
               {item.label}

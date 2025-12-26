@@ -21,10 +21,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
 
   return (
-    <Card className="group overflow-hidden border-none bg-transparent shadow-none transition-all duration-500 hover:translate-y-[-4px]">
-      <CardContent className="p-0 relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary/30">
+    <Card className="group overflow-hidden border-none bg-transparent shadow-none transition-all duration-300 hover:translate-y-[-2px]">
+      <CardContent className="p-0 relative aspect-[3/4] overflow-hidden rounded-xl bg-secondary/30">
         {product.isFeatured && (
-          <Badge className="absolute top-4 left-4 z-10 glass-dark text-white border-white/10 px-3 py-1">
+          <Badge className="absolute top-2 left-2 z-10 glass-dark text-white border-white/10 px-2 py-0.5 text-[10px]">
             {t('Featured')}
           </Badge>
         )}
@@ -41,30 +41,31 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </Link>
 
-        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full transition-transform duration-500 group-hover:translate-y-0 bg-gradient-to-t from-black/60 to-transparent">
+        <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full transition-transform duration-300 group-hover:translate-y-0 bg-gradient-to-t from-black/60 to-transparent">
           <Button
-            className="w-full glass-dark text-white border-white/20 hover:bg-white/10"
+            size="sm"
+            className="w-full h-8 glass-dark text-white border-white/20 hover:bg-white/10 text-xs"
             onClick={() => addItem(product.id)}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-3 h-3 mr-1" />
             {t('Add to Cart')}
           </Button>
         </div>
       </CardContent>
 
-      <CardFooter className="px-0 py-4 flex flex-col items-start gap-1">
+      <CardFooter className="px-0 py-2 flex flex-col items-start gap-0.5">
         <Link
           to="/$lang/products/$productId"
           params={{ lang: currentLang, productId: product.slug }}
-          className="text-sm font-semibold tracking-tight hover:underline underline-offset-4"
+          className="text-xs font-semibold tracking-tight hover:underline underline-offset-4"
         >
           {product.name}
         </Link>
         <div className="flex items-center justify-between w-full">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-[10px] text-muted-foreground">
             {product.category}
           </span>
-          <span className="text-sm font-medium">
+          <span className="text-xs font-medium">
             {formatCurrency({
               value: product.price,
               currency: product.currency,
