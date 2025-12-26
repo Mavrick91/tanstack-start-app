@@ -12,10 +12,10 @@ type Product = {
   status: 'draft' | 'active' | 'archived'
   vendor: string | null
   productType: string | null
-  variantCount: number
-  minPrice: number | null
-  maxPrice: number | null
-  totalInventory: number
+  price: string | null
+  compareAtPrice: string | null
+  sku: string | null
+  inventoryQuantity: number
   createdAt: string
 }
 
@@ -135,7 +135,7 @@ function AdminProductsPage() {
                     Price
                   </th>
                   <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    Details
+                    SKU
                   </th>
                   <th className="px-8 py-4"></th>
                 </tr>
@@ -175,32 +175,31 @@ function AdminProductsPage() {
                       <div className="space-y-1">
                         <div className="h-1 w-16 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${product.totalInventory === 0 ? 'bg-destructive' : 'bg-pink-500'}`}
+                            className={`h-full rounded-full ${product.inventoryQuantity === 0 ? 'bg-destructive' : 'bg-pink-500'}`}
                             style={{
-                              width: `${Math.min(product.totalInventory, 100)}%`,
+                              width: `${Math.min(product.inventoryQuantity, 100)}%`,
                             }}
                           />
                         </div>
                         <p
-                          className={`text-[10px] font-bold uppercase tracking-wider ${product.totalInventory === 0 ? 'text-destructive' : 'text-foreground/70'}`}
+                          className={`text-[10px] font-bold uppercase tracking-wider ${product.inventoryQuantity === 0 ? 'text-destructive' : 'text-foreground/70'}`}
                         >
-                          {product.totalInventory}{' '}
-                          {product.totalInventory === 1 ? 'unit' : 'units'}
+                          {product.inventoryQuantity}{' '}
+                          {product.inventoryQuantity === 1 ? 'unit' : 'units'}
                         </p>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      {product.minPrice !== null ? (
+                      {product.price !== null ? (
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold">
-                            ${product.minPrice.toFixed(2)}
-                            {product.minPrice !== product.maxPrice && (
-                              <span className="text-muted-foreground/60 font-medium">
-                                {' '}
-                                - ${product.maxPrice?.toFixed(2)}
-                              </span>
-                            )}
+                            ${Number(product.price).toFixed(2)}
                           </span>
+                          {product.compareAtPrice && (
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              ${Number(product.compareAtPrice).toFixed(2)}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-xs font-medium">
@@ -209,14 +208,9 @@ function AdminProductsPage() {
                       )}
                     </td>
                     <td className="px-8 py-5">
-                      <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-muted/50 rounded-lg border border-border/50">
-                        <span className="text-[10px] font-bold">
-                          {product.variantCount}
-                        </span>
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground/70 tracking-tight">
-                          {product.variantCount === 1 ? 'Variant' : 'Variants'}
-                        </span>
-                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {product.sku || '-'}
+                      </span>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <ProductActionsDropdown

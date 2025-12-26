@@ -4,6 +4,7 @@ import { desc, eq } from 'drizzle-orm'
 
 import { db } from '../db'
 import { products, productImages } from '../db/schema'
+import { emptyToNull } from '../lib/api'
 import { validateSession } from '../lib/auth'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
@@ -97,19 +98,18 @@ export const createProductFn = createServerFn({ method: 'POST' })
           name,
           handle: handle.trim(),
           description,
-          vendor,
-          productType,
+          vendor: emptyToNull(vendor),
+          productType: emptyToNull(productType),
           status: status || 'draft',
           tags: tags || [],
           metaTitle,
           metaDescription,
-          // Pricing & Inventory (now on product directly)
-          price,
-          compareAtPrice,
-          sku: sku?.trim() || null,
-          barcode: barcode?.trim() || null,
-          inventoryQuantity: inventoryQuantity || 0,
-          weight,
+          price: emptyToNull(price),
+          compareAtPrice: emptyToNull(compareAtPrice),
+          sku: emptyToNull(sku),
+          barcode: emptyToNull(barcode),
+          inventoryQuantity: inventoryQuantity ?? 0,
+          weight: emptyToNull(weight),
         })
         .returning()
 

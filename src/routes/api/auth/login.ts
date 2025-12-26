@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { sessions, users } from '../../../db/schema'
+import { errorResponse, simpleErrorResponse } from '../../../lib/api'
 
 // Session expires in 7 days
 const SESSION_EXPIRY_DAYS = 7
@@ -17,10 +18,7 @@ export const Route = createFileRoute('/api/auth/login')({
           const { email, password } = body
 
           if (!email || !password) {
-            return Response.json(
-              { success: false, error: 'Email and password required' },
-              { status: 400 },
-            )
+            return simpleErrorResponse('Email and password required')
           }
 
           const [user] = await db
@@ -29,19 +27,13 @@ export const Route = createFileRoute('/api/auth/login')({
             .where(eq(users.email, email))
 
           if (!user) {
-            return Response.json(
-              { success: false, error: 'Invalid email or password' },
-              { status: 401 },
-            )
+            return simpleErrorResponse('Invalid email or password', 401)
           }
 
           const validPassword = await compare(password, user.passwordHash)
 
           if (!validPassword) {
-            return Response.json(
-              { success: false, error: 'Invalid email or password' },
-              { status: 401 },
-            )
+            return simpleErrorResponse('Invalid email or password', 401)
           }
 
           // Create session
@@ -88,11 +80,7 @@ export const Route = createFileRoute('/api/auth/login')({
             },
           )
         } catch (error) {
-          console.error('Login error:', error)
-          return Response.json(
-            { success: false, error: 'Internal server error' },
-            { status: 500 },
-          )
+          return errorResponse('Login failed', error)
         }
       },
     },

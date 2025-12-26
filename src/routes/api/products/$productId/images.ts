@@ -3,7 +3,11 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { productImages } from '../../../../db/schema'
-import { validateSession } from '../../../../lib/auth'
+import {
+  errorResponse,
+  requireAuth,
+  successResponse,
+} from '../../../../lib/api'
 import { deleteImagesFromCloudinary } from '../../../../lib/cloudinary'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
@@ -13,13 +17,8 @@ export const Route = createFileRoute('/api/products/$productId/images')({
     handlers: {
       PUT: async ({ params, request }) => {
         try {
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const { productId } = params
           const body = await request.json()
@@ -61,13 +60,9 @@ export const Route = createFileRoute('/api/products/$productId/images')({
             )
           }
 
-          return Response.json({ success: true })
+          return successResponse({})
         } catch (error) {
-          console.error('Error updating product images:', error)
-          return Response.json(
-            { success: false, error: 'Failed to update images' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to update images', error)
         }
       },
     },

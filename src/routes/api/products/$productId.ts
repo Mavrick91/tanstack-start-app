@@ -3,22 +3,22 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { productImages, products } from '../../../db/schema'
-import { validateSession } from '../../../lib/auth'
+import {
+  errorResponse,
+  requireAuth,
+  sanitizeProductFields,
+  simpleErrorResponse,
+  successResponse,
+} from '../../../lib/api'
 
 export const Route = createFileRoute('/api/products/$productId')({
   server: {
     handlers: {
-      // GET /api/products/:productId - Get single product with all relations (requires auth)
+      // GET /api/products/:productId - Get single product with all relations
       GET: async ({ params, request }) => {
         try {
-          // Validate session
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const { productId } = params
 
@@ -28,87 +28,73 @@ export const Route = createFileRoute('/api/products/$productId')({
             .where(eq(products.id, productId))
 
           if (!product) {
-            return Response.json(
-              { success: false, error: 'Product not found' },
-              { status: 404 },
-            )
+            return simpleErrorResponse('Product not found', 404)
           }
 
-          // Get images
           const images = await db
             .select()
             .from(productImages)
             .where(eq(productImages.productId, productId))
             .orderBy(productImages.position)
 
-          return Response.json({
-            success: true,
-            product: {
-              ...product,
-              images,
-            },
-          })
+          return successResponse({ product: { ...product, images } })
         } catch (error) {
-          console.error('Error fetching product:', error)
-          return Response.json(
-            { success: false, error: 'Failed to fetch product' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to fetch product', error)
         }
       },
 
-      // PUT /api/products/:productId - Update product (requires auth)
+      // PUT /api/products/:productId - Update product
       PUT: async ({ params, request }) => {
         try {
-          // Validate session
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const { productId } = params
           const body = await request.json()
 
+          const {
+            name,
+            description,
+            handle,
+            status,
+            tags,
+            metaTitle,
+            metaDescription,
+          } = body
+
+          const sanitized = sanitizeProductFields(body)
+
           const [updated] = await db
             .update(products)
             .set({
-              ...body,
+              name,
+              description,
+              handle,
+              status,
+              tags,
+              metaTitle,
+              metaDescription,
+              ...sanitized,
               updatedAt: new Date(),
             })
             .where(eq(products.id, productId))
             .returning()
 
           if (!updated) {
-            return Response.json(
-              { success: false, error: 'Product not found' },
-              { status: 404 },
-            )
+            return simpleErrorResponse('Product not found', 404)
           }
 
-          return Response.json({ success: true, product: updated })
+          return successResponse({ product: updated })
         } catch (error) {
-          console.error('Error updating product:', error)
-          return Response.json(
-            { success: false, error: 'Failed to update product' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to update product', error)
         }
       },
 
-      // DELETE /api/products/:productId - Delete product (requires auth)
+      // DELETE /api/products/:productId - Delete product
       DELETE: async ({ params, request }) => {
         try {
-          // Validate session
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const { productId } = params
 
@@ -118,19 +104,12 @@ export const Route = createFileRoute('/api/products/$productId')({
             .returning()
 
           if (!deleted) {
-            return Response.json(
-              { success: false, error: 'Product not found' },
-              { status: 404 },
-            )
+            return simpleErrorResponse('Product not found', 404)
           }
 
-          return Response.json({ success: true })
+          return successResponse({})
         } catch (error) {
-          console.error('Error deleting product:', error)
-          return Response.json(
-            { success: false, error: 'Failed to delete product' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to delete product', error)
         }
       },
     },

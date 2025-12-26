@@ -3,78 +3,55 @@ import { desc } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { products, productImages } from '../../../db/schema'
-import { validateSession } from '../../../lib/auth'
+import {
+  errorResponse,
+  requireAuth,
+  sanitizeProductFields,
+  simpleErrorResponse,
+  successResponse,
+} from '../../../lib/api'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
 export const Route = createFileRoute('/api/products/')({
   server: {
     handlers: {
-      // GET /api/products - List all products (requires auth)
+      // GET /api/products - List all products
       GET: async ({ request }) => {
         try {
-          // Validate session
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const allProducts = await db
             .select()
             .from(products)
             .orderBy(desc(products.createdAt))
 
-          return Response.json({
-            success: true,
-            products: allProducts,
-          })
+          return successResponse({ products: allProducts })
         } catch (error) {
-          console.error('Error fetching products:', error)
-          return Response.json(
-            { success: false, error: 'Failed to fetch products' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to fetch products', error)
         }
       },
 
-      // POST /api/products - Create product (requires auth)
+      // POST /api/products - Create product
       POST: async ({ request }) => {
         try {
-          // Validate session
-          const auth = await validateSession(request)
-          if (!auth.success) {
-            return Response.json(
-              { success: false, error: auth.error },
-              { status: auth.status },
-            )
-          }
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
 
           const body = await request.json()
           const {
             name,
             handle,
             description,
-            vendor,
-            productType,
             status,
             tags,
             metaTitle,
             metaDescription,
-            // Pricing & Inventory (now on product directly)
-            price,
-            compareAtPrice,
-            sku,
-            barcode,
-            inventoryQuantity,
-            weight,
-            // Images
             images,
           } = body
 
-          // Validate name is an object with 'en' property
+          // Validate required fields
           if (
             !name ||
             typeof name !== 'object' ||
@@ -82,23 +59,17 @@ export const Route = createFileRoute('/api/products/')({
             typeof (name as LocalizedString).en !== 'string' ||
             !(name as LocalizedString).en.trim()
           ) {
-            return Response.json(
-              {
-                success: false,
-                error: 'Name must be an object with a non-empty "en" property',
-              },
-              { status: 400 },
+            return simpleErrorResponse(
+              'Name must be an object with a non-empty "en" property',
             )
           }
 
           if (!handle || typeof handle !== 'string' || !handle.trim()) {
-            return Response.json(
-              { success: false, error: 'Handle is required' },
-              { status: 400 },
-            )
+            return simpleErrorResponse('Handle is required')
           }
 
-          // Create product with all fields
+          const sanitized = sanitizeProductFields(body)
+
           const product = await db.transaction(async (tx) => {
             const [newProduct] = await tx
               .insert(products)
@@ -106,23 +77,14 @@ export const Route = createFileRoute('/api/products/')({
                 name,
                 handle: handle.trim(),
                 description,
-                vendor,
-                productType,
                 status: status || 'draft',
                 tags: tags || [],
                 metaTitle,
                 metaDescription,
-                // Pricing & Inventory
-                price,
-                compareAtPrice,
-                sku,
-                barcode,
-                inventoryQuantity: inventoryQuantity || 0,
-                weight,
+                ...sanitized,
               })
               .returning()
 
-            // Create images if provided
             if (Array.isArray(images) && images.length > 0) {
               await tx.insert(productImages).values(
                 images.map(
@@ -142,13 +104,9 @@ export const Route = createFileRoute('/api/products/')({
             return newProduct
           })
 
-          return Response.json({ success: true, product }, { status: 201 })
+          return successResponse({ product }, 201)
         } catch (error) {
-          console.error('Error creating product:', error)
-          return Response.json(
-            { success: false, error: 'Failed to create product' },
-            { status: 500 },
-          )
+          return errorResponse('Failed to create product', error)
         }
       },
     },

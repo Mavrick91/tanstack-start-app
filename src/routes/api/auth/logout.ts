@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { sessions } from '../../../db/schema'
+import { errorResponse } from '../../../lib/api'
 
 // Helper to parse cookies from request
 function getCookie(request: Request, name: string): string | undefined {
@@ -43,11 +44,7 @@ export const Route = createFileRoute('/api/auth/logout')({
             },
           })
         } catch (error) {
-          console.error('Logout error:', error)
-          return Response.json(
-            { success: false, error: 'Internal server error' },
-            { status: 500 },
-          )
+          return errorResponse('Logout failed', error)
         }
       },
     },
