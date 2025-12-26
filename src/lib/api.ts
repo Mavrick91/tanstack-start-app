@@ -1,27 +1,12 @@
-/**
- * API Response utilities for consistent error handling across all endpoints.
- * In development, errors include detailed information for debugging.
- * In production, errors are generic to avoid leaking implementation details.
- */
-
 import { validateSession } from './auth'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
-type ErrorResponseOptions = {
-  status?: number
-}
-
-/**
- * Create an error response with dev-friendly details in development mode.
- */
 export function errorResponse(
   message: string,
   error: unknown,
-  options: ErrorResponseOptions = {},
+  status = 500,
 ): Response {
-  const { status = 500 } = options
-
   console.error(`[API Error] ${message}:`, error)
 
   return Response.json(
@@ -37,9 +22,6 @@ export function errorResponse(
   )
 }
 
-/**
- * Create a success response.
- */
 export function successResponse<T extends object>(
   data: T,
   status = 200,
@@ -47,27 +29,14 @@ export function successResponse<T extends object>(
   return Response.json({ success: true, ...data }, { status })
 }
 
-/**
- * Create a simple error response without exception details.
- */
 export function simpleErrorResponse(message: string, status = 400): Response {
   return Response.json({ success: false, error: message }, { status })
 }
 
-// ============================================================================
-// Sanitization Utilities
-// ============================================================================
-
-/**
- * Convert empty strings to null for optional database fields.
- */
 export function emptyToNull(val: string | undefined | null): string | null {
   return val === '' || val === undefined || val === null ? null : val
 }
 
-/**
- * Sanitize product input, converting empty strings to null for nullable fields.
- */
 export function sanitizeProductFields(input: Record<string, unknown>) {
   return {
     vendor: emptyToNull(input.vendor as string),
@@ -81,18 +50,10 @@ export function sanitizeProductFields(input: Record<string, unknown>) {
   }
 }
 
-// ============================================================================
-// Auth Middleware
-// ============================================================================
-
 type AuthResult =
   | { success: true; user: { id: string; email: string; role: string } }
   | { success: false; response: Response }
 
-/**
- * Validate session and return user or error response.
- * Use in API handlers to reduce auth boilerplate.
- */
 export async function requireAuth(request: Request): Promise<AuthResult> {
   const auth = await validateSession(request)
   if (!auth.success) {

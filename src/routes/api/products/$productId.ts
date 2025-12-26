@@ -14,27 +14,22 @@ import {
 export const Route = createFileRoute('/api/products/$productId')({
   server: {
     handlers: {
-      // GET /api/products/:productId - Get single product with all relations
       GET: async ({ params, request }) => {
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
 
-          const { productId } = params
-
           const [product] = await db
             .select()
             .from(products)
-            .where(eq(products.id, productId))
+            .where(eq(products.id, params.productId))
 
-          if (!product) {
-            return simpleErrorResponse('Product not found', 404)
-          }
+          if (!product) return simpleErrorResponse('Product not found', 404)
 
           const images = await db
             .select()
             .from(productImages)
-            .where(eq(productImages.productId, productId))
+            .where(eq(productImages.productId, params.productId))
             .orderBy(productImages.position)
 
           return successResponse({ product: { ...product, images } })
@@ -43,15 +38,12 @@ export const Route = createFileRoute('/api/products/$productId')({
         }
       },
 
-      // PUT /api/products/:productId - Update product
       PUT: async ({ params, request }) => {
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
 
-          const { productId } = params
           const body = await request.json()
-
           const {
             name,
             description,
@@ -61,8 +53,6 @@ export const Route = createFileRoute('/api/products/$productId')({
             metaTitle,
             metaDescription,
           } = body
-
-          const sanitized = sanitizeProductFields(body)
 
           const [updated] = await db
             .update(products)
@@ -74,15 +64,13 @@ export const Route = createFileRoute('/api/products/$productId')({
               tags,
               metaTitle,
               metaDescription,
-              ...sanitized,
+              ...sanitizeProductFields(body),
               updatedAt: new Date(),
             })
-            .where(eq(products.id, productId))
+            .where(eq(products.id, params.productId))
             .returning()
 
-          if (!updated) {
-            return simpleErrorResponse('Product not found', 404)
-          }
+          if (!updated) return simpleErrorResponse('Product not found', 404)
 
           return successResponse({ product: updated })
         } catch (error) {
@@ -90,22 +78,17 @@ export const Route = createFileRoute('/api/products/$productId')({
         }
       },
 
-      // DELETE /api/products/:productId - Delete product
       DELETE: async ({ params, request }) => {
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
 
-          const { productId } = params
-
           const [deleted] = await db
             .delete(products)
-            .where(eq(products.id, productId))
+            .where(eq(products.id, params.productId))
             .returning()
 
-          if (!deleted) {
-            return simpleErrorResponse('Product not found', 404)
-          }
+          if (!deleted) return simpleErrorResponse('Product not found', 404)
 
           return successResponse({})
         } catch (error) {

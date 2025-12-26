@@ -2,10 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { ProductCard } from '../../../components/products/ProductCard'
-import { getProducts } from '../../../data/products'
+import { getProducts } from '../../../data/storefront'
 
 export const Route = createFileRoute('/$lang/products/')({
-  loader: () => getProducts(),
+  loader: ({ params }) => getProducts({ data: { lang: params.lang } }),
   head: ({ params }) => {
     const titles: Record<string, string> = {
       en: 'All Products | FineNail Season',

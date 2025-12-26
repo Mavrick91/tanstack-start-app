@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { desc } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { products, productImages } from '../../../db/schema'
+import { productImages, products } from '../../../db/schema'
 import {
   errorResponse,
   requireAuth,
@@ -16,7 +16,6 @@ type LocalizedString = { en: string; fr?: string; id?: string }
 export const Route = createFileRoute('/api/products/')({
   server: {
     handlers: {
-      // GET /api/products - List all products
       GET: async ({ request }) => {
         try {
           const auth = await requireAuth(request)
@@ -33,7 +32,6 @@ export const Route = createFileRoute('/api/products/')({
         }
       },
 
-      // POST /api/products - Create product
       POST: async ({ request }) => {
         try {
           const auth = await requireAuth(request)
@@ -51,24 +49,20 @@ export const Route = createFileRoute('/api/products/')({
             images,
           } = body
 
-          // Validate required fields
           if (
             !name ||
             typeof name !== 'object' ||
             !('en' in name) ||
-            typeof (name as LocalizedString).en !== 'string' ||
-            !(name as LocalizedString).en.trim()
+            !(name as LocalizedString).en?.trim()
           ) {
             return simpleErrorResponse(
               'Name must be an object with a non-empty "en" property',
             )
           }
 
-          if (!handle || typeof handle !== 'string' || !handle.trim()) {
+          if (!handle?.trim()) {
             return simpleErrorResponse('Handle is required')
           }
-
-          const sanitized = sanitizeProductFields(body)
 
           const product = await db.transaction(async (tx) => {
             const [newProduct] = await tx
@@ -81,11 +75,11 @@ export const Route = createFileRoute('/api/products/')({
                 tags: tags || [],
                 metaTitle,
                 metaDescription,
-                ...sanitized,
+                ...sanitizeProductFields(body),
               })
               .returning()
 
-            if (Array.isArray(images) && images.length > 0) {
+            if (images?.length) {
               await tx.insert(productImages).values(
                 images.map(
                   (

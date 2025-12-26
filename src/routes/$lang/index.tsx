@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 
 import { ProductCard } from '../../components/products/ProductCard'
 import { Button } from '../../components/ui/button'
-import { getFeaturedProducts } from '../../data/products'
+import { getFeaturedProducts } from '../../data/storefront'
 
 export const Route = createFileRoute('/$lang/')({
-  loader: () => getFeaturedProducts(),
+  loader: ({ params }) => getFeaturedProducts({ data: { lang: params.lang } }),
   head: ({ params }) => {
     const titles: Record<string, string> = {
       en: 'Home | FineNail Season',

@@ -6,12 +6,13 @@ import { useTranslation } from 'react-i18next'
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
 import { Separator } from '../../../components/ui/separator'
-import { getProductBySlug } from '../../../data/products'
+import { getProductBySlug } from '../../../data/storefront'
 import { useCartStore } from '../../../hooks/useCart'
 import { formatCurrency } from '../../../lib/format'
 
 export const Route = createFileRoute('/$lang/products/$productId')({
-  loader: ({ params }) => getProductBySlug(params.productId),
+  loader: ({ params }) =>
+    getProductBySlug({ data: { slug: params.productId, lang: params.lang } }),
   head: ({ loaderData }) => ({
     meta: [
       {
