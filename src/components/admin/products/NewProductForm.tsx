@@ -9,9 +9,13 @@ import {
   Tag,
   Trash2,
   PlusCircle,
+  Wand2,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
+import { generateProductDetailsFn } from '../../../server/ai'
 import { createProductFn } from '../../../server/products'
 import { Button } from '../../ui/button'
 import { Input } from '../../ui/input'
@@ -54,6 +58,8 @@ type NewProductFormProps = {
 export function NewProductForm({ onBack }: NewProductFormProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [aiProvider, setAiProvider] = useState<'gemini' | 'openai'>('gemini')
 
   const createProduct = useMutation({
     mutationFn: async (data: ProductFormData) => {
@@ -66,6 +72,41 @@ export function NewProductForm({ onBack }: NewProductFormProps) {
       onBack()
     },
   })
+
+  const handleAIGenerate = async () => {
+    const images = form.getFieldValue('images')
+    const firstImageUrl = images[0]?.url
+
+    if (!firstImageUrl?.trim()) {
+      toast.error(t('Please add an image URL first'))
+      return
+    }
+
+    setIsGenerating(true)
+    try {
+      const result = await generateProductDetailsFn({
+        data: { imageUrl: firstImageUrl, provider: aiProvider },
+      })
+
+      if (result.success) {
+        form.setFieldValue('name', result.data.name)
+        form.setFieldValue('description', result.data.description)
+        form.setFieldValue('metaTitle', result.data.metaTitle)
+        form.setFieldValue('metaDescription', result.data.metaDescription)
+        form.setFieldValue('handle', result.data.handle)
+        form.setFieldValue('tags', result.data.tags)
+        toast.success(t('Product details generated successfully!'))
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t('Failed to generate product details'),
+      )
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const form = useForm({
     defaultValues: {
@@ -393,6 +434,37 @@ export function NewProductForm({ onBack }: NewProductFormProps) {
                     <PlusCircle className="w-4 h-4" />
                     {t('Add Image URL')}
                   </Button>
+
+                  {field.state.value.length > 0 &&
+                    field.state.value[0]?.url && (
+                      <div className="flex gap-2">
+                        <Select
+                          value={aiProvider}
+                          onValueChange={(v) =>
+                            setAiProvider(v as 'gemini' | 'openai')
+                          }
+                        >
+                          <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="gemini">Gemini</SelectItem>
+                            <SelectItem value="openai">OpenAI</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
+                          onClick={handleAIGenerate}
+                          disabled={isGenerating}
+                        >
+                          <Wand2 className="w-4 h-4" />
+                          {isGenerating
+                            ? t('Generating...')
+                            : t('Generate Details with AI')}
+                        </Button>
+                      </div>
+                    )}
                 </div>
               )}
             </form.Field>
