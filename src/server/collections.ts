@@ -48,6 +48,18 @@ export const getCollectionsFn = createServerFn({ method: 'GET' }).handler(
           SELECT COUNT(*) FROM collection_products 
           WHERE collection_id = ${collections.id}
         )::int`,
+        previewImages: sql<string[]>`(
+          SELECT COALESCE(array_agg(url), '{}')
+          FROM (
+            SELECT pi.url
+            FROM ${collectionProducts} cp
+            JOIN ${productImages} pi ON cp.product_id = pi.product_id
+            WHERE cp.collection_id = ${collections.id}
+            AND pi.position = 0
+            ORDER BY cp.position ASC
+            LIMIT 4
+          ) as sub
+        )::text[]`,
       })
       .from(collections)
       .orderBy(desc(collections.createdAt))

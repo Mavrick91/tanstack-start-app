@@ -159,6 +159,37 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       throw new Error('Collection not found')
     }
 
+    // Draft visibility check: unpublished collections should not be accessible on storefront
+    if (!collection.publishedAt) {
+      throw new Error('Collection not found')
+    }
+
+    // Determine sort order based on collection.sortOrder
+    const sortOrder = collection.sortOrder || 'manual'
+
+    // Build order clause based on sortOrder
+    let orderByClause
+    switch (sortOrder) {
+      case 'newest':
+        orderByClause = desc(products.createdAt)
+        break
+      case 'price_asc':
+        orderByClause = asc(products.price)
+        break
+      case 'price_desc':
+        orderByClause = desc(products.price)
+        break
+      case 'best_selling':
+        // Fallback to manual order if no sales data available
+        // Could be: desc(products.soldCount) if that field existed
+        orderByClause = asc(collectionProducts.position)
+        break
+      case 'manual':
+      default:
+        orderByClause = asc(collectionProducts.position)
+        break
+    }
+
     const collectionProductsList = await db
       .select({
         product: products,
@@ -172,7 +203,7 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
           eq(products.status, 'active'),
         ),
       )
-      .orderBy(asc(collectionProducts.position))
+      .orderBy(orderByClause)
 
     const productsList = await Promise.all(
       collectionProductsList.map(async ({ product }) => {

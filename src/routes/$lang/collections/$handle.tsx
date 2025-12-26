@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { BackButton } from '../../../components/ui/back-button'
 import { ProductCard } from '../../../components/products/ProductCard'
+import { BackButton } from '../../../components/ui/back-button'
 import { getCollectionByHandle } from '../../../data/storefront'
 
 export const Route = createFileRoute('/$lang/collections/$handle')({

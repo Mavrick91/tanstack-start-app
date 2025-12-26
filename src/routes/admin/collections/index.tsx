@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { TFunction } from 'i18next'
 import {
   FolderOpen,
   Plus,
   Search,
-  MoreHorizontal,
-  ExternalLink,
   Package,
   ArrowRight,
   Filter,
@@ -13,16 +12,11 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { CollectionListActions } from '../../../components/admin/collections/components/CollectionListActions'
+import { CollectionThumbnail } from '../../../components/admin/collections/components/CollectionThumbnail'
 import { Button } from '../../../components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '../../../components/ui/dropdown-menu'
-import { getCollectionsFn } from '../../../server/collections'
 import { cn } from '../../../lib/utils'
+import { getCollectionsFn } from '../../../server/collections'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -34,6 +28,7 @@ interface CollectionListItem {
   productCount: number
   publishedAt: string | Date | null
   createdAt: string | Date
+  previewImages?: string[]
 }
 
 export const Route = createFileRoute('/admin/collections/')({
@@ -86,7 +81,9 @@ function CollectionsPage() {
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{t('Collections')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t('Collections')}
+          </h1>
           <p className="text-muted-foreground font-medium text-sm">
             {t('Curate and organize your products for the storefront')}
           </p>
@@ -133,7 +130,9 @@ function CollectionsPage() {
           <p className="text-muted-foreground text-xs font-medium mb-6 max-w-xs mx-auto">
             {search
               ? t('Try adjusting your search terms or filters.')
-              : t('Start curating your products into beautiful, themed collections.')}
+              : t(
+                  'Start curating your products into beautiful, themed collections.',
+                )}
           </p>
           {!search && (
             <Link to="/admin/collections/new">
@@ -186,9 +185,9 @@ function CollectionsPage() {
                               alt=""
                             />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center">
-                              <FolderOpen className="w-4 h-4 text-muted-foreground/30" />
-                            </div>
+                            <CollectionThumbnail
+                              images={collection.previewImages || []}
+                            />
                           )}
                         </div>
                         <div className="min-w-0">
@@ -217,12 +216,12 @@ function CollectionsPage() {
                       </span>
                     </td>
                     <td className="px-8 py-5">
-                       <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <Package className="w-3 h-3 text-muted-foreground" />
                         <span className="text-xs font-semibold tabular-nums">
-                            {collection.productCount}
+                          {collection.productCount}
                         </span>
-                       </div>
+                      </div>
                     </td>
                     <td className="px-8 py-5">
                       <span className="text-xs font-medium text-muted-foreground">
@@ -233,54 +232,12 @@ function CollectionsPage() {
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0 rounded-full hover:bg-pink-50 hover:text-pink-600"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-56 rounded-2xl p-2 border-border/50 shadow-2xl backdrop-blur-xl bg-card/95"
-                        >
-                          <DropdownMenuLabel className="px-3 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
-                            {t('Quick Actions')}
-                          </DropdownMenuLabel>
-                          <DropdownMenuItem
-                            asChild
-                            className="rounded-xl cursor-pointer py-2.5"
-                          >
-                            <Link
-                              to="/admin/collections/$collectionId"
-                              params={{ collectionId: collection.id }}
-                            >
-                              <MoreHorizontal className="mr-3 h-4 w-4" />
-                              <span className="font-bold text-sm">
-                                {t('Edit Details')}
-                              </span>
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            asChild
-                            className="rounded-xl cursor-pointer py-2.5"
-                          >
-                            <a
-                              href={`/en/collections/${collection.handle}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center"
-                            >
-                              <ExternalLink className="mr-3 h-4 w-4" />
-                              <span className="font-bold text-sm">
-                                {t('View Storefront')}
-                              </span>
-                            </a>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <CollectionListActions
+                        collectionId={collection.id}
+                        handle={collection.handle}
+                        name={collection.name.en}
+                        status={collection.publishedAt ? 'active' : 'draft'}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -293,9 +250,15 @@ function CollectionsPage() {
   )
 }
 
-function StatusBadge({ publishedAt, t }: { publishedAt: string | Date | null, t: any }) {
+function StatusBadge({
+  publishedAt,
+  t,
+}: {
+  publishedAt: string | Date | null
+  t: TFunction
+}) {
   const status = publishedAt ? 'active' : 'draft'
-  
+
   const styles: Record<string, { bg: string; text: string; dot: string }> = {
     active: {
       bg: 'bg-emerald-500/5 border-emerald-500/10',
@@ -314,13 +277,18 @@ function StatusBadge({ publishedAt, t }: { publishedAt: string | Date | null, t:
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border",
-        current.bg
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border',
+        current.bg,
       )}
     >
-      <div className={cn("w-1 h-1 rounded-full", current.dot)} />
-      <span className={cn("text-[9px] font-bold uppercase tracking-wider", current.text)}>
-        {t(status === 'active' ? 'Active' : 'Draft')}
+      <div className={cn('w-1 h-1 rounded-full', current.dot)} />
+      <span
+        className={cn(
+          'text-[9px] font-bold uppercase tracking-wider',
+          current.text,
+        )}
+      >
+        {status === 'active' ? t('Active') : t('Draft')}
       </span>
     </div>
   )

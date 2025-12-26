@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Package, Plus, Search, Filter, ArrowRight } from 'lucide-react'
 
-import { ProductActionsDropdown } from '../../../components/admin/products/ProductActionsDropdown'
+import { ProductListActions } from '../../../components/admin/products/components/ProductListActions'
 import { Button } from '../../../components/ui/button'
 
 type Product = {
@@ -213,9 +213,10 @@ function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <ProductActionsDropdown
+                      <ProductListActions
                         productId={product.id}
                         productName={product.name.en}
+                        handle={product.handle}
                         status={product.status}
                       />
                     </td>
