@@ -3,7 +3,7 @@ import { getRequest } from '@tanstack/react-start/server'
 import { desc, eq } from 'drizzle-orm'
 
 import { db } from '../db'
-import { products, productVariants, productImages } from '../db/schema'
+import { products, productImages } from '../db/schema'
 import { validateSession } from '../lib/auth'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
@@ -38,49 +38,11 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
     }
 
     const allProducts = await db
-      .select({
-        id: products.id,
-        handle: products.handle,
-        name: products.name,
-        status: products.status,
-        vendor: products.vendor,
-        productType: products.productType,
-        publishedAt: products.publishedAt,
-        createdAt: products.createdAt,
-      })
+      .select()
       .from(products)
       .orderBy(desc(products.createdAt))
 
-    const productsWithMeta = await Promise.all(
-      allProducts.map(async (product) => {
-        const variants = await db
-          .select({
-            price: productVariants.price,
-            inventoryQuantity: productVariants.inventoryQuantity,
-          })
-          .from(productVariants)
-          .where(eq(productVariants.productId, product.id))
-
-        const prices = variants
-          .map((v) => Number(v.price))
-          .filter((p) => !isNaN(p))
-
-        const totalInventory = variants.reduce(
-          (sum, v) => sum + v.inventoryQuantity,
-          0,
-        )
-
-        return {
-          ...product,
-          variantCount: variants.length,
-          minPrice: prices.length > 0 ? Math.min(...prices) : null,
-          maxPrice: prices.length > 0 ? Math.max(...prices) : null,
-          totalInventory,
-        }
-      }),
-    )
-
-    return { success: true, data: productsWithMeta }
+    return { success: true, data: allProducts }
   },
 )
 
@@ -141,18 +103,15 @@ export const createProductFn = createServerFn({ method: 'POST' })
           tags: tags || [],
           metaTitle,
           metaDescription,
+          // Pricing & Inventory (now on product directly)
+          price,
+          compareAtPrice,
+          sku: sku?.trim() || null,
+          barcode: barcode?.trim() || null,
+          inventoryQuantity: inventoryQuantity || 0,
+          weight,
         })
         .returning()
-
-      await tx.insert(productVariants).values({
-        productId: newProduct.id,
-        price: price || '0.00',
-        compareAtPrice: compareAtPrice || null,
-        sku: sku?.trim() || null,
-        barcode: barcode?.trim() || null,
-        inventoryQuantity: inventoryQuantity || 0,
-        weight: weight || null,
-      })
 
       if (Array.isArray(images) && images.length > 0) {
         await tx.insert(productImages).values(

@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { desc, eq } from 'drizzle-orm'
+import { desc } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { products, productVariants, productImages } from '../../../db/schema'
+import { products, productImages } from '../../../db/schema'
 import { validateSession } from '../../../lib/auth'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
@@ -23,53 +23,13 @@ export const Route = createFileRoute('/api/products/')({
           }
 
           const allProducts = await db
-            .select({
-              id: products.id,
-              handle: products.handle,
-              name: products.name,
-              status: products.status,
-              vendor: products.vendor,
-              productType: products.productType,
-              publishedAt: products.publishedAt,
-              createdAt: products.createdAt,
-            })
+            .select()
             .from(products)
             .orderBy(desc(products.createdAt))
 
-          // Get variant counts and price ranges
-          const productsWithMeta = await Promise.all(
-            allProducts.map(async (product) => {
-              const variants = await db
-                .select({
-                  price: productVariants.price,
-                  inventoryQuantity: productVariants.inventoryQuantity,
-                })
-                .from(productVariants)
-                .where(eq(productVariants.productId, product.id))
-
-              // Safely parse prices with NaN filtering
-              const prices = variants
-                .map((v) => Number(v.price))
-                .filter((p) => !isNaN(p))
-
-              const totalInventory = variants.reduce(
-                (sum, v) => sum + v.inventoryQuantity,
-                0,
-              )
-
-              return {
-                ...product,
-                variantCount: variants.length,
-                minPrice: prices.length > 0 ? Math.min(...prices) : null,
-                maxPrice: prices.length > 0 ? Math.max(...prices) : null,
-                totalInventory,
-              }
-            }),
-          )
-
           return Response.json({
             success: true,
-            products: productsWithMeta,
+            products: allProducts,
           })
         } catch (error) {
           console.error('Error fetching products:', error)
@@ -103,7 +63,7 @@ export const Route = createFileRoute('/api/products/')({
             tags,
             metaTitle,
             metaDescription,
-            // Price & Inventory for the default variant
+            // Pricing & Inventory (now on product directly)
             price,
             compareAtPrice,
             sku,
@@ -138,7 +98,7 @@ export const Route = createFileRoute('/api/products/')({
             )
           }
 
-          // Start a transaction to ensure product and variant are created together
+          // Create product with all fields
           const product = await db.transaction(async (tx) => {
             const [newProduct] = await tx
               .insert(products)
@@ -152,19 +112,15 @@ export const Route = createFileRoute('/api/products/')({
                 tags: tags || [],
                 metaTitle,
                 metaDescription,
+                // Pricing & Inventory
+                price,
+                compareAtPrice,
+                sku,
+                barcode,
+                inventoryQuantity: inventoryQuantity || 0,
+                weight,
               })
               .returning()
-
-            // Create default variant
-            await tx.insert(productVariants).values({
-              productId: newProduct.id,
-              price: price || '0.00',
-              compareAtPrice,
-              sku,
-              barcode,
-              inventoryQuantity: inventoryQuantity || 0,
-              weight: weight || '0.00',
-            })
 
             // Create images if provided
             if (Array.isArray(images) && images.length > 0) {

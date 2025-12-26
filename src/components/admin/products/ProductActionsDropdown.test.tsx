@@ -106,6 +106,13 @@ describe('ProductActionsDropdown', () => {
           publishedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          // Pricing & Inventory fields
+          price: null,
+          compareAtPrice: null,
+          sku: null,
+          barcode: null,
+          inventoryQuantity: 0,
+          weight: null,
         },
       })
 

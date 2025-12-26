@@ -2,14 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import {
-  productImages,
-  productOptions,
-  productOptionValues,
-  products,
-  productVariants,
-  variantOptionValues,
-} from '../../../db/schema'
+import { productImages, products } from '../../../db/schema'
 import { validateSession } from '../../../lib/auth'
 
 export const Route = createFileRoute('/api/products/$productId')({
@@ -41,46 +34,6 @@ export const Route = createFileRoute('/api/products/$productId')({
             )
           }
 
-          // Get options with values
-          const options = await db
-            .select()
-            .from(productOptions)
-            .where(eq(productOptions.productId, productId))
-            .orderBy(productOptions.position)
-
-          const optionsWithValues = await Promise.all(
-            options.map(async (option) => {
-              const values = await db
-                .select()
-                .from(productOptionValues)
-                .where(eq(productOptionValues.optionId, option.id))
-                .orderBy(productOptionValues.position)
-
-              return { ...option, values }
-            }),
-          )
-
-          // Get variants with their option values
-          const variants = await db
-            .select()
-            .from(productVariants)
-            .where(eq(productVariants.productId, productId))
-            .orderBy(productVariants.position)
-
-          const variantsWithOptions = await Promise.all(
-            variants.map(async (variant) => {
-              const optionValueIds = await db
-                .select({ optionValueId: variantOptionValues.optionValueId })
-                .from(variantOptionValues)
-                .where(eq(variantOptionValues.variantId, variant.id))
-
-              return {
-                ...variant,
-                optionValueIds: optionValueIds.map((v) => v.optionValueId),
-              }
-            }),
-          )
-
           // Get images
           const images = await db
             .select()
@@ -92,8 +45,6 @@ export const Route = createFileRoute('/api/products/$productId')({
             success: true,
             product: {
               ...product,
-              options: optionsWithValues,
-              variants: variantsWithOptions,
               images,
             },
           })
