@@ -83,11 +83,11 @@ global.fetch = vi.fn().mockResolvedValue({
 describe('AI Detail Generation Logic', () => {
   describe('generateProductDetails', () => {
     it('should generate product details with Gemini', async () => {
-      const result = await generateProductDetails(
-        'https://example.com/image.jpg',
-        'gemini',
-        'test-api-key',
-      )
+      const result = await generateProductDetails({
+        imageUrl: 'https://example.com/image.jpg',
+        provider: 'gemini',
+        apiKey: 'test-api-key',
+      })
 
       expect(result.name.en).toBe('Silk Scarf')
       expect(result.handle).toBe('silk-scarf')
@@ -95,11 +95,11 @@ describe('AI Detail Generation Logic', () => {
     })
 
     it('should generate product details with OpenAI', async () => {
-      const result = await generateProductDetails(
-        'https://example.com/image.jpg',
-        'openai',
-        'test-api-key',
-      )
+      const result = await generateProductDetails({
+        imageUrl: 'https://example.com/image.jpg',
+        provider: 'openai',
+        apiKey: 'test-api-key',
+      })
 
       expect(result.name.en).toBe('Leather Bag')
       expect(result.handle).toBe('leather-bag')
@@ -113,20 +113,20 @@ describe('AI Detail Generation Logic', () => {
       } as Response)
 
       await expect(
-        generateProductDetails(
-          'https://example.com/missing.jpg',
-          'gemini',
-          'test-key',
-        ),
+        generateProductDetails({
+          imageUrl: 'https://example.com/missing.jpg',
+          provider: 'gemini',
+          apiKey: 'test-key',
+        }),
       ).rejects.toThrow('Failed to fetch image: Not Found')
     })
 
     it('should default to Gemini when provider is gemini', async () => {
-      const result = await generateProductDetails(
-        'https://example.com/image.jpg',
-        'gemini',
-        'test-key',
-      )
+      const result = await generateProductDetails({
+        imageUrl: 'https://example.com/image.jpg',
+        provider: 'gemini',
+        apiKey: 'test-key',
+      })
       // Gemini mock returns 'Silk Scarf'
       expect(result.name.en).toBe('Silk Scarf')
     })

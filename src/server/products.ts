@@ -187,6 +187,16 @@ export const deleteProductFn = createServerFn({ method: 'POST' })
       throw new Error(auth.error || 'Unauthorized')
     }
 
+    const images = await db
+      .select({ url: productImages.url })
+      .from(productImages)
+      .where(eq(productImages.productId, data.productId))
+
+    if (images.length > 0) {
+      const { deleteImagesFromCloudinary } = await import('../lib/cloudinary')
+      await deleteImagesFromCloudinary(images.map((img) => img.url))
+    }
+
     await db.delete(products).where(eq(products.id, data.productId))
     return { success: true }
   })
@@ -209,6 +219,11 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
 
     if (!original) throw new Error('Product not found')
 
+    const originalImages = await db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.productId, data.productId))
+
     const [newProduct] = await db
       .insert(products)
       .values({
@@ -220,6 +235,17 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
         updatedAt: new Date(),
       })
       .returning()
+
+    if (originalImages.length > 0) {
+      await db.insert(productImages).values(
+        originalImages.map((img) => ({
+          productId: newProduct.id,
+          url: img.url,
+          altText: img.altText,
+          position: img.position,
+        })),
+      )
+    }
 
     return { success: true, data: newProduct }
   })

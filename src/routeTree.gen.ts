@@ -14,6 +14,7 @@ import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
+import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
@@ -25,6 +26,7 @@ import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as AdminProductsNewRouteImport } from './routes/admin/products/new'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products/$productId'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
+import { Route as ApiProductsProductIdImagesRouteImport } from './routes/api/products/$productId/images'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
 import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo/start.api-request'
 import { Route as LangDemoApiNamesRouteImport } from './routes/$lang/demo/api.names'
@@ -57,6 +59,11 @@ const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LangRoute,
+} as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
@@ -113,6 +120,12 @@ const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => LangRoute,
 } as any)
+const ApiProductsProductIdImagesRoute =
+  ApiProductsProductIdImagesRouteImport.update({
+    id: '/images',
+    path: '/images',
+    getParentRoute: () => ApiProductsProductIdRoute,
+  } as any)
 const LangDemoStartServerFuncsRoute =
   LangDemoStartServerFuncsRouteImport.update({
     id: '/demo/start/server-funcs',
@@ -156,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
@@ -164,13 +178,14 @@ export interface FileRoutesByFullPath {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
   '/$lang/products': typeof LangProductsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -179,6 +194,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/upload': typeof ApiUploadRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
@@ -187,13 +203,14 @@ export interface FileRoutesByTo {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
   '/$lang/products': typeof LangProductsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -205,6 +222,7 @@ export interface FileRoutesById {
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
@@ -213,13 +231,14 @@ export interface FileRoutesById {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
   '/$lang/products/': typeof LangProductsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/api/products/': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -232,6 +251,7 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/admin/login'
+    | '/api/upload'
     | '/$lang/'
     | '/admin/'
     | '/$lang/products/$productId'
@@ -247,6 +267,7 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/api/products/$productId/images'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -255,6 +276,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/login'
+    | '/api/upload'
     | '/$lang'
     | '/admin'
     | '/$lang/products/$productId'
@@ -270,6 +292,7 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/api/products/$productId/images'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -280,6 +303,7 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/admin/login'
+    | '/api/upload'
     | '/$lang/'
     | '/admin/'
     | '/$lang/products/$productId'
@@ -295,6 +319,7 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/api/products/$productId/images'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -305,10 +330,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  ApiUploadRoute: typeof ApiUploadRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
-  ApiProductsProductIdRoute: typeof ApiProductsProductIdRoute
+  ApiProductsProductIdRoute: typeof ApiProductsProductIdRouteWithChildren
   ApiProductsIndexRoute: typeof ApiProductsIndexRoute
 }
 
@@ -348,6 +374,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/'
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/login': {
       id: '/admin/login'
@@ -425,6 +458,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/products/$productId'
       preLoaderRoute: typeof LangProductsProductIdRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/api/products/$productId/images': {
+      id: '/api/products/$productId/images'
+      path: '/images'
+      fullPath: '/api/products/$productId/images'
+      preLoaderRoute: typeof ApiProductsProductIdImagesRouteImport
+      parentRoute: typeof ApiProductsProductIdRoute
     }
     '/$lang/demo/start/server-funcs': {
       id: '/$lang/demo/start/server-funcs'
@@ -524,14 +564,26 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ApiProductsProductIdRouteChildren {
+  ApiProductsProductIdImagesRoute: typeof ApiProductsProductIdImagesRoute
+}
+
+const ApiProductsProductIdRouteChildren: ApiProductsProductIdRouteChildren = {
+  ApiProductsProductIdImagesRoute: ApiProductsProductIdImagesRoute,
+}
+
+const ApiProductsProductIdRouteWithChildren =
+  ApiProductsProductIdRoute._addFileChildren(ApiProductsProductIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  ApiUploadRoute: ApiUploadRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
-  ApiProductsProductIdRoute: ApiProductsProductIdRoute,
+  ApiProductsProductIdRoute: ApiProductsProductIdRouteWithChildren,
   ApiProductsIndexRoute: ApiProductsIndexRoute,
 }
 export const routeTree = rootRouteImport

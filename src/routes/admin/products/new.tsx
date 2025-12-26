@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 
-import { NewProductForm } from '../../../components/admin/products/NewProductForm'
+import { ProductForm } from '../../../components/admin/products/ProductForm'
 
 export const Route = createFileRoute('/admin/products/new')({
   component: NewProductPage,
@@ -15,7 +15,7 @@ function NewProductPage() {
 
   return (
     <div className="py-8 px-4 sm:px-0">
-      <NewProductForm onBack={handleBack} />
+      <ProductForm onBack={handleBack} />
     </div>
   )
 }

@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { ProductEditForm } from '../../../components/admin/products/ProductEditForm'
-import { Button } from '../../../components/ui/button'
-
-import type { Product } from '../../../components/admin/products/ProductEditForm'
+import {
+  ProductForm,
+  type Product,
+} from '../../../components/admin/products/ProductForm'
 
 export const Route = createFileRoute('/admin/products/$productId')({
   component: EditProductPage,
@@ -28,6 +27,10 @@ function EditProductPage() {
       return json.product as Product
     },
   })
+
+  const handleBack = () => {
+    router.navigate({ to: '/admin/products' })
+  }
 
   if (isLoading) {
     return (
@@ -54,28 +57,8 @@ function EditProductPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto pb-32">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.navigate({ to: '/admin/products' })}
-            className="gap-2 mb-2 hover:bg-pink-500/5 hover:text-pink-600 rounded-lg transition-all font-medium text-xs text-muted-foreground"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            {t('Back to Products')}
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            {t('Edit Product')}
-          </h1>
-          <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest mt-1">
-            ID: <span className="text-foreground">{productId}</span>
-          </p>
-        </div>
-      </div>
-
-      <ProductEditForm product={data} />
+    <div className="py-8 px-4 sm:px-0">
+      <ProductForm product={data} onBack={handleBack} />
     </div>
   )
 }

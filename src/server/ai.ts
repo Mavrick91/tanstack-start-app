@@ -47,25 +47,35 @@ Only return the JSON object, no other text or explanation.
 `
 
 async function generateWithGemini(
-  imageUrl: string,
+  imageUrl: string | undefined,
+  imageBase64: string | undefined,
+  mimeType: string | undefined,
   apiKey: string,
 ): Promise<AIProductDetails> {
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' })
 
-  const imageResponse = await fetch(imageUrl)
-  if (!imageResponse.ok) {
-    throw new Error(`Failed to fetch image: ${imageResponse.statusText}`)
+  let data = imageBase64
+  let type = mimeType
+
+  if (imageUrl && !data) {
+    const imageResponse = await fetch(imageUrl)
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`)
+    }
+    const imageBuffer = await imageResponse.arrayBuffer()
+    data = Buffer.from(imageBuffer).toString('base64')
+    type = imageResponse.headers.get('content-type') || 'image/jpeg'
   }
-  const imageBuffer = await imageResponse.arrayBuffer()
-  const imageBase64 = Buffer.from(imageBuffer).toString('base64')
+
+  if (!data) throw new Error('No image data provided')
 
   const result = await model.generateContent([
     AI_PROMPT,
     {
       inlineData: {
-        data: imageBase64,
-        mimeType: imageResponse.headers.get('content-type') || 'image/jpeg',
+        data,
+        mimeType: type || 'image/jpeg',
       },
     },
   ])
@@ -77,20 +87,38 @@ async function generateWithGemini(
 }
 
 async function generateWithOpenAI(
-  imageUrl: string,
+  imageUrl: string | undefined,
+  imageBase64: string | undefined,
   apiKey: string,
 ): Promise<AIProductDetails> {
   const openai = new OpenAI({ apiKey })
+
+  const content: (
+    | { type: 'text'; text: string }
+    | { type: 'image_url'; image_url: { url: string } }
+  )[] = [{ type: 'text', text: AI_PROMPT }]
+
+  if (imageBase64) {
+    content.push({
+      type: 'image_url',
+      image_url: {
+        url: imageBase64.startsWith('data:')
+          ? imageBase64
+          : `data:image/jpeg;base64,${imageBase64}`,
+      },
+    })
+  } else if (imageUrl) {
+    content.push({ type: 'image_url', image_url: { url: imageUrl } })
+  } else {
+    throw new Error('No image data provided')
+  }
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
         role: 'user',
-        content: [
-          { type: 'text', text: AI_PROMPT },
-          { type: 'image_url', image_url: { url: imageUrl } },
-        ],
+        content,
       },
     ],
     max_tokens: 1000,
@@ -101,21 +129,34 @@ async function generateWithOpenAI(
   return aiProductDetailsSchema.parse(JSON.parse(jsonStr))
 }
 
-export async function generateProductDetails(
-  imageUrl: string,
-  provider: AIProvider,
-  apiKey: string,
-): Promise<AIProductDetails> {
-  if (provider === 'openai') {
-    return generateWithOpenAI(imageUrl, apiKey)
+export async function generateProductDetails(params: {
+  imageUrl?: string
+  imageBase64?: string
+  mimeType?: string
+  provider: AIProvider
+  apiKey: string
+}): Promise<AIProductDetails> {
+  if (params.provider === 'openai') {
+    return generateWithOpenAI(
+      params.imageUrl,
+      params.imageBase64,
+      params.apiKey,
+    )
   }
-  return generateWithGemini(imageUrl, apiKey)
+  return generateWithGemini(
+    params.imageUrl,
+    params.imageBase64,
+    params.mimeType,
+    params.apiKey,
+  )
 }
 
 export const generateProductDetailsFn = createServerFn({ method: 'POST' })
   .inputValidator(
     z.object({
-      imageUrl: z.string().min(1),
+      imageUrl: z.string().optional(),
+      imageBase64: z.string().optional(),
+      mimeType: z.string().optional(),
       provider: z.enum(['gemini', 'openai']).default('gemini'),
     }),
   )
@@ -140,11 +181,13 @@ export const generateProductDetailsFn = createServerFn({ method: 'POST' })
     }
 
     try {
-      const result = await generateProductDetails(
-        data.imageUrl,
-        data.provider,
+      const result = await generateProductDetails({
+        imageUrl: data.imageUrl,
+        imageBase64: data.imageBase64,
+        mimeType: data.mimeType,
+        provider: data.provider,
         apiKey,
-      )
+      })
       return { success: true, data: result }
     } catch (error) {
       console.error('AI Generation Error:', error)
