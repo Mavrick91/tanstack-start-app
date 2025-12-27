@@ -1,17 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Upload, Check, ImageIcon, Loader2, Trash2 } from 'lucide-react'
-import { useState, useRef, useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { getOptimizedImageUrl } from '../../../lib/cloudinary'
+import { cn } from '../../../lib/utils'
+import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '../../ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 
@@ -151,43 +153,69 @@ export function MediaLibrary({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-pink-500" />
-            {t('Media Library')}
-          </DialogTitle>
-        </DialogHeader>
-
+      <DialogContent className="!max-w-7xl w-[98vw] h-[95vh] flex flex-col p-0 overflow-hidden border-border/50 shadow-2xl bg-background">
         <Tabs defaultValue="library" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="bg-muted/30 p-1 rounded-xl mb-4">
-            <TabsTrigger
-              value="library"
-              className="rounded-lg px-4 py-1.5 text-xs font-semibold"
-            >
-              {t('Library')}
-            </TabsTrigger>
-            <TabsTrigger
-              value="upload"
-              className="rounded-lg px-4 py-1.5 text-xs font-semibold"
-            >
-              {t('Upload')}
-            </TabsTrigger>
-          </TabsList>
+          <DialogHeader className="px-6 py-4 border-b">
+            <div className="flex items-center justify-between pr-8">
+              <div className="space-y-0.5">
+                <DialogTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-pink-500" />
+                  {t('Media Library')}
+                </DialogTitle>
+                <p className="text-xs text-muted-foreground">
+                  {t('Manage your products and inventory')}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                {selectedIds.size > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="px-3 py-1 bg-pink-100 text-pink-700 border-pink-200"
+                  >
+                    {t('{{count}} selected', { count: selectedIds.size })}
+                  </Badge>
+                )}
+                <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1">
+                  <TabsTrigger
+                    value="library"
+                    className="data-[state=active]:bg-white data-[state=active]:text-pink-600 data-[state=active]:shadow-sm"
+                  >
+                    {t('Library')}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="upload"
+                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-pink-600 data-[state=active]:shadow-sm"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {t('Upload')}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </div>
+          </DialogHeader>
 
-          <TabsContent value="library" className="flex-1 overflow-auto m-0">
+          <TabsContent value="library" className="flex-1 overflow-auto m-0 p-6">
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center h-full gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+                <p className="text-sm font-medium text-pink-500">
+                  {t('Library')}
+                </p>
               </div>
             ) : items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                <ImageIcon className="w-12 h-12 mb-3 opacity-50" />
-                <p className="text-sm font-medium">{t('No media yet')}</p>
-                <p className="text-xs">{t('Upload images to get started')}</p>
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-pink-50 flex items-center justify-center">
+                  <ImageIcon className="w-8 h-8 text-pink-300" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">{t('No media yet')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('Upload images to get started')}
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
                 {items.map((item) => {
                   const isSelected = selectedIds.has(item.id)
                   return (
@@ -195,21 +223,24 @@ export function MediaLibrary({
                       type="button"
                       key={item.id}
                       onClick={() => toggleSelection(item.id)}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                      className={cn(
+                        'group relative aspect-square rounded-lg overflow-hidden border-2 transition-all',
                         isSelected
-                          ? 'border-pink-500 ring-2 ring-pink-500/30'
-                          : 'border-transparent hover:border-border'
-                      }`}
+                          ? 'border-pink-500 ring-2 ring-pink-500/20'
+                          : 'border-transparent bg-muted/20 hover:border-pink-200',
+                      )}
                     >
                       <img
-                        src={getOptimizedImageUrl(item.url, 'thumbnail')}
+                        src={getOptimizedImageUrl(item.url, 'medium')}
                         alt={item.filename || 'Media'}
                         className="w-full h-full object-cover"
                       />
+
+                      {/* Selected State Marker */}
                       {isSelected && (
-                        <div className="absolute inset-0 bg-pink-500/20 flex items-center justify-center">
-                          <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center">
-                            <Check className="w-4 h-4 text-white" />
+                        <div className="absolute inset-0 bg-pink-500/10 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-white shadow-sm">
+                            <Check className="w-5 h-5" />
                           </div>
                         </div>
                       )}
@@ -220,22 +251,36 @@ export function MediaLibrary({
             )}
           </TabsContent>
 
-          <TabsContent value="upload" className="flex-1 m-0">
+          <TabsContent value="upload" className="flex-1 m-0 p-6">
             <div
-              className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-border/50 rounded-2xl hover:border-pink-500/50 hover:bg-pink-500/5 transition-all cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
+              className={cn(
+                'flex flex-col items-center justify-center h-full border-2 border-dashed rounded-lg transition-colors',
+                isUploading
+                  ? 'border-pink-500/50 bg-pink-50 cursor-wait'
+                  : 'border-muted-foreground/25 hover:border-pink-500/50 hover:bg-pink-50/50 cursor-pointer',
+              )}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
             >
               {isUploading ? (
-                <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+                  <p className="text-sm font-medium animate-pulse text-pink-500">
+                    {t('Uploading...')}
+                  </p>
+                </div>
               ) : (
                 <>
-                  <Upload className="w-10 h-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-semibold text-muted-foreground">
-                    {t('Click or drag to upload')}
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">
-                    JPEG, PNG, GIF, WebP, HEIC (max 20MB)
-                  </p>
+                  <div className="w-16 h-16 rounded-full bg-pink-50 flex items-center justify-center mb-4">
+                    <Upload className="w-8 h-8 text-pink-500" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-semibold">
+                      {t('Click or drag to upload')}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      JPEG, PNG, GIF, WebP (MAX. 20MB)
+                    </p>
+                  </div>
                 </>
               )}
             </div>
@@ -252,22 +297,23 @@ export function MediaLibrary({
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="flex items-center justify-between gap-2 pt-4 border-t">
-          <div className="flex gap-2">
+        <DialogFooter className="px-6 py-4 border-t flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             {selectedIds.size > 0 && (
               <Button
                 type="button"
-                variant="destructive"
+                variant="ghost"
                 size="sm"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <Trash2 className="w-4 h-4 mr-1" />
-                {t('Delete')} ({selectedIds.size})
+                <Trash2 className="w-4 h-4 mr-2" />
+                {t('Delete')}
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
             <Button type="button" variant="outline" onClick={onClose}>
               {t('Cancel')}
             </Button>
@@ -275,9 +321,14 @@ export function MediaLibrary({
               type="button"
               onClick={handleInsert}
               disabled={selectedIds.size === 0}
-              className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white"
+              className="bg-pink-600 hover:bg-pink-700 text-white"
             >
-              {t('Insert')} {selectedIds.size > 0 && `(${selectedIds.size})`}
+              {t('Insert')}
+              {selectedIds.size > 0 && (
+                <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-xs text-white">
+                  {selectedIds.size}
+                </span>
+              )}
             </Button>
           </div>
         </DialogFooter>

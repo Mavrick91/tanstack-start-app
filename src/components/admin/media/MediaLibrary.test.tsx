@@ -222,8 +222,8 @@ describe('MediaLibrary', () => {
       fireEvent.click(images[0].closest('button')!)
       fireEvent.click(images[1].closest('button')!)
 
-      // Should show 2 selected
-      expect(screen.getByText(/insert.*2/i)).toBeInTheDocument()
+      // Should show 2 selected - look for the badge in header
+      expect(screen.getByText('2 selected')).toBeInTheDocument()
     })
 
     it('should toggle selection when clicking selected item', async () => {
@@ -249,10 +249,13 @@ describe('MediaLibrary', () => {
 
       // Select
       fireEvent.click(firstImageButton)
-      expect(screen.getByText(/insert.*1/i)).toBeInTheDocument()
+      expect(screen.getByText('1 selected')).toBeInTheDocument()
 
       // Deselect
       fireEvent.click(firstImageButton)
+
+      // Badge should no longer exist
+      expect(screen.queryByText(/selected/i)).not.toBeInTheDocument()
 
       // Insert button should be disabled with no count
       const insertButton = screen.getByRole('button', { name: /insert/i })
@@ -361,7 +364,7 @@ describe('MediaLibrary', () => {
 
       // Delete button should now appear
       expect(
-        screen.getByRole('button', { name: /delete.*1/i }),
+        screen.getByRole('button', { name: /delete/i }),
       ).toBeInTheDocument()
     })
 
@@ -391,7 +394,7 @@ describe('MediaLibrary', () => {
       const images = screen.getAllByRole('img')
       fireEvent.click(images[0].closest('button')!)
 
-      const deleteButton = screen.getByRole('button', { name: /delete.*1/i })
+      const deleteButton = screen.getByRole('button', { name: /delete/i })
       fireEvent.click(deleteButton)
 
       await waitFor(() => {
@@ -474,14 +477,14 @@ describe('MediaLibrary', () => {
 
       // Select first image
       fireEvent.click(images[0].closest('button')!)
-      expect(screen.getByText(/insert.*1/i)).toBeInTheDocument()
+      expect(screen.getByText('1 selected')).toBeInTheDocument()
 
       // Select second image - should replace first selection
       fireEvent.click(images[1].closest('button')!)
-      expect(screen.getByText(/insert.*1/i)).toBeInTheDocument()
+      expect(screen.getByText('1 selected')).toBeInTheDocument()
 
       // Insert should only return the second image
-      const insertButton = screen.getByRole('button', { name: /insert.*1/i })
+      const insertButton = screen.getByRole('button', { name: /insert/i })
       fireEvent.click(insertButton)
 
       expect(mockOnSelect).toHaveBeenCalledWith([

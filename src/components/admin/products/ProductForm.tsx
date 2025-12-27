@@ -5,12 +5,13 @@ import {
   Sparkles,
   Save,
   Image,
-  DollarSign,
   Globe,
   Tag,
   Wand2,
   Loader2,
   ImagePlus,
+  LayoutGrid,
+  Settings2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,9 +23,18 @@ import {
   type ProductVariant,
 } from './components/ProductVariantsTable'
 import { ImageUploader, type ImageItem } from './ImageUploader'
+import { cn } from '../../../lib/utils'
 import { generateProductDetailsFn } from '../../../server/ai'
 import { createProductFn } from '../../../server/products'
+import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../ui/card'
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { RichTextEditor } from '../../ui/rich-text-editor'
@@ -400,46 +410,90 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          {onBack && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="gap-2 mb-2 hover:bg-pink-500/5 hover:text-pink-600 rounded-lg transition-all font-medium text-xs text-muted-foreground"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              {t('Back to Products')}
-            </Button>
-          )}
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-pink-500" />
-            {isEditMode ? t('Edit Product') : t('Add Product')}
-          </h1>
+    <div className="max-w-6xl mx-auto space-y-8 pb-20">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="rounded-full hover:bg-muted"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black tracking-tight text-foreground">
+                {isEditMode ? (
+                  product?.name.en
+                ) : (
+                  <span className="text-muted-foreground">
+                    {t('Create Product')}
+                  </span>
+                )}
+              </h1>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'uppercase tracking-widest text-[10px] py-0.5 px-2 rounded-lg font-bold border-border',
+                  isEditMode
+                    ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                    : 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
+                )}
+              >
+                {isEditMode ? t('Editing') : t('Creating')}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground mt-1 font-medium">
+              {isEditMode
+                ? t('Manage your products and inventory')
+                : t(
+                    'Start building your catalog by adding your first product.',
+                  )}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={onBack}
+            className="rounded-xl border-border/50"
+          >
+            {t('Cancel')}
+          </Button>
+          <Button
+            onClick={() => form.handleSubmit()}
+            disabled={isSaving}
+            className="rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-black px-6 shadow-lg shadow-pink-500/20"
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            {isEditMode ? t('Save Changes') : t('Create Product')}
+          </Button>
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-32"
-      >
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           {/* Main Details Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Product Details')}
-            </h2>
-
-            <div className="space-y-6">
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-pink-500 to-purple-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-pink-500" />
+                {t('Product Details')}
+              </CardTitle>
+              <CardDescription>{t('Product Details')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {/* Name Locale Tabs */}
               <div className="space-y-2">
-                <Label className="text-xs font-semibold">
-                  {t('Name')} <span className="text-destructive">*</span>
+                <Label className="text-sm font-bold">
+                  {t('Name')} <span className="text-pink-500">*</span>
                 </Label>
                 <form.Field
                   name="name"
@@ -477,7 +531,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                         </TabsList>
                         <TabsContent value="en" className="mt-0">
                           <Input
-                            className={`h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
+                            className={`h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
                             value={field.state.value.en || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -491,7 +545,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                         </TabsContent>
                         <TabsContent value="fr" className="mt-0">
                           <Input
-                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500"
                             value={field.state.value.fr || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -504,7 +558,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                         </TabsContent>
                         <TabsContent value="id" className="mt-0">
                           <Input
-                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500"
                             value={field.state.value.id || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -528,9 +582,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
 
               {/* Description Tabs */}
               <div className="space-y-2">
-                <Label className="text-xs font-semibold">
-                  {t('Description')}
-                </Label>
+                <Label className="text-sm font-bold">{t('Description')}</Label>
                 <form.Field name="description">
                   {(field) => (
                     <Tabs defaultValue="en" className="w-full">
@@ -594,355 +646,309 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                   )}
                 </form.Field>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
           {/* Media Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
-              <Image className="w-4 h-4" />
-              {t('Media')}
-            </h2>
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Image className="h-5 w-5 text-violet-500" />
+                {t('Media')}
+              </CardTitle>
+              <CardDescription>{t('Media')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isEditMode ? (
+                /* Edit mode: use separate images state */
+                <div className="space-y-4">
+                  <ImageUploader images={images} onChange={setImages} />
 
-            {isEditMode ? (
-              /* Edit mode: use separate images state */
-              <div className="space-y-4">
-                <ImageUploader images={images} onChange={setImages} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                    onClick={() => setIsMediaLibraryOpen(true)}
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                    {t('Add from Media Library')}
+                  </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
-                  onClick={() => setIsMediaLibraryOpen(true)}
-                >
-                  <ImagePlus className="w-4 h-4" />
-                  {t('Add from Media Library')}
-                </Button>
+                  {images.length > 0 && images[0]?.url && (
+                    <div className="flex gap-2">
+                      <Select
+                        value={aiProvider}
+                        onValueChange={(v) =>
+                          setAiProvider(v as 'gemini' | 'openai')
+                        }
+                      >
+                        <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="gemini">Gemini</SelectItem>
+                          <SelectItem value="openai">OpenAI</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
+                        onClick={handleAIGenerate}
+                        disabled={isGenerating}
+                      >
+                        <Wand2 className="w-4 h-4" />
+                        {isGenerating
+                          ? t('Generating...')
+                          : t('Generate Details with AI')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Create mode: use form field */
+                <form.Field name="images">
+                  {(field) => (
+                    <div className="space-y-4">
+                      <ImageUploader
+                        images={field.state.value.map((img, idx) => ({
+                          id: `img-${idx}`,
+                          url: img.url,
+                          file: img.file,
+                          altText: img.altText,
+                        }))}
+                        onChange={(newImages) => {
+                          field.handleChange(
+                            newImages.map((img) => ({
+                              url: img.url,
+                              file: img.file,
+                              altText: img.altText,
+                            })),
+                          )
+                        }}
+                      />
 
-                {images.length > 0 && images[0]?.url && (
-                  <div className="flex gap-2">
-                    <Select
-                      value={aiProvider}
-                      onValueChange={(v) =>
-                        setAiProvider(v as 'gemini' | 'openai')
-                      }
-                    >
-                      <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="gemini">Gemini</SelectItem>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
-                      onClick={handleAIGenerate}
-                      disabled={isGenerating}
-                    >
-                      <Wand2 className="w-4 h-4" />
-                      {isGenerating
-                        ? t('Generating...')
-                        : t('Generate Details with AI')}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Create mode: use form field */
-              <form.Field name="images">
-                {(field) => (
-                  <div className="space-y-4">
-                    <ImageUploader
-                      images={field.state.value.map((img, idx) => ({
-                        id: `img-${idx}`,
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                        onClick={() => setIsMediaLibraryOpen(true)}
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                        {t('Add from Media Library')}
+                      </Button>
+
+                      {field.state.value.length > 0 &&
+                        field.state.value[0]?.url && (
+                          <div className="flex gap-2">
+                            <Select
+                              value={aiProvider}
+                              onValueChange={(v) =>
+                                setAiProvider(v as 'gemini' | 'openai')
+                              }
+                            >
+                              <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem value="gemini">Gemini</SelectItem>
+                                <SelectItem value="openai">OpenAI</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
+                              onClick={handleAIGenerate}
+                              disabled={isGenerating}
+                            >
+                              <Wand2 className="w-4 h-4" />
+                              {isGenerating
+                                ? t('Generating...')
+                                : t('Generate Details with AI')}
+                            </Button>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </form.Field>
+              )}
+
+              {/* Media Library Modal */}
+              <MediaLibrary
+                open={isMediaLibraryOpen}
+                onClose={() => setIsMediaLibraryOpen(false)}
+                onSelect={(selectedItems: MediaItem[]) => {
+                  const newImages: ImageItem[] = selectedItems.map((item) => ({
+                    id: item.id,
+                    url: item.url,
+                    altText: item.altText || { en: '', fr: '', id: '' },
+                  }))
+                  if (isEditMode) {
+                    setImages((prev) => [...prev, ...newImages])
+                  } else {
+                    const current = form.getFieldValue('images')
+                    form.setFieldValue('images', [
+                      ...current,
+                      ...newImages.map((img) => ({
                         url: img.url,
-                        file: img.file,
                         altText: img.altText,
-                      }))}
-                      onChange={(newImages) => {
-                        field.handleChange(
-                          newImages.map((img) => ({
-                            url: img.url,
-                            file: img.file,
-                            altText: img.altText,
-                          })),
-                        )
-                      }}
-                    />
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                    >
-                      <ImagePlus className="w-4 h-4" />
-                      {t('Add from Media Library')}
-                    </Button>
-
-                    {field.state.value.length > 0 &&
-                      field.state.value[0]?.url && (
-                        <div className="flex gap-2">
-                          <Select
-                            value={aiProvider}
-                            onValueChange={(v) =>
-                              setAiProvider(v as 'gemini' | 'openai')
-                            }
-                          >
-                            <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              <SelectItem value="gemini">Gemini</SelectItem>
-                              <SelectItem value="openai">OpenAI</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            type="button"
-                            className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
-                            onClick={handleAIGenerate}
-                            disabled={isGenerating}
-                          >
-                            <Wand2 className="w-4 h-4" />
-                            {isGenerating
-                              ? t('Generating...')
-                              : t('Generate Details with AI')}
-                          </Button>
-                        </div>
-                      )}
-                  </div>
-                )}
-              </form.Field>
-            )}
-
-            {/* Media Library Modal */}
-            <MediaLibrary
-              open={isMediaLibraryOpen}
-              onClose={() => setIsMediaLibraryOpen(false)}
-              onSelect={(selectedItems: MediaItem[]) => {
-                const newImages: ImageItem[] = selectedItems.map((item) => ({
-                  id: item.id,
-                  url: item.url,
-                  altText: item.altText || { en: '', fr: '', id: '' },
-                }))
-                if (isEditMode) {
-                  setImages((prev) => [...prev, ...newImages])
-                } else {
-                  const current = form.getFieldValue('images')
-                  form.setFieldValue('images', [
-                    ...current,
-                    ...newImages.map((img) => ({
-                      url: img.url,
-                      altText: img.altText,
-                    })),
-                  ])
-                }
-              }}
-            />
-          </section>
+                      })),
+                    ])
+                  }
+                }}
+              />
+            </CardContent>
+          </Card>
 
           {/* Options Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              {t('Options')}
-            </h2>
-            <ProductOptions
-              options={options}
-              onChange={(newOptions) => {
-                setOptions(newOptions)
-                // Auto-generate variants when options change
-                if (newOptions.length === 0) {
-                  setVariants([
-                    {
-                      title: 'Default Title',
-                      price: '0',
-                      available: true,
-                      selectedOptions: [],
-                    },
-                  ])
-                } else {
-                  // Generate Cartesian product of all option values
-                  const generateCombinations = (
-                    opts: ProductOption[],
-                  ): ProductVariant[] => {
-                    if (opts.length === 0) return []
-                    const [first, ...rest] = opts
-                    if (rest.length === 0) {
-                      return first.values.map((v) => ({
-                        title: v,
-                        price: variants[0]?.price || '0',
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-blue-500" />
+                {t('Options')}
+              </CardTitle>
+              <CardDescription>
+                {t(
+                  'Add options like Shape, Length, or Size to create variants',
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductOptions
+                options={options}
+                onChange={(newOptions) => {
+                  setOptions(newOptions)
+                  // Auto-generate variants when options change
+                  if (newOptions.length === 0) {
+                    setVariants([
+                      {
+                        title: 'Default Title',
+                        price: '0',
                         available: true,
-                        selectedOptions: [{ name: first.name, value: v }],
-                      }))
-                    }
-                    const restCombos = generateCombinations(rest)
-                    const result: ProductVariant[] = []
-                    for (const v of first.values) {
-                      for (const combo of restCombos) {
-                        result.push({
-                          title: `${v} / ${combo.title}`,
-                          price: combo.price,
+                        selectedOptions: [],
+                      },
+                    ])
+                  } else {
+                    // Generate Cartesian product of all option values
+                    const generateCombinations = (
+                      opts: ProductOption[],
+                    ): ProductVariant[] => {
+                      if (opts.length === 0) return []
+                      const [first, ...rest] = opts
+                      if (rest.length === 0) {
+                        return first.values.map((v) => ({
+                          title: v,
+                          price: variants[0]?.price || '0',
                           available: true,
-                          selectedOptions: [
-                            { name: first.name, value: v },
-                            ...combo.selectedOptions,
-                          ],
-                        })
+                          selectedOptions: [{ name: first.name, value: v }],
+                        }))
                       }
+                      const restCombos = generateCombinations(rest)
+                      const result: ProductVariant[] = []
+                      for (const v of first.values) {
+                        for (const combo of restCombos) {
+                          result.push({
+                            title: `${v} / ${combo.title}`,
+                            price: combo.price,
+                            available: true,
+                            selectedOptions: [
+                              { name: first.name, value: v },
+                              ...combo.selectedOptions,
+                            ],
+                          })
+                        }
+                      }
+                      return result
                     }
-                    return result
+                    const validOptions = newOptions.filter(
+                      (o) => o.name && o.values.length > 0,
+                    )
+                    if (validOptions.length > 0) {
+                      setVariants(generateCombinations(validOptions))
+                    }
                   }
-                  const validOptions = newOptions.filter(
-                    (o) => o.name && o.values.length > 0,
-                  )
-                  if (validOptions.length > 0) {
-                    setVariants(generateCombinations(validOptions))
-                  }
-                }
-              }}
-              disabled={isSaving}
-            />
-          </section>
+                }}
+                disabled={isSaving}
+              />
+            </CardContent>
+          </Card>
 
           {/* Variants Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Variants')}
-            </h2>
-            <ProductVariantsTable
-              variants={variants}
-              onChange={setVariants}
-              disabled={isSaving}
-            />
-          </section>
-
-          {/* Organization Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm overflow-hidden relative">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Organization')}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Label htmlFor="vendor" className="text-xs font-semibold">
-                  {t('Vendor')}
-                </Label>
-                <form.Field name="vendor">
-                  {(field) => (
-                    <Input
-                      id="vendor"
-                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder={t('Brand name')}
-                    />
-                  )}
-                </form.Field>
-              </div>
-              <div className="space-y-4">
-                <Label htmlFor="productType" className="text-xs font-semibold">
-                  {t('Product Type')}
-                </Label>
-                <form.Field name="productType">
-                  {(field) => (
-                    <Input
-                      id="productType"
-                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder={t('e.g., Nail Polish')}
-                    />
-                  )}
-                </form.Field>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <Label className="text-xs font-semibold flex items-center gap-2">
-                <Tag className="w-3 h-3" />
-                {t('Tags')}
-              </Label>
-              <form.Field name="tags">
-                {(field) => (
-                  <Input
-                    className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                    value={field.state.value.join(', ')}
-                    onChange={(e) => {
-                      const tags = e.target.value
-                        .split(',')
-                        .map((t) => t.trim())
-                        .filter(Boolean)
-                      field.handleChange(tags)
-                    }}
-                    placeholder={t(
-                      'Separate with commas (e.g., summer, bestseller)',
-                    )}
-                  />
-                )}
-              </form.Field>
-            </div>
-          </section>
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <LayoutGrid className="h-5 w-5 text-emerald-500" />
+                {t('Variants')}
+              </CardTitle>
+              <CardDescription>
+                {t('Manage your products and inventory')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ProductVariantsTable
+                variants={variants}
+                onChange={setVariants}
+                disabled={isSaving}
+              />
+            </CardContent>
+          </Card>
 
           {/* SEO / Handle Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Search engine listing')}
-            </h2>
-            <div className="space-y-6">
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Globe className="h-5 w-5 text-amber-500" />
+                {t('Search Engine Listing')}
+              </CardTitle>
+              <CardDescription>{t('Search engine listing')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="handle" className="text-xs font-semibold">
-                    {t('Handle (URL slug)')}{' '}
-                    <span className="text-destructive">*</span>
+                  <Label htmlFor="handle" className="text-sm font-bold">
+                    {t('Handle')} <span className="text-pink-500">*</span>
                   </Label>
-                  <Globe className="w-3 h-3 text-muted-foreground/30" />
                 </div>
                 <form.Field
                   name="handle"
                   validators={{
                     onSubmit: ({ value }) => {
-                      if (!value?.trim()) {
-                        return 'Handle is required'
-                      }
+                      if (!value?.trim()) return 'Handle is required'
                       return undefined
                     },
                   }}
                 >
                   {(field) => (
-                    <>
-                      <div className="relative group">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 font-medium text-sm">
-                          .../products/
-                        </span>
-                        <Input
-                          id="handle"
-                          className={`h-11 pl-28 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder={t('product-url-slug')}
-                        />
-                      </div>
-                      {field.state.meta.errors.length > 0 && (
-                        <p className="text-destructive text-xs mt-1">
-                          {field.state.meta.errors[0]}
-                        </p>
-                      )}
-                    </>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
+                        /
+                      </span>
+                      <Input
+                        id="handle"
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        className="pl-6 h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
+                      />
+                    </div>
                   )}
                 </form.Field>
               </div>
 
               <div className="space-y-4 border-t border-border/50 pt-6">
-                <Label className="text-xs font-semibold">
-                  {t('Meta Title')}
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="metaTitle" className="text-sm font-bold">
+                    {t('Meta Title')}
+                  </Label>
+                </div>
                 <form.Field name="metaTitle">
                   {(field) => (
                     <Input
-                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
+                      id="metaTitle"
+                      className="h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500"
                       value={field.state.value.en}
                       onChange={(e) =>
                         field.handleChange({
@@ -957,13 +963,19 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-xs font-semibold">
-                  {t('Meta Description')}
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor="metaDescription"
+                    className="text-sm font-bold"
+                  >
+                    {t('Meta Description')}
+                  </Label>
+                </div>
                 <form.Field name="metaDescription">
                   {(field) => (
                     <Textarea
-                      className="bg-background/50 border-border rounded-xl focus:ring-pink-500/20 min-h-[80px]"
+                      id="metaDescription"
+                      className="min-h-[100px] rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 resize-none"
                       value={field.state.value.en}
                       onChange={(e) =>
                         field.handleChange({
@@ -978,95 +990,160 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                   )}
                 </form.Field>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
         </div>
 
-        <aside className="space-y-6">
-          {/* Status Panel */}
-          <section className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-              {t('Status')}
-            </h2>
-
-            <form.Field name="status">
-              {(field) => (
-                <div className="space-y-4">
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(value) =>
-                      field.handleChange(
-                        value as 'draft' | 'active' | 'archived',
-                      )
-                    }
-                  >
-                    <SelectTrigger className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 font-medium">
-                      <SelectValue placeholder={t('Select status')} />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border shadow-lg">
-                      <SelectItem value="draft" className="py-2.5 font-medium">
+        {/* Sidebar */}
+        <div className="space-y-8">
+          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden sticky top-8">
+            <div className="h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-teal-500" />
+                {t('Status')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <form.Field name="status">
+                {(field) => (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-bold">{t('Status')}</Label>
+                    <div className="flex bg-muted/30 p-1 rounded-2xl gap-1 border border-border/50">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => field.handleChange('draft')}
+                        className={cn(
+                          'flex-1 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200',
+                          field.state.value === 'draft'
+                            ? 'bg-slate-100 text-slate-700 shadow-sm border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800'
+                            : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full mr-1.5 transition-all',
+                            field.state.value === 'draft'
+                              ? 'bg-slate-500 scale-125'
+                              : 'bg-slate-400',
+                          )}
+                        />
                         {t('Draft')}
-                      </SelectItem>
-                      <SelectItem
-                        value="active"
-                        className="py-2.5 font-medium text-emerald-600"
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => field.handleChange('active')}
+                        className={cn(
+                          'flex-1 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200',
+                          field.state.value === 'active'
+                            ? 'bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
+                            : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
+                        )}
                       >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full mr-1.5 transition-all',
+                            field.state.value === 'active'
+                              ? 'bg-emerald-500 scale-125'
+                              : 'bg-emerald-500/50',
+                          )}
+                        />
                         {t('Active')}
-                      </SelectItem>
-                      <SelectItem
-                        value="archived"
-                        className="py-2.5 font-medium text-muted-foreground"
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => field.handleChange('archived')}
+                        className={cn(
+                          'flex-1 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200',
+                          field.state.value === 'archived'
+                            ? 'bg-amber-100 text-amber-700 shadow-sm border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                            : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
+                        )}
                       >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full mr-1.5 transition-all',
+                            field.state.value === 'archived'
+                              ? 'bg-amber-500 scale-125'
+                              : 'bg-amber-500/50',
+                          )}
+                        />
                         {t('Archived')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
-                    {field.state.value === 'draft'
-                      ? t('Draft products are invisible to customers.')
-                      : field.state.value === 'active'
-                        ? t('This product will be live in your catalog.')
-                        : t('Archived products are hidden from admins.')}
-                  </p>
-                </div>
-              )}
-            </form.Field>
-          </section>
-
-          {/* Quick Actions Panel */}
-          <div className="bg-card border border-border/50 rounded-3xl p-4 shadow-sm sticky top-8">
-            <div className="flex flex-col gap-2">
-              <Button
-                type="submit"
-                className="h-12 rounded-xl bg-pink-500 hover:bg-pink-600 shadow-sm font-bold text-white disabled:opacity-50 gap-2"
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {isEditMode ? t('Saving...') : t('Creating...')}
-                  </>
-                ) : (
-                  <>
-                    {isEditMode && <Save className="w-4 h-4" />}
-                    {isEditMode ? t('Save Changes') : t('Create Product')}
-                  </>
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </Button>
-              {onBack && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-11 rounded-xl text-muted-foreground font-semibold text-xs"
-                  onClick={onBack}
-                >
-                  {t('Cancel')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </aside>
+              </form.Field>
+
+              <div className="space-y-4 pt-6 border-t border-border/50">
+                <div className="space-y-2">
+                  <Label htmlFor="vendor" className="text-sm font-bold">
+                    {t('Vendor')}
+                  </Label>
+                  <form.Field name="vendor">
+                    {(field) => (
+                      <Input
+                        id="vendor"
+                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder={t('Brand name')}
+                      />
+                    )}
+                  </form.Field>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="productType" className="text-sm font-bold">
+                    {t('Product Type')}
+                  </Label>
+                  <form.Field name="productType">
+                    {(field) => (
+                      <Input
+                        id="productType"
+                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder={t('e.g., Nail Polish')}
+                      />
+                    )}
+                  </form.Field>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Tag className="w-3 h-3" />
+                    {t('Tags')}
+                  </Label>
+                  <form.Field name="tags">
+                    {(field) => (
+                      <Input
+                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
+                        value={field.state.value.join(', ')}
+                        onChange={(e) => {
+                          const tags = e.target.value
+                            .split(',')
+                            .map((t) => t.trim())
+                            .filter(Boolean)
+                          field.handleChange(tags)
+                        }}
+                        placeholder={t(
+                          'Separate with commas (e.g., summer, bestseller)',
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {createProduct.isError && (
           <div className="lg:col-span-3 p-4 bg-destructive/5 border border-destructive/20 rounded-2xl">
@@ -1075,7 +1152,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
             </p>
           </div>
         )}
-      </form>
+      </div>
     </div>
   )
 }

@@ -79,24 +79,32 @@ describe('ProductForm', () => {
   })
 
   describe('Create Mode', () => {
-    it('should render with "Add Product" title', () => {
+    it('should render with "Create Product" title in header', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <ProductForm />
         </QueryClientProvider>,
       )
 
-      expect(screen.getByText('Add Product')).toBeInTheDocument()
+      // The title shows 'Create Product' in create mode (in the h1)
+      expect(
+        screen.getAllByText('Create Product').length,
+      ).toBeGreaterThanOrEqual(1)
     })
 
-    it('should render "Create Product" button', () => {
+    it('should render "Create Product" submit button', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <ProductForm />
         </QueryClientProvider>,
       )
 
-      expect(screen.getByText('Create Product')).toBeInTheDocument()
+      // Find the submit button with 'Create Product' text
+      const buttons = screen.getAllByRole('button')
+      const createButton = buttons.find((btn) =>
+        btn.textContent?.includes('Create Product'),
+      )
+      expect(createButton).toBeInTheDocument()
     })
 
     it('should have empty form fields by default', () => {
@@ -122,14 +130,15 @@ describe('ProductForm', () => {
       expect(screen.getByText('Cancel')).toBeInTheDocument()
     })
 
-    it('should not show Cancel button when onBack is not provided', () => {
+    it('should always show Cancel button even without onBack', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <ProductForm />
         </QueryClientProvider>,
       )
 
-      expect(screen.queryByText('Cancel')).not.toBeInTheDocument()
+      // Cancel button is always rendered
+      expect(screen.getByText('Cancel')).toBeInTheDocument()
     })
   })
 
@@ -141,7 +150,9 @@ describe('ProductForm', () => {
         </QueryClientProvider>,
       )
 
-      expect(screen.getByText('Edit Product')).toBeInTheDocument()
+      // In edit mode, the product name is shown as the title with an 'Editing' badge
+      expect(screen.getByText('Test Product')).toBeInTheDocument()
+      expect(screen.getByText('Editing')).toBeInTheDocument()
     })
 
     it('should render "Save Changes" button', () => {
@@ -175,8 +186,10 @@ describe('ProductForm', () => {
         </QueryClientProvider>,
       )
 
-      const select = screen.getAllByTestId('mock-select')[0]
-      expect(select.getAttribute('data-value')).toBe('draft')
+      // The Draft button should have active styling (bg-slate-100)
+      const draftButton = screen.getByRole('button', { name: /draft/i })
+      expect(draftButton).toBeInTheDocument()
+      expect(draftButton.className).toContain('bg-slate')
     })
 
     it('should initialize with product status in edit mode', () => {
@@ -186,8 +199,10 @@ describe('ProductForm', () => {
         </QueryClientProvider>,
       )
 
-      const select = screen.getAllByTestId('mock-select')[0]
-      expect(select.getAttribute('data-value')).toBe('active')
+      // The Active button should have active styling (bg-emerald)
+      const activeButton = screen.getByRole('button', { name: /active/i })
+      expect(activeButton).toBeInTheDocument()
+      expect(activeButton.className).toContain('bg-emerald')
     })
 
     it('should initialize with "archived" status correctly', () => {
@@ -197,8 +212,10 @@ describe('ProductForm', () => {
         </QueryClientProvider>,
       )
 
-      const select = screen.getAllByTestId('mock-select')[0]
-      expect(select.getAttribute('data-value')).toBe('archived')
+      // The Archived button should have active styling (bg-amber)
+      const archivedButton = screen.getByRole('button', { name: /archived/i })
+      expect(archivedButton).toBeInTheDocument()
+      expect(archivedButton.className).toContain('bg-amber')
     })
   })
 
