@@ -17,6 +17,7 @@ import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
+import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
 import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
@@ -80,6 +81,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const ApiProductsIndexRoute = ApiProductsIndexRouteImport.update({
   id: '/api/products/',
   path: '/api/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaIndexRoute = ApiMediaIndexRouteImport.update({
+  id: '/api/media/',
+  path: '/api/media/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCollectionsIndexRoute = ApiCollectionsIndexRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
+  '/api/media': typeof ApiMediaIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
+  '/api/media': typeof ApiMediaIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/api/collections/': typeof ApiCollectionsIndexRoute
+  '/api/media/': typeof ApiMediaIndexRoute
   '/api/products/': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/admin/collections'
     | '/admin/products'
     | '/api/collections'
+    | '/api/media'
     | '/api/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/collections'
     | '/admin/products'
     | '/api/collections'
+    | '/api/media'
     | '/api/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/admin/collections/'
     | '/admin/products/'
     | '/api/collections/'
+    | '/api/media/'
     | '/api/products/'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -422,6 +434,7 @@ export interface RootRouteChildren {
   ApiProductsProductIdRoute: typeof ApiProductsProductIdRouteWithChildren
   ApiProductsBulkRoute: typeof ApiProductsBulkRoute
   ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
+  ApiMediaIndexRoute: typeof ApiMediaIndexRoute
   ApiProductsIndexRoute: typeof ApiProductsIndexRoute
 }
 
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/api/products'
       fullPath: '/api/products'
       preLoaderRoute: typeof ApiProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media/': {
+      id: '/api/media/'
+      path: '/api/media'
+      fullPath: '/api/media'
+      preLoaderRoute: typeof ApiMediaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/collections/': {
@@ -732,6 +752,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProductsProductIdRoute: ApiProductsProductIdRouteWithChildren,
   ApiProductsBulkRoute: ApiProductsBulkRoute,
   ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
+  ApiMediaIndexRoute: ApiMediaIndexRoute,
   ApiProductsIndexRoute: ApiProductsIndexRoute,
 }
 export const routeTree = rootRouteImport

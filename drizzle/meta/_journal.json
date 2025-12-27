@@ -15,6 +15,13 @@
       "when": 1766811750887,
       "tag": "0002_chemical_omega_red",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766816337332,
+      "tag": "0002_left_vermin",
+      "breakpoints": true
     }
   ]
 }

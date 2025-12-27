@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { v2 as cloudinary } from 'cloudinary'
 
+import { db } from '../../db'
+import { media } from '../../db/schema'
 import {
   errorResponse,
   requireAuth,
@@ -98,12 +100,28 @@ export const Route = createFileRoute('/api/upload')({
             )
           }
 
+          // Insert into media table
+          const [mediaRecord] = await db
+            .insert(media)
+            .values({
+              url: result.secure_url,
+              publicId: result.public_id,
+              filename: file.name,
+              size: file.size,
+              mimeType: file.type,
+              width: result.width,
+              height: result.height,
+            })
+            .returning()
+
           return successResponse({
-            url: result.secure_url,
-            publicId: result.public_id,
-            width: result.width,
-            height: result.height,
-            fileSize: file.size,
+            id: mediaRecord.id,
+            url: mediaRecord.url,
+            publicId: mediaRecord.publicId,
+            filename: mediaRecord.filename,
+            width: mediaRecord.width,
+            height: mediaRecord.height,
+            size: mediaRecord.size,
           })
         } catch (error) {
           return errorResponse('Failed to upload image', error)

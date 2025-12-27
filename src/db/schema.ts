@@ -113,12 +113,33 @@ export const productVariants = pgTable('product_variants', {
   position: integer('position').default(0).notNull(),
 })
 
+// ============================================
+// MEDIA LIBRARY
+// ============================================
+
+export const media = pgTable('media', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  url: text('url').notNull(),
+  publicId: text('public_id'), // Cloudinary public_id for management
+  filename: text('filename'),
+  size: integer('size'), // bytes
+  mimeType: text('mime_type'),
+  width: integer('width'),
+  height: integer('height'),
+  altText: jsonb('alt_text').$type<LocalizedString>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
 // Product Images
 export const productImages = pgTable('product_images', {
   id: uuid('id').defaultRandom().primaryKey(),
   productId: uuid('product_id')
     .notNull()
     .references(() => products.id, { onDelete: 'cascade' }),
+  mediaId: uuid('media_id').references(() => media.id, {
+    onDelete: 'set null',
+  }),
   url: text('url').notNull(),
   altText: jsonb('alt_text').$type<LocalizedString>(),
   position: integer('position').default(0).notNull(),

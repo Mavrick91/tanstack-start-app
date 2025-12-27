@@ -10,6 +10,7 @@ import {
   Tag,
   Wand2,
   Loader2,
+  ImagePlus,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +37,7 @@ import {
 } from '../../ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Textarea } from '../../ui/textarea'
+import { MediaLibrary, type MediaItem } from '../media/MediaLibrary'
 
 export type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -115,6 +117,7 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [aiProvider, setAiProvider] = useState<'gemini' | 'openai'>('gemini')
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false)
 
   // Images state for edit mode (tracks local state separately from form)
   const initialImages: ImageItem[] = (product?.images || []).map((img) => ({
@@ -606,6 +609,16 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
               <div className="space-y-4">
                 <ImageUploader images={images} onChange={setImages} />
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                  onClick={() => setIsMediaLibraryOpen(true)}
+                >
+                  <ImagePlus className="w-4 h-4" />
+                  {t('Add from Media Library')}
+                </Button>
+
                 {images.length > 0 && images[0]?.url && (
                   <div className="flex gap-2">
                     <Select
@@ -659,6 +672,16 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                       }}
                     />
 
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                      onClick={() => setIsMediaLibraryOpen(true)}
+                    >
+                      <ImagePlus className="w-4 h-4" />
+                      {t('Add from Media Library')}
+                    </Button>
+
                     {field.state.value.length > 0 &&
                       field.state.value[0]?.url && (
                         <div className="flex gap-2">
@@ -693,6 +716,31 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                 )}
               </form.Field>
             )}
+
+            {/* Media Library Modal */}
+            <MediaLibrary
+              open={isMediaLibraryOpen}
+              onClose={() => setIsMediaLibraryOpen(false)}
+              onSelect={(selectedItems: MediaItem[]) => {
+                const newImages: ImageItem[] = selectedItems.map((item) => ({
+                  id: item.id,
+                  url: item.url,
+                  altText: item.altText || { en: '', fr: '', id: '' },
+                }))
+                if (isEditMode) {
+                  setImages((prev) => [...prev, ...newImages])
+                } else {
+                  const current = form.getFieldValue('images')
+                  form.setFieldValue('images', [
+                    ...current,
+                    ...newImages.map((img) => ({
+                      url: img.url,
+                      altText: img.altText,
+                    })),
+                  ])
+                }
+              }}
+            />
           </section>
 
           {/* Options Section */}
