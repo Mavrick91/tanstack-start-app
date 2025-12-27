@@ -68,7 +68,6 @@ export const getCollections = createServerFn({ method: 'GET' })
         handle: collections.handle,
         name: collections.name,
         description: collections.description,
-        imageUrl: collections.imageUrl,
         productCount: sql<number>`(
           SELECT COUNT(*) FROM collection_products 
           WHERE collection_id = ${collections.id}
@@ -100,7 +99,6 @@ export const getCollections = createServerFn({ method: 'GET' })
       handle: c.handle,
       name: getLocalizedText(c.name, lang),
       description: getLocalizedText(c.description, lang),
-      imageUrl: c.imageUrl,
       previewImages: c.previewImages,
       productCount: c.productCount,
     }))
@@ -230,7 +228,6 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       id: collection.id,
       name: getLocalizedText(collection.name, lang),
       description: getLocalizedText(collection.description, lang),
-      imageUrl: collection.imageUrl,
       products: productsList,
       sortOrder: collection.sortOrder,
     }

@@ -1,6 +1,6 @@
 {
-  "id": "6f76022f-101e-4958-b33c-d729faab8d10",
-  "prevId": "6344aec8-c539-4b0b-84cb-8e800cbef74a",
+  "id": "81656778-e2a3-4dff-950e-8157365cf3b5",
+  "prevId": "6f76022f-101e-4958-b33c-d729faab8d10",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -89,12 +89,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "image_url": {
-          "name": "image_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "sort_order": {
           "name": "sort_order",
           "type": "collection_sort",
@@ -103,24 +97,14 @@
           "notNull": true,
           "default": "'manual'"
         },
-        "type": {
-          "name": "type",
-          "type": "collection_type",
-          "typeSchema": "public",
+        "meta_title": {
+          "name": "meta_title",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'manual'"
+          "notNull": false
         },
-        "match_type": {
-          "name": "match_type",
-          "type": "collection_match_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'all'"
-        },
-        "rules": {
-          "name": "rules",
+        "meta_description": {
+          "name": "meta_description",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -462,20 +446,10 @@
     }
   },
   "enums": {
-    "public.collection_match_type": {
-      "name": "collection_match_type",
-      "schema": "public",
-      "values": ["all", "any"]
-    },
     "public.collection_sort": {
       "name": "collection_sort",
       "schema": "public",
       "values": ["manual", "best_selling", "newest", "price_asc", "price_desc"]
-    },
-    "public.collection_type": {
-      "name": "collection_type",
-      "schema": "public",
-      "values": ["manual", "automated"]
     },
     "public.product_status": {
       "name": "product_status",

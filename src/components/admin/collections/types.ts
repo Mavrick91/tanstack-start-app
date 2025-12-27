@@ -12,7 +12,7 @@ export interface Collection {
   handle: string
   name: LocalizedString
   description?: LocalizedString
-  imageUrl?: string
+
   metaTitle?: LocalizedString
   metaDescription?: LocalizedString
   publishedAt: Date | null
@@ -24,7 +24,7 @@ export interface CollectionListItem {
   id: string
   handle: string
   name: LocalizedString
-  imageUrl: string | null
+
   sortOrder: string | null
   publishedAt: Date | null
   createdAt: Date
@@ -45,7 +45,7 @@ export interface CollectionFormValues {
   descriptionEn: string
   descriptionFr: string
   descriptionId: string
-  imageUrl: string
+
   metaTitleEn: string
   metaTitleFr: string
   metaTitleId: string

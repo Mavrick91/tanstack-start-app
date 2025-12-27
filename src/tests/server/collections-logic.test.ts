@@ -1,4 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import * as server from '@tanstack/react-start/server'
+import { describe, expect, it, vi, beforeEach, Mock } from 'vitest'
+
+import { db } from '../../db'
+import * as auth from '../../lib/auth'
 import {
   createCollectionFn,
   updateCollectionFn,
@@ -10,9 +14,17 @@ import {
   unpublishCollectionFn,
   duplicateCollectionFn,
 } from '../../server/collections'
-import { db } from '../../db'
-import * as auth from '../../lib/auth'
-import * as server from '@tanstack/react-start/server'
+
+// Type definitions for mocks
+type MockReturnThis = ReturnType<typeof vi.fn> & { mockReturnThis: () => Mock }
+
+interface ChainableMock {
+  values: Mock
+  returning?: Mock
+  from?: Mock
+  where?: Mock
+  set?: Mock
+}
 
 // Mock dependencies
 vi.mock('../../db', () => ({
@@ -38,9 +50,9 @@ vi.mock('@tanstack/react-start/server')
 vi.mock('@tanstack/react-start', () => ({
   createServerFn: () => ({
     inputValidator: () => ({
-      handler: (cb: any) => cb,
+      handler: <T>(cb: T) => cb,
     }),
-    handler: (cb: any) => cb,
+    handler: <T>(cb: T) => cb,
   }),
 }))
 
@@ -58,7 +70,7 @@ describe('Collections Logic Tests', () => {
     vi.mocked(auth.validateSession).mockResolvedValue({
       success: true,
       user: mockUser,
-    } as any)
+    } as Awaited<ReturnType<typeof auth.validateSession>>)
   })
 
   describe('createCollectionFn', () => {
@@ -71,11 +83,13 @@ describe('Collections Logic Tests', () => {
 
       const mockCreated = { id: 'col-1', ...input }
 
-      const insertMock = {
-        values: vi.fn().mockReturnThis(),
+      const insertMock: ChainableMock = {
+        values: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([mockCreated]),
       }
-      vi.mocked(db.insert).mockReturnValue(insertMock as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertMock as unknown as ReturnType<typeof db.insert>,
+      )
 
       const result = await createCollectionFn({ data: input })
 
@@ -84,7 +98,6 @@ describe('Collections Logic Tests', () => {
         name: input.name,
         handle: 'new-collection',
         description: input.description,
-        imageUrl: undefined,
         sortOrder: 'manual',
         metaTitle: undefined,
         metaDescription: undefined,
@@ -97,11 +110,13 @@ describe('Collections Logic Tests', () => {
         handle: '  My Handle  ',
       }
 
-      const insertMock = {
-        values: vi.fn().mockReturnThis(),
+      const insertMock: ChainableMock = {
+        values: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([{ id: '1' }]),
       }
-      vi.mocked(db.insert).mockReturnValue(insertMock as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertMock as unknown as ReturnType<typeof db.insert>,
+      )
 
       await createCollectionFn({ data: input })
 
@@ -126,12 +141,15 @@ describe('Collections Logic Tests', () => {
       const updateData = { id: 'col-1', name: { en: 'Updated' } }
       const mockUpdated = { ...updateData }
 
-      const updateMock = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
+      const updateMock: ChainableMock = {
+        values: vi.fn(),
+        set: vi.fn().mockReturnThis() as MockReturnThis,
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([mockUpdated]),
       }
-      vi.mocked(db.update).mockReturnValue(updateMock as any)
+      vi.mocked(db.update).mockReturnValue(
+        updateMock as unknown as ReturnType<typeof db.update>,
+      )
 
       const result = await updateCollectionFn({ data: updateData })
 
@@ -140,12 +158,15 @@ describe('Collections Logic Tests', () => {
     })
 
     it('should throw if collection not found', async () => {
-      const updateMock = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
+      const updateMock: ChainableMock = {
+        values: vi.fn(),
+        set: vi.fn().mockReturnThis() as MockReturnThis,
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([]),
       }
-      vi.mocked(db.update).mockReturnValue(updateMock as any)
+      vi.mocked(db.update).mockReturnValue(
+        updateMock as unknown as ReturnType<typeof db.update>,
+      )
 
       await expect(
         updateCollectionFn({
@@ -157,22 +178,28 @@ describe('Collections Logic Tests', () => {
 
   describe('deleteCollectionFn', () => {
     it('should delete collection', async () => {
-      const deleteMock = {
-        where: vi.fn().mockReturnThis(),
+      const deleteMock: ChainableMock = {
+        values: vi.fn(),
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([{ id: 'c1' }]),
       }
-      vi.mocked(db.delete).mockReturnValue(deleteMock as any)
+      vi.mocked(db.delete).mockReturnValue(
+        deleteMock as unknown as ReturnType<typeof db.delete>,
+      )
 
       const result = await deleteCollectionFn({ data: { id: 'c1' } })
       expect(result).toEqual({ success: true })
     })
 
     it('should throw if collection not found', async () => {
-      const deleteMock = {
-        where: vi.fn().mockReturnThis(),
+      const deleteMock: ChainableMock = {
+        values: vi.fn(),
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([]),
       }
-      vi.mocked(db.delete).mockReturnValue(deleteMock as any)
+      vi.mocked(db.delete).mockReturnValue(
+        deleteMock as unknown as ReturnType<typeof db.delete>,
+      )
 
       await expect(deleteCollectionFn({ data: { id: 'c1' } })).rejects.toThrow(
         'Collection not found',
@@ -183,26 +210,34 @@ describe('Collections Logic Tests', () => {
   describe('addProductsToCollectionFn', () => {
     it('should add only new products with correct positions', async () => {
       // Mock max position query
-      const selectMaxMock = {
-        from: vi.fn().mockReturnThis(),
+      const selectMaxMock: ChainableMock = {
+        values: vi.fn(),
+        from: vi.fn().mockReturnThis() as MockReturnThis,
         where: vi.fn().mockResolvedValue([{ max: 10 }]), // Current max is 10
       }
 
       // Mock existing check query
-      const selectExistingMock = {
-        from: vi.fn().mockReturnThis(),
+      const selectExistingMock: ChainableMock = {
+        values: vi.fn(),
+        from: vi.fn().mockReturnThis() as MockReturnThis,
         where: vi.fn().mockResolvedValue([{ productId: 'p1' }]), // p1 already exists
       }
 
       // Setup chain for select calls (first call is maxPos, second is existing)
       vi.mocked(db.select)
-        .mockReturnValueOnce(selectMaxMock as any)
-        .mockReturnValueOnce(selectExistingMock as any)
+        .mockReturnValueOnce(
+          selectMaxMock as unknown as ReturnType<typeof db.select>,
+        )
+        .mockReturnValueOnce(
+          selectExistingMock as unknown as ReturnType<typeof db.select>,
+        )
 
-      const insertMock = {
+      const insertMock: ChainableMock = {
         values: vi.fn().mockResolvedValue(undefined),
       }
-      vi.mocked(db.insert).mockReturnValue(insertMock as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertMock as unknown as ReturnType<typeof db.insert>,
+      )
 
       const result = await addProductsToCollectionFn({
         data: { collectionId: 'c1', productIds: ['p1', 'p2', 'p3'] },
@@ -228,10 +263,13 @@ describe('Collections Logic Tests', () => {
 
   describe('removeProductFromCollectionFn', () => {
     it('should remove product', async () => {
-      const deleteMock = {
+      const deleteMock: ChainableMock = {
+        values: vi.fn(),
         where: vi.fn().mockResolvedValue(undefined),
       }
-      vi.mocked(db.delete).mockReturnValue(deleteMock as any)
+      vi.mocked(db.delete).mockReturnValue(
+        deleteMock as unknown as ReturnType<typeof db.delete>,
+      )
 
       const result = await removeProductFromCollectionFn({
         data: { collectionId: 'c1', productId: 'p1' },
@@ -257,7 +295,7 @@ describe('Collections Logic Tests', () => {
             }),
           }),
         }
-        return cb(tx as any)
+        return cb(tx as unknown as Parameters<typeof cb>[0])
       })
 
       await reorderCollectionProductsFn({
@@ -274,14 +312,17 @@ describe('Collections Logic Tests', () => {
 
   describe('publish/unpublishCollectionFn', () => {
     it('should set publishedAt on publish', async () => {
-      const updateMock = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
+      const updateMock: ChainableMock = {
+        values: vi.fn(),
+        set: vi.fn().mockReturnThis() as MockReturnThis,
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi
           .fn()
           .mockResolvedValue([{ id: 'c1', publishedAt: mockDate }]),
       }
-      vi.mocked(db.update).mockReturnValue(updateMock as any)
+      vi.mocked(db.update).mockReturnValue(
+        updateMock as unknown as ReturnType<typeof db.update>,
+      )
 
       await publishCollectionFn({ data: { id: 'c1' } })
 
@@ -291,12 +332,15 @@ describe('Collections Logic Tests', () => {
     })
 
     it('should set publishedAt to null on unpublish', async () => {
-      const updateMock = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
+      const updateMock: ChainableMock = {
+        values: vi.fn(),
+        set: vi.fn().mockReturnThis() as MockReturnThis,
+        where: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([{ id: 'c1', publishedAt: null }]),
       }
-      vi.mocked(db.update).mockReturnValue(updateMock as any)
+      vi.mocked(db.update).mockReturnValue(
+        updateMock as unknown as ReturnType<typeof db.update>,
+      )
 
       await unpublishCollectionFn({ data: { id: 'c1' } })
 
@@ -316,32 +360,43 @@ describe('Collections Logic Tests', () => {
       const products = [{ collectionId: 'c1', productId: 'p1', position: 0 }]
       const duplicated = { id: 'c2', handle: 'my-col-copy' }
 
-      const selectCollectionMock = {
-        from: vi.fn().mockReturnThis(),
+      const selectCollectionMock: ChainableMock = {
+        values: vi.fn(),
+        from: vi.fn().mockReturnThis() as MockReturnThis,
         where: vi.fn().mockResolvedValue([original]),
       }
 
       // handle collision check mocks
-      const selectHandleMock = {
-        from: vi.fn().mockReturnThis(),
+      const selectHandleMock: ChainableMock = {
+        values: vi.fn(),
+        from: vi.fn().mockReturnThis() as MockReturnThis,
         where: vi.fn().mockResolvedValueOnce([]), // No collision
       }
 
-      const selectProductsMock = {
-        from: vi.fn().mockReturnThis(),
+      const selectProductsMock: ChainableMock = {
+        values: vi.fn(),
+        from: vi.fn().mockReturnThis() as MockReturnThis,
         where: vi.fn().mockResolvedValue(products),
       }
 
       vi.mocked(db.select)
-        .mockReturnValueOnce(selectCollectionMock as any)
-        .mockReturnValueOnce(selectHandleMock as any)
-        .mockReturnValueOnce(selectProductsMock as any)
+        .mockReturnValueOnce(
+          selectCollectionMock as unknown as ReturnType<typeof db.select>,
+        )
+        .mockReturnValueOnce(
+          selectHandleMock as unknown as ReturnType<typeof db.select>,
+        )
+        .mockReturnValueOnce(
+          selectProductsMock as unknown as ReturnType<typeof db.select>,
+        )
 
-      const insertMock = {
-        values: vi.fn().mockReturnThis(),
+      const insertMock: ChainableMock = {
+        values: vi.fn().mockReturnThis() as MockReturnThis,
         returning: vi.fn().mockResolvedValue([duplicated]),
       }
-      vi.mocked(db.insert).mockReturnValue(insertMock as any)
+      vi.mocked(db.insert).mockReturnValue(
+        insertMock as unknown as ReturnType<typeof db.insert>,
+      )
 
       const result = await duplicateCollectionFn({ data: { id: 'c1' } })
 

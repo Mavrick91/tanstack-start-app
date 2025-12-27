@@ -11,7 +11,6 @@ import { useCollectionMutations } from './hooks/useCollectionMutations'
 import { useProductPicker } from './hooks/useProductPicker'
 import { cn } from '../../../lib/utils'
 import { getProductsFn } from '../../../server/products'
-import { CollectionThumbnail } from '../../collections/CollectionThumbnail'
 import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import {
@@ -181,67 +180,30 @@ export function CollectionForm({
                 )}
               </form.Field>
 
-              <div className="grid grid-cols-2 gap-4">
-                <form.Field name="handle">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="handle"
-                        className="text-foreground/80 font-bold"
-                      >
-                        {t('Handle')}
-                      </Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
-                          /
-                        </span>
-                        <Input
-                          id="handle"
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          className="pl-6 h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </form.Field>
-
-                <form.Field name="imageUrl">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="imageUrl"
-                        className="text-foreground/80 font-bold flex items-center justify-between"
-                      >
-                        {t('Image URL')}
-                        {/* Preview of what will be shown if no URL is provided */}
-                        <div className="w-8 h-8 rounded overflow-hidden border border-border/50">
-                          {field.state.value ? (
-                            <img
-                              src={field.state.value}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <CollectionThumbnail
-                              images={localProducts.map((p) => p.image)}
-                            />
-                          )}
-                        </div>
-                      </Label>
+              <form.Field name="handle">
+                {(field) => (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="handle"
+                      className="text-foreground/80 font-bold"
+                    >
+                      {t('Handle')}
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
+                        /
+                      </span>
                       <Input
-                        id="imageUrl"
+                        id="handle"
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="https://..."
-                        className="h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
+                        className="pl-6 h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
                       />
                     </div>
-                  )}
-                </form.Field>
-              </div>
+                  </div>
+                )}
+              </form.Field>
 
               <form.Field name="descriptionEn">
                 {(field) => (

@@ -143,7 +143,6 @@ describe('CollectionForm Integration', () => {
       handle: 'existing-collection',
       name: { en: 'Existing Collection', fr: 'Collection Existante' },
       description: { en: 'A test description' },
-      imageUrl: 'https://example.com/image.jpg',
       metaTitle: { en: 'SEO Title' },
       metaDescription: { en: 'SEO Description' },
       publishedAt: new Date(),

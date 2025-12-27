@@ -84,7 +84,6 @@ export function useCollectionMutations({
         name,
         handle: values.handle,
         description: values.descriptionEn ? description : undefined,
-        imageUrl: values.imageUrl || undefined,
         metaTitle: values.metaTitleEn ? metaTitle : undefined,
         metaDescription: values.metaDescriptionEn ? metaDescription : undefined,
       }

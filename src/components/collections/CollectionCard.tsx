@@ -11,7 +11,6 @@ type CollectionCardProps = {
     id: string
     handle: string
     name: string
-    imageUrl: string | null
     previewImages?: string[]
     productCount: number
   }
@@ -30,18 +29,10 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           params={{ lang: currentLang, handle: collection.handle }}
           className="block w-full h-full"
         >
-          {collection.imageUrl ? (
-            <img
-              src={collection.imageUrl}
-              alt={collection.name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            />
-          ) : (
-            <CollectionThumbnail
-              images={collection.previewImages || []}
-              className="w-full h-full"
-            />
-          )}
+          <CollectionThumbnail
+            images={collection.previewImages || []}
+            className="w-full h-full"
+          />
         </Link>
 
         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full transition-transform duration-500 group-hover:translate-y-0 bg-gradient-to-t from-black/60 to-transparent">

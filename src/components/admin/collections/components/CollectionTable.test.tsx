@@ -52,7 +52,7 @@ const mockCollections: CollectionListItem[] = [
     id: 'coll-1',
     handle: 'summer-collection',
     name: { en: 'Summer Collection', fr: 'Collection Été' },
-    imageUrl: 'https://example.com/image1.jpg',
+
     sortOrder: '1',
     publishedAt: new Date('2024-01-01'),
     createdAt: new Date('2024-01-01'),
@@ -63,7 +63,7 @@ const mockCollections: CollectionListItem[] = [
     id: 'coll-2',
     handle: 'winter-collection',
     name: { en: 'Winter Collection' },
-    imageUrl: null,
+
     sortOrder: '2',
     publishedAt: null, // draft
     createdAt: new Date('2024-02-01'),
@@ -74,7 +74,7 @@ const mockCollections: CollectionListItem[] = [
     id: 'coll-3',
     handle: 'spring-collection',
     name: { en: 'Spring Collection' },
-    imageUrl: 'https://example.com/image3.jpg',
+
     sortOrder: '3',
     publishedAt: new Date('2024-03-01'),
     createdAt: new Date('2024-03-01'),
@@ -134,15 +134,10 @@ describe('CollectionTable', () => {
       expect(screen.getByText('Created')).toBeInTheDocument()
     })
 
-    it('renders collection images when available', () => {
-      const { container } = renderComponent()
-      const images = container.querySelectorAll('img')
-      expect(images).toHaveLength(2) // coll-1 and coll-3 have images
-    })
-
-    it('renders CollectionThumbnail when no image', () => {
+    it('renders CollectionThumbnail for all collections', () => {
       renderComponent()
-      expect(screen.getByTestId('collection-thumbnail')).toBeInTheDocument()
+      const thumbnails = screen.getAllByTestId('collection-thumbnail')
+      expect(thumbnails).toHaveLength(3)
     })
 
     it('renders collection handles', () => {

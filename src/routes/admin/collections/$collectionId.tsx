@@ -43,7 +43,6 @@ function EditCollectionPage() {
       collection={{
         ...data.data,
         description: data.data.description || undefined,
-        imageUrl: data.data.imageUrl || undefined,
         metaTitle: data.data.metaTitle || undefined,
         metaDescription: data.data.metaDescription || undefined,
       }}

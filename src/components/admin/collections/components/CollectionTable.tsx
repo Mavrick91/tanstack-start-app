@@ -108,17 +108,9 @@ export function CollectionTable({
                 <td className="px-8 py-5">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-muted/50 overflow-hidden border border-border/50 shrink-0 group-hover:scale-105 transition-transform duration-300">
-                      {collection.imageUrl ? (
-                        <img
-                          src={collection.imageUrl}
-                          className="h-full w-full object-cover"
-                          alt=""
-                        />
-                      ) : (
-                        <CollectionThumbnail
-                          images={collection.previewImages || []}
-                        />
-                      )}
+                      <CollectionThumbnail
+                        images={collection.previewImages || []}
+                      />
                     </div>
                     <div className="min-w-0">
                       <Link

@@ -29,7 +29,7 @@ export function useCollectionForm({
       descriptionEn: collection?.description?.en || '',
       descriptionFr: collection?.description?.fr || '',
       descriptionId: collection?.description?.id || '',
-      imageUrl: collection?.imageUrl || '',
+
       metaTitleEn: collection?.metaTitle?.en || '',
       metaTitleFr: collection?.metaTitle?.fr || '',
       metaTitleId: collection?.metaTitle?.id || '',

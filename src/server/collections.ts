@@ -29,7 +29,6 @@ export interface CollectionInput {
   name: LocalizedString
   handle: string
   description?: LocalizedString
-  imageUrl?: string
   sortOrder?: 'manual' | 'best_selling' | 'newest' | 'price_asc' | 'price_desc'
   metaTitle?: LocalizedString
   metaDescription?: LocalizedString
@@ -115,7 +114,7 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
         id: collections.id,
         handle: collections.handle,
         name: collections.name,
-        imageUrl: collections.imageUrl,
+
         sortOrder: collections.sortOrder,
         publishedAt: collections.publishedAt,
         createdAt: collections.createdAt,
@@ -251,15 +250,8 @@ export const createCollectionFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     await requireAuth()
 
-    const {
-      name,
-      handle,
-      description,
-      imageUrl,
-      sortOrder,
-      metaTitle,
-      metaDescription,
-    } = data
+    const { name, handle, description, sortOrder, metaTitle, metaDescription } =
+      data
 
     if (!name?.en?.trim()) {
       throw new Error('Name (English) is required')
@@ -274,7 +266,6 @@ export const createCollectionFn = createServerFn({ method: 'POST' })
         name,
         handle: handle.trim().toLowerCase().replace(/\s+/g, '-'),
         description,
-        imageUrl,
         sortOrder: sortOrder || 'manual',
         metaTitle,
         metaDescription,
@@ -469,7 +460,6 @@ export const duplicateCollectionFn = createServerFn({ method: 'POST' })
         name: original.name,
         handle,
         description: original.description,
-        imageUrl: original.imageUrl,
         sortOrder: original.sortOrder,
         metaTitle: original.metaTitle,
         metaDescription: original.metaDescription,

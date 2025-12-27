@@ -51,7 +51,7 @@ function CollectionPage() {
         {/* Hero Section */}
         <div className="relative border-b bg-muted/30">
           <div className="container mx-auto px-4 py-4 md:py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 gap-4 items-center">
               <div className="space-y-2">
                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
                   {collection.name}
@@ -67,16 +67,6 @@ function CollectionPage() {
                   </span>
                 </div>
               </div>
-
-              {collection.imageUrl && (
-                <div className="hidden md:block relative aspect-[21/9] rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
-                  <img
-                    src={collection.imageUrl}
-                    alt={collection.name}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
