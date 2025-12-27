@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Minus, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ProductGallery } from '../../../components/products/ProductGallery'
+import { VariantSelector } from '../../../components/products/VariantSelector'
 import { BackButton } from '../../../components/ui/back-button'
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
@@ -12,6 +13,8 @@ import { Separator } from '../../../components/ui/separator'
 import { getProductBySlug } from '../../../data/storefront'
 import { useCartStore } from '../../../hooks/useCart'
 import { formatCurrency } from '../../../lib/format'
+
+import type { ProductVariant } from '../../../types/store'
 
 export const Route = createFileRoute('/$lang/products/$productId')({
   loader: ({ params }) =>
@@ -34,8 +37,20 @@ function ProductDetailPage() {
   const product = Route.useLoaderData()
   const addItem = useCartStore((state) => state.addItem)
   const [quantity, setQuantity] = useState(1)
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    null,
+  )
+
+  const handleVariantChange = useCallback((variant: ProductVariant | null) => {
+    setSelectedVariant(variant)
+  }, [])
 
   if (!product) return null
+
+  // Use selected variant price if available, otherwise product base price
+  const displayPrice = selectedVariant?.price ?? product.price
+  const hasVariants = product.options && product.options.length > 0
+  const canAddToCart = !hasVariants || (selectedVariant?.available ?? false)
 
   return (
     <div className="container mx-auto px-6 md:px-12 py-24">
@@ -69,7 +84,7 @@ function ProductDetailPage() {
             </h1>
             <p className="text-2xl font-medium">
               {formatCurrency({
-                value: product.price,
+                value: displayPrice,
                 currency: product.currency,
               })}
             </p>
@@ -79,6 +94,15 @@ function ProductDetailPage() {
             html={product.description}
             className="text-muted-foreground text-lg"
           />
+
+          {/* Variant Selection */}
+          {hasVariants && product.options && product.variants && (
+            <VariantSelector
+              options={product.options}
+              variants={product.variants}
+              onVariantChange={handleVariantChange}
+            />
+          )}
 
           <div className="space-y-6">
             {product.features && (
@@ -115,13 +139,14 @@ function ProductDetailPage() {
                 <Button
                   size="lg"
                   className="flex-1 h-12 bg-primary text-primary-foreground font-bold text-base"
+                  disabled={!canAddToCart}
                   onClick={() => {
                     for (let i = 0; i < quantity; i++) {
-                      addItem(product.id)
+                      addItem(product.id, selectedVariant?.id)
                     }
                   }}
                 >
-                  {t('Add to Bag')}
+                  {canAddToCart ? t('Add to Bag') : t('Select options')}
                 </Button>
               </div>
             </div>

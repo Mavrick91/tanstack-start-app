@@ -41,12 +41,6 @@ export function sanitizeProductFields(input: Record<string, unknown>) {
   return {
     vendor: emptyToNull(input.vendor as string),
     productType: emptyToNull(input.productType as string),
-    price: emptyToNull(input.price as string),
-    compareAtPrice: emptyToNull(input.compareAtPrice as string),
-    sku: emptyToNull(input.sku as string),
-    barcode: emptyToNull(input.barcode as string),
-    weight: emptyToNull(input.weight as string),
-    inventoryQuantity: (input.inventoryQuantity as number) ?? 0,
   }
 }
 

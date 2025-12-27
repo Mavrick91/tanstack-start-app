@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { and, asc, count, desc, eq, ilike, or, SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, SQL } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { productImages, products } from '../../../db/schema'
+import {
+  productImages,
+  productOptions,
+  products,
+  productVariants,
+} from '../../../db/schema'
 import {
   errorResponse,
   requireAuth,
@@ -45,22 +50,16 @@ export const Route = createFileRoute('/api/products/')({
             conditions.push(eq(products.status, status))
           }
           if (search) {
-            conditions.push(
-              or(
-                ilike(products.handle, `%${search}%`),
-                ilike(products.sku, `%${search}%`),
-              ) as SQL,
-            )
+            conditions.push(ilike(products.handle, `%${search}%`) as SQL)
           }
 
           const whereClause =
             conditions.length > 0 ? and(...conditions) : undefined
 
+          // Sorting: name, status, createdAt are on products. Price requires joining variants.
           const sortColumn =
             {
               name: products.name,
-              price: products.price,
-              inventory: products.inventoryQuantity,
               status: products.status,
               createdAt: products.createdAt,
             }[sortKey] || products.createdAt
@@ -82,6 +81,7 @@ export const Route = createFileRoute('/api/products/')({
             .limit(limit)
             .offset(offset)
 
+          // Get images for all products
           const productIds = paginatedProducts.map((p) => p.id)
           const images =
             productIds.length > 0
@@ -98,13 +98,34 @@ export const Route = createFileRoute('/api/products/')({
             }
           }
 
-          const productsWithImages = paginatedProducts.map((product) => ({
-            ...product,
-            firstImageUrl: imagesByProductId.get(product.id) || null,
-          }))
+          // Get first variant for each product (for price display)
+          const allVariants =
+            productIds.length > 0
+              ? await db
+                  .select()
+                  .from(productVariants)
+                  .orderBy(asc(productVariants.position))
+              : []
+
+          const variantsByProductId = new Map<string, (typeof allVariants)[0]>()
+          for (const v of allVariants) {
+            if (!variantsByProductId.has(v.productId)) {
+              variantsByProductId.set(v.productId, v)
+            }
+          }
+
+          const productsWithData = paginatedProducts.map((product) => {
+            const firstVariant = variantsByProductId.get(product.id)
+            return {
+              ...product,
+              firstImageUrl: imagesByProductId.get(product.id) || null,
+              price: firstVariant?.price || null,
+              inventoryQuantity: firstVariant?.inventoryQuantity || 0,
+            }
+          })
 
           return successResponse({
-            products: productsWithImages,
+            products: productsWithData,
             total,
             page,
             limit,
@@ -130,6 +151,10 @@ export const Route = createFileRoute('/api/products/')({
             metaTitle,
             metaDescription,
             images,
+            options = [],
+            variants: inputVariants,
+            price,
+            compareAtPrice,
           } = body
 
           if (
@@ -162,6 +187,66 @@ export const Route = createFileRoute('/api/products/')({
               })
               .returning()
 
+            // Insert options
+            if (options.length > 0) {
+              await tx.insert(productOptions).values(
+                options.map(
+                  (opt: { name: string; values: string[] }, index: number) => ({
+                    productId: newProduct.id,
+                    name: opt.name,
+                    values: opt.values,
+                    position: index,
+                  }),
+                ),
+              )
+            }
+
+            // Insert variants
+            if (inputVariants && inputVariants.length > 0) {
+              await tx.insert(productVariants).values(
+                inputVariants.map(
+                  (
+                    v: {
+                      title?: string
+                      selectedOptions?: { name: string; value: string }[]
+                      price: string
+                      compareAtPrice?: string
+                      sku?: string
+                      barcode?: string
+                      weight?: string
+                      available?: boolean
+                    },
+                    index: number,
+                  ) => ({
+                    productId: newProduct.id,
+                    title: v.title || 'Default Title',
+                    selectedOptions: v.selectedOptions || [],
+                    price: v.price,
+                    compareAtPrice: v.compareAtPrice || null,
+                    sku: v.sku || null,
+                    barcode: v.barcode || null,
+                    weight: v.weight || null,
+                    inventoryPolicy: 'continue' as const,
+                    available: v.available !== false ? 1 : 0,
+                    position: index,
+                  }),
+                ),
+              )
+            } else {
+              // Create default variant
+              await tx.insert(productVariants).values({
+                productId: newProduct.id,
+                title: 'Default Title',
+                selectedOptions: [],
+                price: price || '0',
+                compareAtPrice: compareAtPrice || null,
+                inventoryPolicy: 'continue' as const,
+                available: 1,
+                position: 0,
+              })
+            }
+
+            // Insert images
             if (images?.length) {
               await tx.insert(productImages).values(
                 images.map(

@@ -51,10 +51,15 @@ export const collectionSortEnum = pgEnum('collection_sort', [
   'price_desc',
 ])
 
+export const inventoryPolicyEnum = pgEnum('inventory_policy', [
+  'deny', // Stop selling when out of stock
+  'continue', // Continue selling (Made on Demand)
+])
+
 // i18n JSONB type helper
 type LocalizedString = { en: string; fr?: string; id?: string }
 
-// Products
+// Products (parent entity - no pricing/inventory, those live on variants)
 export const products = pgTable('products', {
   id: uuid('id').defaultRandom().primaryKey(),
   handle: text('handle').notNull().unique(),
@@ -66,17 +71,46 @@ export const products = pgTable('products', {
   vendor: text('vendor'),
   productType: text('product_type'),
   tags: text('tags').array(),
-  // Pricing & Inventory (simplified - no variants)
-  sku: text('sku').unique(),
-  barcode: text('barcode'),
-  price: decimal('price', { precision: 10, scale: 2 }),
-  compareAtPrice: decimal('compare_at_price', { precision: 10, scale: 2 }),
-  inventoryQuantity: integer('inventory_quantity').default(0).notNull(),
-  weight: decimal('weight', { precision: 10, scale: 2 }),
   // Timestamps
   publishedAt: timestamp('published_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// Product Options (e.g., "Shape", "Length")
+export const productOptions = pgTable('product_options', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // e.g., "Shape"
+  values: text('values').array().notNull(), // e.g., ["Coffin", "Almond", "Stiletto"]
+  position: integer('position').default(0).notNull(),
+})
+
+// Product Variants (combinations of options with pricing)
+type SelectedOption = { name: string; value: string }
+export const productVariants = pgTable('product_variants', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(), // e.g., "Coffin / Long" or "Default Title"
+  selectedOptions: jsonb('selected_options').$type<SelectedOption[]>(),
+  // Pricing
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  compareAtPrice: decimal('compare_at_price', { precision: 10, scale: 2 }),
+  // Inventory
+  inventoryQuantity: integer('inventory_quantity').default(0).notNull(),
+  inventoryPolicy: inventoryPolicyEnum('inventory_policy')
+    .default('continue')
+    .notNull(), // Default: Made on Demand
+  available: integer('available').default(1).notNull(), // 1 = available, 0 = unavailable
+  // Identifiers
+  sku: text('sku'),
+  barcode: text('barcode'),
+  weight: decimal('weight', { precision: 10, scale: 2 }),
+  position: integer('position').default(0).notNull(),
 })
 
 // Product Images

@@ -22,8 +22,22 @@ const MOCK_PRODUCTS: Array<Product> = [
     ],
     isFeatured: true,
     variants: [
-      { id: 'v1', name: 'Full Set', sku: 'FN-AUR-12', stock: 25 },
-      { id: 'v2', name: 'Mini Set (6)', sku: 'FN-AUR-06', stock: 40 },
+      {
+        id: 'v1',
+        title: 'Full Set',
+        sku: 'FN-AUR-12',
+        price: 68,
+        available: true,
+        selectedOptions: [],
+      },
+      {
+        id: 'v2',
+        title: 'Mini Set (6)',
+        sku: 'FN-AUR-06',
+        price: 38,
+        available: true,
+        selectedOptions: [],
+      },
     ],
   },
   {

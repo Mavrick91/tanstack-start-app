@@ -215,27 +215,26 @@ describe('ProductForm', () => {
       expect(screen.getAllByText('ID').length).toBeGreaterThan(0)
     })
 
-    it('should render pricing section', () => {
+    it('should render options section', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <ProductForm />
         </QueryClientProvider>,
       )
 
-      expect(screen.getByText('Pricing')).toBeInTheDocument()
-      expect(screen.getByText('Price')).toBeInTheDocument()
-      expect(screen.getByText('Compare-at price')).toBeInTheDocument()
+      expect(screen.getByText('Options')).toBeInTheDocument()
     })
 
-    it('should render inventory section', () => {
+    it('should render variants section', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <ProductForm />
         </QueryClientProvider>,
       )
 
-      expect(screen.getByText('Inventory')).toBeInTheDocument()
-      expect(screen.getByText('SKU (Stock Keeping Unit)')).toBeInTheDocument()
+      expect(screen.getByText('Variants')).toBeInTheDocument()
+      // Default variant should be shown
+      expect(screen.getByText('Default Title')).toBeInTheDocument()
     })
 
     it('should render SEO section', () => {

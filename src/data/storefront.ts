@@ -6,10 +6,12 @@ import {
   collectionProducts,
   collections,
   productImages,
+  productOptions,
   products,
+  productVariants,
 } from '../db/schema'
 
-import type { Product } from '../types/store'
+import type { Product, ProductOption, ProductVariant } from '../types/store'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -18,25 +20,38 @@ function getLocalizedText(value: LocalizedString | null, lang = 'en'): string {
   return value[lang as keyof LocalizedString] || value.en || ''
 }
 
+// Fetch first variant for a product (for price)
+async function fetchProductFirstVariant(productId: string) {
+  const [variant] = await db
+    .select({ price: productVariants.price })
+    .from(productVariants)
+    .where(eq(productVariants.productId, productId))
+    .orderBy(asc(productVariants.position))
+    .limit(1)
+  return variant
+}
+
 function toStorefrontProduct(
   dbProduct: {
     id: string
     handle: string
     name: LocalizedString
     description: LocalizedString | null
-    price: string | null
     productType: string | null
     status: string
   },
   images: { url: string }[],
+  price: string | null,
   lang = 'en',
+  options?: ProductOption[],
+  variants?: ProductVariant[],
 ): Product {
   return {
     id: dbProduct.id,
     name: getLocalizedText(dbProduct.name, lang),
     slug: dbProduct.handle,
     description: getLocalizedText(dbProduct.description, lang),
-    price: dbProduct.price ? parseFloat(dbProduct.price) : 0,
+    price: price ? parseFloat(price) : 0,
     currency: 'USD',
     images:
       images.length > 0
@@ -46,6 +61,8 @@ function toStorefrontProduct(
           ],
     category: dbProduct.productType || 'Nail Art',
     isFeatured: true,
+    options,
+    variants,
   }
 }
 
@@ -55,6 +72,54 @@ async function fetchProductImages(productId: string) {
     .from(productImages)
     .where(eq(productImages.productId, productId))
     .orderBy(productImages.position)
+}
+
+async function fetchProductOptionsAndVariants(productId: string): Promise<{
+  options: ProductOption[]
+  variants: ProductVariant[]
+}> {
+  // Fetch options
+  const dbOptions = await db
+    .select({
+      id: productOptions.id,
+      name: productOptions.name,
+      values: productOptions.values,
+      position: productOptions.position,
+    })
+    .from(productOptions)
+    .where(eq(productOptions.productId, productId))
+    .orderBy(asc(productOptions.position))
+
+  // Fetch variants
+  const dbVariants = await db
+    .select({
+      id: productVariants.id,
+      title: productVariants.title,
+      price: productVariants.price,
+      sku: productVariants.sku,
+      available: productVariants.available,
+      selectedOptions: productVariants.selectedOptions,
+      position: productVariants.position,
+    })
+    .from(productVariants)
+    .where(eq(productVariants.productId, productId))
+    .orderBy(asc(productVariants.position))
+
+  return {
+    options: dbOptions.map((o) => ({
+      name: o.name,
+      values: o.values as string[],
+    })),
+    variants: dbVariants.map((v) => ({
+      id: v.id,
+      title: v.title,
+      price: parseFloat(v.price),
+      sku: v.sku || undefined,
+      available: v.available === 1,
+      selectedOptions:
+        (v.selectedOptions as Array<{ name: string; value: string }>) || [],
+    })),
+  }
 }
 
 export const getCollections = createServerFn({ method: 'GET' })
@@ -118,7 +183,13 @@ export const getProducts = createServerFn({ method: 'GET' })
     return Promise.all(
       dbProducts.map(async (product) => {
         const images = await fetchProductImages(product.id)
-        return toStorefrontProduct(product, images, lang)
+        const variant = await fetchProductFirstVariant(product.id)
+        return toStorefrontProduct(
+          product,
+          images,
+          variant?.price || null,
+          lang,
+        )
       }),
     )
   })
@@ -138,7 +209,13 @@ export const getFeaturedProducts = createServerFn({ method: 'GET' })
     return Promise.all(
       dbProducts.map(async (product) => {
         const images = await fetchProductImages(product.id)
-        return toStorefrontProduct(product, images, lang)
+        const variant = await fetchProductFirstVariant(product.id)
+        return toStorefrontProduct(
+          product,
+          images,
+          variant?.price || null,
+          lang,
+        )
       }),
     )
   })
@@ -158,7 +235,22 @@ export const getProductBySlug = createServerFn({ method: 'GET' })
     }
 
     const images = await fetchProductImages(dbProduct.id)
-    return toStorefrontProduct(dbProduct, images, lang)
+    const { options, variants } = await fetchProductOptionsAndVariants(
+      dbProduct.id,
+    )
+
+    // Use first available variant price, or 0 if no variants
+    const firstVariant = variants.find((v) => v.available) || variants[0]
+    const price = firstVariant?.price?.toString() || null
+
+    return toStorefrontProduct(
+      dbProduct,
+      images,
+      price,
+      lang,
+      options,
+      variants,
+    )
   })
 
 export const getCollectionByHandle = createServerFn({ method: 'GET' })
@@ -185,16 +277,16 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
     const effectiveSort = sort || collection.sortOrder || 'manual'
 
     // Build order clause
+    // Note: price-based sorting requires a subquery since price is on variants
     let orderByClause
     switch (effectiveSort) {
       case 'newest':
         orderByClause = desc(products.createdAt)
         break
       case 'price_asc':
-        orderByClause = asc(products.price)
-        break
       case 'price_desc':
-        orderByClause = desc(products.price)
+        // For price sorting, we'll sort after fetching (since price is on variants)
+        orderByClause = asc(collectionProducts.position)
         break
       case 'manual':
       default:
@@ -217,12 +309,25 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       )
       .orderBy(orderByClause)
 
-    const productsList = await Promise.all(
+    let productsList = await Promise.all(
       collectionProductsList.map(async ({ product }) => {
         const images = await fetchProductImages(product.id)
-        return toStorefrontProduct(product, images, lang)
+        const variant = await fetchProductFirstVariant(product.id)
+        return toStorefrontProduct(
+          product,
+          images,
+          variant?.price || null,
+          lang,
+        )
       }),
     )
+
+    // Post-fetch sorting for price (since price is on variants)
+    if (effectiveSort === 'price_asc') {
+      productsList = productsList.sort((a, b) => a.price - b.price)
+    } else if (effectiveSort === 'price_desc') {
+      productsList = productsList.sort((a, b) => b.price - a.price)
+    }
 
     return {
       id: collection.id,

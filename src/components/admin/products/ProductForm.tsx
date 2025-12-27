@@ -15,6 +15,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ProductOptions, type ProductOption } from './components/ProductOptions'
+import {
+  ProductVariantsTable,
+  type ProductVariant,
+} from './components/ProductVariantsTable'
 import { ImageUploader, type ImageItem } from './ImageUploader'
 import { generateProductDetailsFn } from '../../../server/ai'
 import { createProductFn } from '../../../server/products'
@@ -51,6 +56,14 @@ export type ProductFormData = {
   inventoryQuantity: number
   weight: string
   images: { id?: string; url: string; file?: File; altText: LocalizedString }[]
+  options?: ProductOption[]
+  variants?: {
+    title: string
+    price: string
+    sku?: string
+    available: boolean
+    selectedOptions: { name: string; value: string }[]
+  }[]
 }
 
 export type ProductImage = {
@@ -79,6 +92,15 @@ export type Product = {
   inventoryQuantity?: number | null
   weight?: string | null
   images?: ProductImage[]
+  options?: { name: string; values: string[] }[]
+  variants?: {
+    id: string
+    title: string
+    price: string
+    sku?: string | null
+    available: number
+    selectedOptions: { name: string; value: string }[] | null
+  }[]
 }
 
 type ProductFormProps = {
@@ -101,6 +123,34 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
     altText: img.altText || { en: '', fr: '', id: '' },
   }))
   const [images, setImages] = useState<ImageItem[]>(initialImages)
+
+  // Options and Variants state - initialize from product if editing
+  const [options, setOptions] = useState<ProductOption[]>(() => {
+    if (product?.options && product.options.length > 0) {
+      return product.options.map((o) => ({ name: o.name, values: o.values }))
+    }
+    return []
+  })
+  const [variants, setVariants] = useState<ProductVariant[]>(() => {
+    if (product?.variants && product.variants.length > 0) {
+      return product.variants.map((v) => ({
+        id: v.id,
+        title: v.title,
+        price: v.price,
+        sku: v.sku || undefined,
+        available: v.available === 1,
+        selectedOptions: v.selectedOptions || [],
+      }))
+    }
+    return [
+      {
+        title: 'Default Title',
+        price: '0',
+        available: true,
+        selectedOptions: [],
+      },
+    ]
+  })
 
   const createProduct = useMutation({
     mutationFn: async (data: ProductFormData) => {
@@ -276,7 +326,17 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
             })),
           )
 
-          await updateProduct.mutateAsync(value)
+          await updateProduct.mutateAsync({
+            ...value,
+            options: options.map((o) => ({ name: o.name, values: o.values })),
+            variants: variants.map((v) => ({
+              title: v.title,
+              price: v.price,
+              sku: v.sku,
+              available: v.available,
+              selectedOptions: v.selectedOptions,
+            })),
+          })
           toast.success(t('Product saved successfully!'))
         } else {
           // Create mode: upload images then create product
@@ -302,6 +362,14 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
           await createProduct.mutateAsync({
             ...value,
             images: uploadedImages,
+            options: options.map((o) => ({ name: o.name, values: o.values })),
+            variants: variants.map((v) => ({
+              title: v.title,
+              price: v.price,
+              sku: v.sku,
+              available: v.available,
+              selectedOptions: v.selectedOptions,
+            })),
           })
         }
       } catch (error) {
@@ -627,163 +695,80 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
             )}
           </section>
 
-          {/* Pricing Section */}
+          {/* Options Section */}
           <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              {t('Pricing')}
+              {t('Options')}
             </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="price" className="text-xs font-semibold">
-                  {t('Price')}
-                </Label>
-                <form.Field name="price">
-                  {(field) => (
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold">
-                        $
-                      </span>
-                      <Input
-                        id="price"
-                        className="h-11 pl-8 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="0.00"
-                        type="number"
-                        step="0.01"
-                      />
-                    </div>
-                  )}
-                </form.Field>
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="compareAtPrice"
-                  className="text-xs font-semibold"
-                >
-                  {t('Compare-at price')}
-                </Label>
-                <form.Field name="compareAtPrice">
-                  {(field) => (
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold">
-                        $
-                      </span>
-                      <Input
-                        id="compareAtPrice"
-                        className="h-11 pl-8 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="0.00"
-                        type="number"
-                        step="0.01"
-                      />
-                    </div>
-                  )}
-                </form.Field>
-                <p className="text-[10px] text-muted-foreground px-2">
-                  {t(
-                    'To show a reduced price, move the original price to "Compare-at price".',
-                  )}
-                </p>
-              </div>
-            </div>
+            <ProductOptions
+              options={options}
+              onChange={(newOptions) => {
+                setOptions(newOptions)
+                // Auto-generate variants when options change
+                if (newOptions.length === 0) {
+                  setVariants([
+                    {
+                      title: 'Default Title',
+                      price: '0',
+                      available: true,
+                      selectedOptions: [],
+                    },
+                  ])
+                } else {
+                  // Generate Cartesian product of all option values
+                  const generateCombinations = (
+                    opts: ProductOption[],
+                  ): ProductVariant[] => {
+                    if (opts.length === 0) return []
+                    const [first, ...rest] = opts
+                    if (rest.length === 0) {
+                      return first.values.map((v) => ({
+                        title: v,
+                        price: variants[0]?.price || '0',
+                        available: true,
+                        selectedOptions: [{ name: first.name, value: v }],
+                      }))
+                    }
+                    const restCombos = generateCombinations(rest)
+                    const result: ProductVariant[] = []
+                    for (const v of first.values) {
+                      for (const combo of restCombos) {
+                        result.push({
+                          title: `${v} / ${combo.title}`,
+                          price: combo.price,
+                          available: true,
+                          selectedOptions: [
+                            { name: first.name, value: v },
+                            ...combo.selectedOptions,
+                          ],
+                        })
+                      }
+                    }
+                    return result
+                  }
+                  const validOptions = newOptions.filter(
+                    (o) => o.name && o.values.length > 0,
+                  )
+                  if (validOptions.length > 0) {
+                    setVariants(generateCombinations(validOptions))
+                  }
+                }
+              }}
+              disabled={isSaving}
+            />
           </section>
 
-          {/* Inventory Section */}
+          {/* Variants Section */}
           <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Inventory')}
+              {t('Variants')}
             </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="space-y-2">
-                <Label htmlFor="sku" className="text-xs font-semibold">
-                  {t('SKU (Stock Keeping Unit)')}
-                </Label>
-                <form.Field name="sku">
-                  {(field) => (
-                    <Input
-                      id="sku"
-                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="FN-001"
-                    />
-                  )}
-                </form.Field>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="barcode" className="text-xs font-semibold">
-                  {t('Barcode (ISBN, UPC, GTIN, etc.)')}
-                </Label>
-                <form.Field name="barcode">
-                  {(field) => (
-                    <Input
-                      id="barcode"
-                      className="h-11 bg-background/50 border-border rounded-xl focus:ring-pink-500/20"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                  )}
-                </form.Field>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="inventoryQuantity"
-                className="text-xs font-semibold"
-              >
-                {t('Quantity Available')}
-              </Label>
-              <form.Field name="inventoryQuantity">
-                {(field) => (
-                  <Input
-                    id="inventoryQuantity"
-                    className="h-11 w-32 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 text-center font-bold"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                    type="number"
-                  />
-                )}
-              </form.Field>
-            </div>
-          </section>
-
-          {/* Shipping Section */}
-          <section className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              {t('Shipping')}
-            </h2>
-            <div className="space-y-2">
-              <Label htmlFor="weight" className="text-xs font-semibold">
-                {t('Weight')}
-              </Label>
-              <form.Field name="weight">
-                {(field) => (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="weight"
-                      className="h-11 w-32 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 text-center font-bold"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="0.0"
-                      type="number"
-                      step="0.1"
-                    />
-                    <span className="text-sm font-bold text-muted-foreground">
-                      kg
-                    </span>
-                  </div>
-                )}
-              </form.Field>
-              <p className="text-[10px] text-muted-foreground px-1">
-                {t('Used to calculate shipping rates at checkout.')}
-              </p>
-            </div>
+            <ProductVariantsTable
+              variants={variants}
+              onChange={setVariants}
+              disabled={isSaving}
+            />
           </section>
 
           {/* Organization Section */}
