@@ -3,6 +3,7 @@ import { Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ProductGallery } from '../../../components/products/ProductGallery'
 import { BackButton } from '../../../components/ui/back-button'
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
@@ -37,7 +38,7 @@ function ProductDetailPage() {
   if (!product) return null
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-6 md:px-12 py-24">
       <BackButton
         to="/$lang/products"
         params={{ lang }}
@@ -46,31 +47,7 @@ function ProductDetailPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-        <div className="space-y-4">
-          <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-secondary/30">
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((img, i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-xl overflow-hidden bg-secondary/30"
-                >
-                  <img
-                    src={img}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery images={product.images} productName={product.name} />
 
         <div className="flex flex-col gap-8">
           <div className="space-y-4">

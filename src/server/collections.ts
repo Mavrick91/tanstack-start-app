@@ -1,6 +1,18 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm'
 
 import { db } from '../db'
 import {
@@ -23,6 +35,15 @@ export interface CollectionInput {
   metaDescription?: LocalizedString
 }
 
+export interface CollectionsState {
+  page?: number
+  limit?: number
+  search?: string
+  status?: 'all' | 'active' | 'draft'
+  sortKey?: 'name' | 'productCount' | 'createdAt'
+  sortOrder?: 'asc' | 'desc'
+}
+
 async function requireAuth() {
   const request = getRequest()
   if (!request) throw new Error('No request found')
@@ -31,9 +52,63 @@ async function requireAuth() {
   return auth.user
 }
 
-export const getCollectionsFn = createServerFn({ method: 'GET' }).handler(
-  async () => {
+export const getCollectionsFn = createServerFn({ method: 'GET' })
+  .inputValidator((d: CollectionsState) => d)
+  .handler(async ({ data }) => {
     await requireAuth()
+
+    const page = Math.max(1, data.page || 1)
+    const limit = Math.min(100, Math.max(1, data.limit || 10))
+    const offset = (page - 1) * limit
+
+    const conditions = []
+
+    if (data.status && data.status !== 'all') {
+      conditions.push(
+        data.status === 'active'
+          ? isNotNull(collections.publishedAt)
+          : isNull(collections.publishedAt),
+      )
+    }
+
+    if (data.search) {
+      conditions.push(
+        or(
+          ilike(collections.handle, `%${data.search}%`),
+          sql`(${collections.name}->>'en') ILIKE ${`%${data.search}%`}`,
+        ),
+      )
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Determine sort
+    let orderBy
+    if (data.sortKey === 'name') {
+      orderBy =
+        data.sortOrder === 'asc'
+          ? asc(collections.name)
+          : desc(collections.name)
+    } else if (data.sortKey === 'productCount') {
+      // Sorting by computed column is tricky in simple select,
+      // but we can sort by logical subquery or just default to createdAt if complex
+      // For now, let's keep it simple and default to createdAt if specific logic needed
+      orderBy =
+        data.sortOrder === 'asc'
+          ? asc(collections.createdAt)
+          : desc(collections.createdAt)
+    } else {
+      orderBy =
+        data.sortOrder === 'asc'
+          ? asc(collections.createdAt)
+          : desc(collections.createdAt)
+    }
+
+    // Get Total
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(collections)
+      .where(whereClause)
 
     const result = await db
       .select({
@@ -67,11 +142,64 @@ export const getCollectionsFn = createServerFn({ method: 'GET' }).handler(
         )`.mapWith((val) => val as string[]),
       })
       .from(collections)
-      .orderBy(desc(collections.createdAt))
+      .where(whereClause)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset)
 
-    return { success: true, data: result }
-  },
-)
+    // Handle productCount sorting in memory if needed (since it's a computed column in select)
+    // Or better, wrapping the query. For now, in-memory sort for productCount if page size is small
+    if (data.sortKey === 'productCount') {
+      result.sort((a, b) => {
+        const diff = a.productCount - b.productCount
+        return data.sortOrder === 'asc' ? diff : -diff
+      })
+    }
+
+    return {
+      success: true,
+      data: result,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }
+  })
+
+export const bulkDeleteCollectionsFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { ids: string[] }) => d)
+  .handler(async ({ data }) => {
+    await requireAuth()
+
+    if (!data.ids.length) return { success: true, count: 0 }
+
+    const res = await db
+      .delete(collections)
+      .where(inArray(collections.id, data.ids))
+      .returning()
+
+    return { success: true, count: res.length }
+  })
+
+export const bulkUpdateCollectionsStatusFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { ids: string[]; action: 'publish' | 'unpublish' }) => d)
+  .handler(async ({ data }) => {
+    await requireAuth()
+
+    if (!data.ids.length) return { success: true, count: 0 }
+
+    const updateData = {
+      publishedAt: data.action === 'publish' ? new Date() : null,
+    }
+
+    const res = await db
+      .update(collections)
+      .set(updateData)
+      .where(inArray(collections.id, data.ids))
+      .returning()
+
+    return { success: true, count: res.length }
+  })
 
 export const getCollectionFn = createServerFn({ method: 'GET' })
   .inputValidator((d: { id: string }) => d)

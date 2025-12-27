@@ -17,10 +17,12 @@ import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
+import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
 import { Route as LangCollectionsIndexRouteImport } from './routes/$lang/collections/index'
+import { Route as ApiProductsBulkRouteImport } from './routes/api/products/bulk'
 import { Route as ApiProductsProductIdRouteImport } from './routes/api/products/$productId'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -80,6 +82,11 @@ const ApiProductsIndexRoute = ApiProductsIndexRouteImport.update({
   path: '/api/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCollectionsIndexRoute = ApiCollectionsIndexRouteImport.update({
+  id: '/api/collections/',
+  path: '/api/collections/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -99,6 +106,11 @@ const LangCollectionsIndexRoute = LangCollectionsIndexRouteImport.update({
   id: '/collections/',
   path: '/collections/',
   getParentRoute: () => LangRoute,
+} as any)
+const ApiProductsBulkRoute = ApiProductsBulkRouteImport.update({
+  id: '/api/products/bulk',
+  path: '/api/products/bulk',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiProductsProductIdRoute = ApiProductsProductIdRouteImport.update({
   id: '/api/products/$productId',
@@ -213,10 +225,12 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -243,10 +257,12 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/products': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -276,10 +292,12 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
+  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/$lang/collections/': typeof LangCollectionsIndexRoute
   '/$lang/products/': typeof LangProductsIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/collections/': typeof ApiCollectionsIndexRoute
   '/api/products/': typeof ApiProductsIndexRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -310,10 +328,12 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/api/products/bulk'
     | '/$lang/collections'
     | '/$lang/products'
     | '/admin/collections'
     | '/admin/products'
+    | '/api/collections'
     | '/api/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -340,10 +360,12 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/api/products/bulk'
     | '/$lang/collections'
     | '/$lang/products'
     | '/admin/collections'
     | '/admin/products'
+    | '/api/collections'
     | '/api/products'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -372,10 +394,12 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/products/$productId'
+    | '/api/products/bulk'
     | '/$lang/collections/'
     | '/$lang/products/'
     | '/admin/collections/'
     | '/admin/products/'
+    | '/api/collections/'
     | '/api/products/'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -396,6 +420,8 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiProductsProductIdRoute: typeof ApiProductsProductIdRouteWithChildren
+  ApiProductsBulkRoute: typeof ApiProductsBulkRoute
+  ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
   ApiProductsIndexRoute: typeof ApiProductsIndexRoute
 }
 
@@ -457,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProductsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/collections/': {
+      id: '/api/collections/'
+      path: '/api/collections'
+      fullPath: '/api/collections'
+      preLoaderRoute: typeof ApiCollectionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/products/': {
       id: '/admin/products/'
       path: '/products'
@@ -484,6 +517,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/collections'
       preLoaderRoute: typeof LangCollectionsIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/api/products/bulk': {
+      id: '/api/products/bulk'
+      path: '/api/products/bulk'
+      fullPath: '/api/products/bulk'
+      preLoaderRoute: typeof ApiProductsBulkRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/products/$productId': {
       id: '/api/products/$productId'
@@ -690,6 +730,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiProductsProductIdRoute: ApiProductsProductIdRouteWithChildren,
+  ApiProductsBulkRoute: ApiProductsBulkRoute,
+  ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
   ApiProductsIndexRoute: ApiProductsIndexRoute,
 }
 export const routeTree = rootRouteImport

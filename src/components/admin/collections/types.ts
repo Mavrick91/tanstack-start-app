@@ -15,9 +15,21 @@ export interface Collection {
   imageUrl?: string
   metaTitle?: LocalizedString
   metaDescription?: LocalizedString
-  publishedAt: string | Date | null
-  createdAt: string | Date
+  publishedAt: Date | null
+  createdAt: Date
   products?: Product[]
+}
+
+export interface CollectionListItem {
+  id: string
+  handle: string
+  name: LocalizedString
+  imageUrl: string | null
+  sortOrder: string | null
+  publishedAt: Date | null
+  createdAt: Date
+  productCount: number
+  previewImages: string[]
 }
 
 export interface CollectionFormProps {

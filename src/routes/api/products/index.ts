@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { desc } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, or, SQL } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { productImages, products } from '../../../db/schema'
@@ -21,12 +21,95 @@ export const Route = createFileRoute('/api/products/')({
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
 
-          const allProducts = await db
+          const url = new URL(request.url)
+          const page = Math.max(
+            1,
+            parseInt(url.searchParams.get('page') || '1', 10),
+          )
+          const limit = Math.min(
+            100,
+            Math.max(1, parseInt(url.searchParams.get('limit') || '10', 10)),
+          )
+          const search = url.searchParams.get('q') || ''
+          const status = url.searchParams.get('status') as
+            | 'active'
+            | 'draft'
+            | 'archived'
+            | null
+          const sortKey = url.searchParams.get('sort') || 'createdAt'
+          const sortOrder =
+            url.searchParams.get('order') === 'asc' ? 'asc' : 'desc'
+
+          const conditions: SQL[] = []
+          if (status && ['active', 'draft', 'archived'].includes(status)) {
+            conditions.push(eq(products.status, status))
+          }
+          if (search) {
+            conditions.push(
+              or(
+                ilike(products.handle, `%${search}%`),
+                ilike(products.sku, `%${search}%`),
+              ) as SQL,
+            )
+          }
+
+          const whereClause =
+            conditions.length > 0 ? and(...conditions) : undefined
+
+          const sortColumn =
+            {
+              name: products.name,
+              price: products.price,
+              inventory: products.inventoryQuantity,
+              status: products.status,
+              createdAt: products.createdAt,
+            }[sortKey] || products.createdAt
+
+          const orderBy =
+            sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
+
+          const [{ total }] = await db
+            .select({ total: count() })
+            .from(products)
+            .where(whereClause)
+
+          const offset = (page - 1) * limit
+          const paginatedProducts = await db
             .select()
             .from(products)
-            .orderBy(desc(products.createdAt))
+            .where(whereClause)
+            .orderBy(orderBy)
+            .limit(limit)
+            .offset(offset)
 
-          return successResponse({ products: allProducts })
+          const productIds = paginatedProducts.map((p) => p.id)
+          const images =
+            productIds.length > 0
+              ? await db
+                  .select()
+                  .from(productImages)
+                  .orderBy(asc(productImages.position))
+              : []
+
+          const imagesByProductId = new Map<string, string>()
+          for (const img of images) {
+            if (!imagesByProductId.has(img.productId)) {
+              imagesByProductId.set(img.productId, img.url)
+            }
+          }
+
+          const productsWithImages = paginatedProducts.map((product) => ({
+            ...product,
+            firstImageUrl: imagesByProductId.get(product.id) || null,
+          }))
+
+          return successResponse({
+            products: productsWithImages,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+          })
         } catch (error) {
           return errorResponse('Failed to fetch products', error)
         }

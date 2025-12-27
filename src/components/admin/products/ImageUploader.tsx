@@ -160,11 +160,29 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
 
   const handleFileSelection = useCallback(
     (files: FileList) => {
+      const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+      const ALLOWED_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/heic',
+      ]
+
       const newImages: ImageItem[] = []
 
       for (const file of Array.from(files)) {
-        if (!file.type.startsWith('image/')) {
-          toast.error(t('Only image files are allowed'))
+        // Validate file type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          toast.error(
+            t('Only image files are allowed') + ' (JPEG, PNG, GIF, WebP, HEIC)',
+          )
+          continue
+        }
+
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+          toast.error(`${file.name}: File too large. Maximum size is 20MB.`)
           continue
         }
 
@@ -181,6 +199,9 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
 
       if (newImages.length > 0) {
         onChange([...images, ...newImages])
+        toast.success(
+          t('{{count}} image(s) uploaded', { count: newImages.length }),
+        )
       }
     },
     [images, onChange, t],

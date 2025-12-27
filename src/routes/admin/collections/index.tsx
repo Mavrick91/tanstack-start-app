@@ -1,69 +1,103 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { TFunction } from 'i18next'
-import {
-  FolderOpen,
-  Plus,
-  Search,
-  Package,
-  ArrowRight,
-  Filter,
-} from 'lucide-react'
-import { useState } from 'react'
+import { FolderOpen, Plus, Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
 
-import { CollectionListActions } from '../../../components/admin/collections/components/CollectionListActions'
-import { CollectionThumbnail } from '../../../components/collections/CollectionThumbnail'
+import { BulkActionsBar } from '../../../components/admin/collections/components/BulkActionsBar'
+import {
+  CollectionTable,
+  CollectionTableSkeleton,
+} from '../../../components/admin/collections/components/CollectionTable'
+import { Pagination } from '../../../components/admin/products/components/Pagination'
 import { Button } from '../../../components/ui/button'
-import { cn } from '../../../lib/utils'
+import { useDataTable } from '../../../hooks/useDataTable'
 import { getCollectionsFn } from '../../../server/collections'
 
-type LocalizedString = { en: string; fr?: string; id?: string }
+import type { CollectionListItem } from '../../../components/admin/collections/types'
 
-interface CollectionListItem {
-  id: string
-  handle: string
-  name: LocalizedString
-  imageUrl?: string
-  productCount: number
-  publishedAt: string | Date | null
-  createdAt: string | Date
-  previewImages?: string[]
-}
+// URL Search Params Schema
+const searchSchema = z.object({
+  q: z.string().optional(),
+  status: z.enum(['all', 'active', 'draft']).optional(),
+  sort: z.enum(['name', 'productCount', 'createdAt']).optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+  page: z.coerce.number().min(1).optional(),
+})
+
+type SortKey = 'name' | 'productCount' | 'createdAt'
 
 export const Route = createFileRoute('/admin/collections/')({
   component: CollectionsPage,
+  validateSearch: searchSchema,
 })
+
+// Fetcher using server function
+async function fetchCollections(state: {
+  search: string
+  page: number
+  limit: number
+  sortKey: string
+  sortOrder: string
+  filters: Record<string, string | undefined>
+}) {
+  const result = await getCollectionsFn({
+    data: {
+      page: state.page,
+      limit: state.limit,
+      search: state.search,
+      status: (state.filters.status as 'all' | 'active' | 'draft') || 'all',
+      sortKey: state.sortKey as SortKey,
+      sortOrder: state.sortOrder as 'asc' | 'desc',
+    },
+  })
+
+  if (!result.success) throw new Error('Failed to fetch collections')
+
+  return {
+    data: result.data as CollectionListItem[], // Cast to ensure type compatibility
+    total: result.total as number,
+    page: result.page as number,
+    limit: result.limit as number,
+    totalPages: result.totalPages as number,
+  }
+}
 
 function CollectionsPage() {
   const { t } = useTranslation()
-  const [search, setSearch] = useState('')
+  const searchParams = Route.useSearch()
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['collections'],
-    queryFn: () => getCollectionsFn(),
+  const table = useDataTable<CollectionListItem, SortKey>({
+    id: 'collections',
+    routePath: '/admin/collections',
+    defaultSortKey: 'createdAt',
+    defaultLimit: 10,
+    queryFn: fetchCollections,
+    initialState: {
+      search: searchParams.q || '',
+      page: searchParams.page || 1,
+      sortKey: (searchParams.sort as SortKey) || 'createdAt',
+      sortOrder: (searchParams.order as 'asc' | 'desc') || 'desc',
+      filters: {
+        status: searchParams.status || 'all',
+      },
+    },
   })
 
-  const collections = (data?.data || []) as CollectionListItem[]
+  const statusFilter = (table.filters.status || 'all') as
+    | 'all'
+    | 'active'
+    | 'draft'
 
-  const filteredCollections = collections.filter(
-    (c) =>
-      c.name.en.toLowerCase().includes(search.toLowerCase()) ||
-      c.handle.toLowerCase().includes(search.toLowerCase()),
-  )
+  const isEmptyCatalog =
+    !table.isLoading &&
+    table.total === 0 &&
+    !table.search &&
+    statusFilter === 'all'
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-pink-500/20 border-t-pink-500" />
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
-          {t('Syncing Collections...')}
-        </p>
-      </div>
-    )
-  }
+  const isNoFilterResults =
+    !table.isLoading && table.items.length === 0 && !isEmptyCatalog
 
-  if (error) {
+  if (table.error) {
     return (
       <div className="text-center py-24 bg-card rounded-3xl border border-destructive/10 max-w-2xl mx-auto shadow-sm">
         <p className="text-destructive font-bold text-lg mb-1">
@@ -75,6 +109,13 @@ function CollectionsPage() {
       </div>
     )
   }
+
+  const statusOptions: { value: 'all' | 'active' | 'draft'; label: string }[] =
+    [
+      { value: 'all', label: t('All') },
+      { value: 'active', label: t('Active') },
+      { value: 'draft', label: t('Draft') },
+    ]
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
@@ -97,199 +138,124 @@ function CollectionsPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex gap-4 px-1">
+      <div className="flex flex-col sm:flex-row gap-3 px-1">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
           <input
+            value={table.search}
+            onChange={(e) => table.setSearch(e.target.value)}
             placeholder={t('Search collections...')}
             className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/10 transition-all font-medium text-sm shadow-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
           />
+          {table.search && (
+            <button
+              onClick={() => table.setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <Button
-          variant="outline"
-          className="h-11 rounded-xl border-border bg-background gap-2 font-semibold px-5 shadow-sm"
-        >
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          {t('Filters')}
-        </Button>
+        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50 h-11 items-center">
+          {statusOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => table.setFilter('status', opt.value)}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all h-9 ${
+                statusFilter === opt.value
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Collections Table */}
-      {filteredCollections.length === 0 ? (
-        <div className="text-center py-24 bg-card border border-border/50 rounded-3xl shadow-sm">
-          <div className="w-16 h-16 bg-pink-500/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FolderOpen className="w-8 h-8 text-pink-500/40" />
-          </div>
-          <h3 className="text-xl font-bold mb-1">
-            {search
-              ? t('No results match your search')
-              : t('Your collection gallery is empty')}
-          </h3>
-          <p className="text-muted-foreground text-xs font-medium mb-6 max-w-xs mx-auto">
-            {search
-              ? t('Try adjusting your search terms or filters.')
-              : t(
-                  'Start curating your products into beautiful, themed collections.',
-                )}
-          </p>
-          {!search && (
-            <Link to="/admin/collections/new">
-              <Button
-                variant="outline"
-                className="rounded-xl h-10 px-6 font-semibold"
-              >
-                {t('Create your first collection')}
-              </Button>
-            </Link>
-          )}
-        </div>
+      {table.isLoading ? (
+        <CollectionTableSkeleton />
+      ) : isEmptyCatalog ? (
+        <EmptyState />
+      ) : isNoFilterResults ? (
+        <NoResults onClear={() => table.setSearch('')} />
       ) : (
-        <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-muted/30 border-b border-border/50">
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    {t('Collection')}
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    {t('Status')}
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    {t('Handle')}
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    {t('Products')}
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    {t('Created')}
-                  </th>
-                  <th className="px-8 py-4"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/30">
-                {filteredCollections.map((collection) => (
-                  <tr
-                    key={collection.id}
-                    className="hover:bg-muted/20 transition-all duration-200 group"
-                  >
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-muted/50 overflow-hidden border border-border/50 shrink-0 group-hover:scale-105 transition-transform duration-300">
-                          {collection.imageUrl ? (
-                            <img
-                              src={collection.imageUrl}
-                              className="h-full w-full object-cover"
-                              alt=""
-                            />
-                          ) : (
-                            <CollectionThumbnail
-                              images={collection.previewImages || []}
-                            />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <Link
-                            to="/admin/collections/$collectionId"
-                            params={{ collectionId: collection.id }}
-                            className="text-sm font-semibold truncate hover:text-pink-500 transition-colors flex items-center gap-2 group/link"
-                          >
-                            {collection.name.en}
-                            <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all text-pink-500" />
-                          </Link>
-                          {collection.name.fr && (
-                            <p className="text-[10px] text-muted-foreground/60 italic truncate">
-                              {collection.name.fr}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <StatusBadge publishedAt={collection.publishedAt} t={t} />
-                    </td>
-                    <td className="px-8 py-5">
-                      <span className="text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md font-mono">
-                        /{collection.handle}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs font-semibold tabular-nums">
-                          {collection.productCount}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {new Date(collection.createdAt).toLocaleDateString(
-                          undefined,
-                          { month: 'short', day: 'numeric', year: 'numeric' },
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <CollectionListActions
-                        collectionId={collection.id}
-                        handle={collection.handle}
-                        name={collection.name.en}
-                        status={collection.publishedAt ? 'active' : 'draft'}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <>
+          <CollectionTable
+            collections={table.items}
+            selectedIds={table.selectedIds}
+            onToggleSelect={table.toggleSelect}
+            onToggleSelectAll={table.toggleSelectAll}
+            isAllSelected={table.isAllSelected}
+            isSomeSelected={table.isSomeSelected}
+            sortKey={table.sortKey}
+            sortOrder={table.sortOrder}
+            onSort={table.handleSort}
+          />
+          <Pagination
+            currentPage={table.page}
+            totalPages={table.totalPages}
+            totalItems={table.total}
+            onPageChange={table.setPage}
+          />
+        </>
       )}
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={table.selectedCount}
+        selectedIds={table.selectedIds}
+        onClearSelection={table.clearSelection}
+      />
     </div>
   )
 }
 
-function StatusBadge({
-  publishedAt,
-  t,
-}: {
-  publishedAt: string | Date | null
-  t: TFunction
-}) {
-  const status = publishedAt ? 'active' : 'draft'
-
-  const styles: Record<string, { bg: string; text: string; dot: string }> = {
-    active: {
-      bg: 'bg-emerald-500/5 border-emerald-500/10',
-      text: 'text-emerald-600',
-      dot: 'bg-emerald-500',
-    },
-    draft: {
-      bg: 'bg-amber-500/5 border-amber-500/10',
-      text: 'text-amber-600',
-      dot: 'bg-amber-500',
-    },
-  }
-
-  const current = styles[status]
-
+function EmptyState() {
+  const { t } = useTranslation()
   return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border',
-        current.bg,
-      )}
-    >
-      <div className={cn('w-1 h-1 rounded-full', current.dot)} />
-      <span
-        className={cn(
-          'text-[9px] font-bold uppercase tracking-wider',
-          current.text,
-        )}
+    <div className="text-center py-24 bg-card border border-border/50 rounded-3xl shadow-sm">
+      <div className="w-16 h-16 bg-pink-500/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <FolderOpen className="w-8 h-8 text-pink-500/40" />
+      </div>
+      <h3 className="text-xl font-bold mb-1">
+        {t('Your collection gallery is empty')}
+      </h3>
+      <p className="text-muted-foreground text-xs font-medium mb-6 max-w-xs mx-auto">
+        {t('Start curating your products into beautiful, themed collections.')}
+      </p>
+      <Link to="/admin/collections/new">
+        <Button
+          variant="outline"
+          className="rounded-xl h-10 px-6 font-semibold"
+        >
+          {t('Create your first collection')}
+        </Button>
+      </Link>
+    </div>
+  )
+}
+
+function NoResults({ onClear }: { onClear: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="text-center py-20 bg-card border border-border/50 rounded-3xl shadow-sm">
+      <div className="w-14 h-14 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border/50">
+        <Search className="w-6 h-6 text-muted-foreground/50" />
+      </div>
+      <h3 className="text-lg font-bold mb-1">{t('No collections found.')}</h3>
+      <p className="text-sm text-muted-foreground mb-6">
+        {t('No products match your filters.')}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-xl px-5"
+        onClick={onClear}
       >
-        {status === 'active' ? t('Active') : t('Draft')}
-      </span>
+        {t('Clear Search')}
+      </Button>
     </div>
   )
 }

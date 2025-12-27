@@ -8,7 +8,16 @@ import {
   successResponse,
 } from '../../lib/api'
 
-// Configure Cloudinary
+const MAX_FILE_SIZE = 20 * 1024 * 1024
+const MAX_DIMENSION = 5000
+const ALLOWED_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/heic',
+]
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -30,13 +39,21 @@ export const Route = createFileRoute('/api/upload')({
             return simpleErrorResponse('No file provided')
           }
 
-          // Convert file to base64 data URI
+          if (!ALLOWED_TYPES.includes(file.type)) {
+            return simpleErrorResponse(
+              `Invalid file type. Allowed: JPEG, PNG, GIF, WebP, HEIC.`,
+            )
+          }
+
+          if (file.size > MAX_FILE_SIZE) {
+            return simpleErrorResponse(`File too large. Maximum size is 20MB.`)
+          }
+
           const bytes = await file.arrayBuffer()
           const buffer = Buffer.from(bytes)
           const base64 = buffer.toString('base64')
           const dataUri = `data:${file.type};base64,${base64}`
 
-          // Upload to Cloudinary with optimizations
           const result = await cloudinary.uploader.upload(dataUri, {
             folder: 'products',
             resource_type: 'image',
@@ -75,11 +92,18 @@ export const Route = createFileRoute('/api/upload')({
             eager_async: true,
           })
 
+          if (result.width > MAX_DIMENSION || result.height > MAX_DIMENSION) {
+            console.warn(
+              `Image exceeded max dimension: ${result.width}x${result.height}`,
+            )
+          }
+
           return successResponse({
             url: result.secure_url,
             publicId: result.public_id,
             width: result.width,
             height: result.height,
+            fileSize: file.size,
           })
         } catch (error) {
           return errorResponse('Failed to upload image', error)

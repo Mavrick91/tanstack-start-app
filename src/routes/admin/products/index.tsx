@@ -1,265 +1,262 @@
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Package, Plus, Search, Filter, ArrowRight } from 'lucide-react'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { Package, Plus, Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
 
-import { ProductListActions } from '../../../components/admin/products/components/ProductListActions'
+import { BulkActionsBar } from '../../../components/admin/products/components/BulkActionsBar'
+import { Pagination } from '../../../components/admin/products/components/Pagination'
+import { ProductStats } from '../../../components/admin/products/components/ProductStats'
+import {
+  ProductTable,
+  ProductTableSkeleton,
+} from '../../../components/admin/products/components/ProductTable'
 import { Button } from '../../../components/ui/button'
+import { useDataTable } from '../../../hooks/useDataTable'
 
-type Product = {
-  id: string
-  handle: string
-  name: { en: string; fr?: string; id?: string }
-  status: 'draft' | 'active' | 'archived'
-  vendor: string | null
-  productType: string | null
-  price: string | null
-  compareAtPrice: string | null
-  sku: string | null
-  inventoryQuantity: number
-  createdAt: string
-}
+import type {
+  Product,
+  ProductStatus,
+} from '../../../components/admin/products/types'
+
+// URL search params schema
+const searchSchema = z.object({
+  q: z.string().optional(),
+  status: z.enum(['all', 'active', 'draft', 'archived']).optional(),
+  sort: z
+    .enum(['name', 'price', 'inventory', 'status', 'createdAt'])
+    .optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+  page: z.coerce.number().min(1).optional(),
+})
+
+type SortKey = 'name' | 'price' | 'inventory' | 'status' | 'createdAt'
 
 export const Route = createFileRoute('/admin/products/')({
   component: AdminProductsPage,
+  validateSearch: searchSchema,
 })
 
+// API fetcher for useDataTable
+async function fetchProducts(state: {
+  search: string
+  page: number
+  limit: number
+  sortKey: string
+  sortOrder: string
+  filters: Record<string, string | undefined>
+}) {
+  const params = new URLSearchParams()
+  params.set('page', String(state.page))
+  params.set('limit', String(state.limit))
+  if (state.search) params.set('q', state.search)
+  if (state.filters.status && state.filters.status !== 'all') {
+    params.set('status', state.filters.status)
+  }
+  if (state.sortKey) params.set('sort', state.sortKey)
+  if (state.sortOrder) params.set('order', state.sortOrder)
+
+  const res = await fetch(`/api/products?${params.toString()}`, {
+    credentials: 'include',
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error)
+
+  return {
+    data: json.products as Product[],
+    total: json.total as number,
+    page: json.page as number,
+    limit: json.limit as number,
+    totalPages: json.totalPages as number,
+  }
+}
+
 function AdminProductsPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      const res = await fetch('/api/products', { credentials: 'include' })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.products as Product[]
+  const { t } = useTranslation()
+  const searchParams = Route.useSearch()
+
+  const table = useDataTable<Product, SortKey>({
+    id: 'products',
+    routePath: '/admin/products',
+    defaultSortKey: 'createdAt',
+    defaultLimit: 10,
+    queryFn: fetchProducts,
+    initialState: {
+      search: searchParams.q || '',
+      page: searchParams.page || 1,
+      sortKey: searchParams.sort || 'createdAt',
+      sortOrder: searchParams.order || 'desc',
+      filters: {
+        status: searchParams.status || 'all',
+      },
     },
   })
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-pink-500/20 border-t-pink-500" />
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
-          Loading Collection...
-        </p>
-      </div>
-    )
-  }
+  const statusFilter = (table.filters.status || 'all') as ProductStatus | 'all'
 
-  if (error) {
+  // Determine empty state type
+  const isEmptyCatalog =
+    !table.isLoading &&
+    table.total === 0 &&
+    !table.search &&
+    statusFilter === 'all'
+  const isNoFilterResults =
+    !table.isLoading && table.items.length === 0 && !isEmptyCatalog
+
+  if (table.error) {
     return (
-      <div className="text-center py-24 bg-card rounded-3xl border border-destructive/10 max-w-2xl mx-auto shadow-sm">
+      <div className="text-center py-24 bg-card rounded-2xl border border-destructive/10 max-w-2xl mx-auto shadow-sm">
         <p className="text-destructive font-bold text-lg mb-1">
-          Failed to load catalog
+          {t('Failed to load catalog')}
         </p>
         <p className="text-muted-foreground text-xs font-medium">
-          Please check your connection or try logging in again.
+          {t('Please check your connection or try logging in again.')}
         </p>
       </div>
     )
   }
 
-  const products = data || []
+  const statusOptions: { value: ProductStatus | 'all'; label: string }[] = [
+    { value: 'all', label: t('All') },
+    { value: 'active', label: t('Active') },
+    { value: 'draft', label: t('Draft') },
+    { value: 'archived', label: t('Archived') },
+  ]
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
-      {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Product Catalog</h1>
-          <p className="text-muted-foreground font-medium text-sm">
-            Manage your product catalog and inventory
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t('Product Catalog')}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {t('Manage your products and inventory')}
           </p>
         </div>
         <Link to="/admin/products/new">
-          <Button className="h-11 px-6 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-sm font-semibold gap-2 transition-all">
+          <Button className="h-10 px-5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-sm font-semibold gap-2">
             <Plus className="w-4 h-4" />
-            Add Product
+            {t('Add Product')}
           </Button>
         </Link>
       </div>
 
-      {/* Filter / Search Bar */}
-      <div className="flex gap-4 px-1">
+      {/* Stats - only show when we have products */}
+      {!table.isLoading && table.total > 0 && (
+        <ProductStats products={table.items} />
+      )}
+
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 px-1">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
           <input
-            placeholder="Search products, handles or vendors..."
-            className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/10 transition-all font-medium text-sm shadow-sm"
+            value={table.search}
+            onChange={(e) => table.setSearch(e.target.value)}
+            placeholder={t('Search products...')}
+            className="w-full h-10 pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 transition-all text-sm"
           />
+          {table.search && (
+            <button
+              onClick={() => table.setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <Button
-          variant="outline"
-          className="h-11 rounded-xl border-border bg-background gap-2 font-semibold px-5 shadow-sm"
-        >
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          Filters
-        </Button>
+        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50">
+          {statusOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => table.setFilter('status', opt.value)}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                statusFilter === opt.value
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Products Table */}
-      {products.length === 0 ? (
-        <div className="text-center py-24 bg-card border border-border/50 rounded-3xl shadow-sm">
-          <div className="w-16 h-16 bg-pink-500/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-pink-500/40" />
-          </div>
-          <h3 className="text-xl font-bold mb-1">Catalog is empty</h3>
-          <p className="text-muted-foreground text-xs font-medium mb-6 max-w-xs mx-auto">
-            Your products will appear here once you&apos;ve added them to the
-            stable.
-          </p>
-          <Link to="/admin/products/new">
-            <Button
-              variant="outline"
-              className="rounded-xl h-10 px-6 font-semibold"
-            >
-              Create First Product
-            </Button>
-          </Link>
-        </div>
+      {/* Table / Empty / Loading */}
+      {table.isLoading ? (
+        <ProductTableSkeleton />
+      ) : isEmptyCatalog ? (
+        <EmptyState />
+      ) : isNoFilterResults ? (
+        <NoResults onClear={() => table.setSearch('')} />
       ) : (
-        <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-muted/30 border-b border-border/50">
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    Product
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    Status
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    Inventory
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    Price
-                  </th>
-                  <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                    SKU
-                  </th>
-                  <th className="px-8 py-4"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/30">
-                {products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="hover:bg-muted/20 transition-all duration-200 group"
-                  >
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-4">
-                        {/* Subtle Initial Icon */}
-                        <div className="w-10 h-10 rounded-xl bg-pink-500/5 flex items-center justify-center text-pink-500 font-bold text-sm shrink-0 border border-pink-500/10 group-hover:scale-105 transition-transform duration-300">
-                          {product.name.en.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <Link
-                            to="/admin/products/$productId"
-                            params={{ productId: product.id }}
-                            className="text-sm font-semibold truncate hover:text-pink-500 transition-colors flex items-center gap-2 group/link"
-                          >
-                            {product.name.en}
-                            <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all text-pink-500" />
-                          </Link>
-                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">
-                            {product.vendor || 'FineNail Edition'} •{' '}
-                            {product.handle}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <StatusBadge status={product.status} />
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="space-y-1">
-                        <div className="h-1 w-16 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${product.inventoryQuantity === 0 ? 'bg-destructive' : 'bg-pink-500'}`}
-                            style={{
-                              width: `${Math.min(product.inventoryQuantity, 100)}%`,
-                            }}
-                          />
-                        </div>
-                        <p
-                          className={`text-[10px] font-bold uppercase tracking-wider ${product.inventoryQuantity === 0 ? 'text-destructive' : 'text-foreground/70'}`}
-                        >
-                          {product.inventoryQuantity}{' '}
-                          {product.inventoryQuantity === 1 ? 'unit' : 'units'}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      {product.price !== null ? (
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold">
-                            ${Number(product.price).toFixed(2)}
-                          </span>
-                          {product.compareAtPrice && (
-                            <span className="text-[10px] text-muted-foreground line-through">
-                              ${Number(product.compareAtPrice).toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-xs font-medium">
-                          -
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-8 py-5">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {product.sku || '-'}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <ProductListActions
-                        productId={product.id}
-                        productName={product.name.en}
-                        handle={product.handle}
-                        status={product.status}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <>
+          <ProductTable
+            products={table.items}
+            selectedIds={table.selectedIds}
+            onToggleSelect={table.toggleSelect}
+            onToggleSelectAll={table.toggleSelectAll}
+            isAllSelected={table.isAllSelected}
+            isSomeSelected={table.isSomeSelected}
+            sortKey={table.sortKey}
+            sortOrder={table.sortOrder}
+            onSort={table.handleSort}
+          />
+          <Pagination
+            currentPage={table.page}
+            totalPages={table.totalPages}
+            totalItems={table.total}
+            onPageChange={table.setPage}
+          />
+        </>
       )}
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={table.selectedCount}
+        selectedIds={table.selectedIds}
+        onClearSelection={table.clearSelection}
+      />
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: 'draft' | 'active' | 'archived' }) {
-  const styles: Record<string, { bg: string; text: string; dot: string }> = {
-    active: {
-      bg: 'bg-emerald-500/5 border-emerald-500/10',
-      text: 'text-emerald-600',
-      dot: 'bg-emerald-500',
-    },
-    draft: {
-      bg: 'bg-amber-500/5 border-amber-500/10',
-      text: 'text-amber-600',
-      dot: 'bg-amber-500',
-    },
-    archived: {
-      bg: 'bg-muted/50 border-border',
-      text: 'text-muted-foreground',
-      dot: 'bg-muted-foreground',
-    },
-  }
-
-  const current = styles[status] || styles.draft
-
+function EmptyState() {
+  const { t } = useTranslation()
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${current.bg} border`}
-    >
-      <div className={`w-1 h-1 rounded-full ${current.dot}`} />
-      <span className="text-[9px] font-bold uppercase tracking-wider">
-        {status}
-      </span>
+    <div className="text-center py-20 bg-card border border-border/50 rounded-2xl shadow-sm">
+      <div className="w-14 h-14 bg-pink-500/5 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <Package className="w-7 h-7 text-pink-500/40" />
+      </div>
+      <h3 className="text-lg font-bold mb-1">{t('No products yet')}</h3>
+      <p className="text-muted-foreground text-xs mb-5 max-w-xs mx-auto">
+        {t('Start building your catalog by adding your first product.')}
+      </p>
+      <Link to="/admin/products/new">
+        <Button variant="outline" className="rounded-xl h-9 px-5 font-semibold">
+          {t('Create First Product')}
+        </Button>
+      </Link>
+    </div>
+  )
+}
+
+function NoResults({ onClear }: { onClear: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="text-center py-16 bg-card border border-border/50 rounded-2xl shadow-sm">
+      <p className="text-muted-foreground text-sm mb-3">
+        {t('No products match your filters.')}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-lg"
+        onClick={onClear}
+      >
+        {t('Clear Search')}
+      </Button>
     </div>
   )
 }
