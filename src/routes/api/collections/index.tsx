@@ -5,5 +5,5 @@ export const Route = createFileRoute('/api/collections/')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/api/collections/"!</div>
+  return <div>Hello &quot;/api/collections/&quot;!</div>
 }

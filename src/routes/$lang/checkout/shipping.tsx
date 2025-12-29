@@ -1,0 +1,218 @@
+import {
+  createFileRoute,
+  useNavigate,
+  useParams,
+  Link,
+} from '@tanstack/react-router'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronLeft, Loader2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+
+import { CheckoutLayout } from '../../../components/checkout/CheckoutLayout'
+import { OrderSummary } from '../../../components/checkout/OrderSummary'
+import { ShippingMethodSelector } from '../../../components/checkout/ShippingMethodSelector'
+import { Button } from '../../../components/ui/button'
+import {
+  useCheckoutIdStore,
+  useCheckout,
+  useShippingRates,
+  useSaveShippingMethod,
+} from '../../../hooks/useCheckoutQueries'
+import { formatCurrency } from '../../../lib/format'
+
+export const Route = createFileRoute('/$lang/checkout/shipping')({
+  component: CheckoutShippingPage,
+})
+
+function CheckoutShippingPage() {
+  const { lang } = useParams({ strict: false }) as { lang: string }
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  const checkoutId = useCheckoutIdStore((s) => s.checkoutId)
+  const { data: checkout, isLoading: isLoadingCheckout } =
+    useCheckout(checkoutId)
+  const { data: shippingRates = [], isLoading: isLoadingRates } =
+    useShippingRates(checkoutId)
+  const saveShippingMutation = useSaveShippingMethod(checkoutId || '')
+
+  // Compute initial selected rate without effect
+  const initialRateId = useMemo(() => {
+    if (checkout?.shippingRateId) return checkout.shippingRateId
+    if (shippingRates.length > 0) return shippingRates[0].id
+    return undefined
+  }, [checkout?.shippingRateId, shippingRates])
+
+  const [selectedRateId, setSelectedRateId] = useState<string | undefined>()
+
+  // Use the selected rate or fall back to initial
+  const effectiveRateId = selectedRateId ?? initialRateId
+
+  // Redirect if no checkout
+  if (!checkoutId) {
+    navigate({ to: '/$lang/checkout', params: { lang } })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!effectiveRateId || !checkoutId) return
+
+    try {
+      await saveShippingMutation.mutateAsync(effectiveRateId)
+      navigate({ to: '/$lang/checkout/payment', params: { lang } })
+    } catch (err) {
+      console.error('Failed to save shipping method:', err)
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t('Failed to save shipping method'),
+      )
+    }
+  }
+
+  const isLoading = isLoadingCheckout || isLoadingRates
+
+  if (isLoading || !checkout) {
+    return (
+      <CheckoutLayout currentStep="shipping">
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-200" />
+        </div>
+      </CheckoutLayout>
+    )
+  }
+
+  const shippingAddress = checkout.shippingAddress
+
+  return (
+    <CheckoutLayout
+      currentStep="shipping"
+      total={formatCurrency({
+        value: checkout.total,
+        currency: checkout.currency,
+      })}
+      orderSummary={
+        <OrderSummary
+          items={checkout.cartItems}
+          subtotal={checkout.subtotal}
+          shippingTotal={checkout.shippingTotal}
+          total={checkout.total}
+          currency={checkout.currency}
+        />
+      }
+    >
+      <AnimatePresence mode="wait">
+        <motion.form
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          onSubmit={handleSubmit}
+          className="space-y-8"
+        >
+          {/* Contact & Shipping summary */}
+          <div className="border rounded-lg divide-y text-sm bg-white">
+            <div className="p-4 flex items-start justify-between gap-4">
+              <div className="flex flex-1 gap-4">
+                <span className="text-gray-500 w-20 shrink-0">
+                  {t('Contact')}
+                </span>
+                <span className="text-gray-900 break-all">
+                  {checkout.email}
+                </span>
+              </div>
+              <Link
+                to="/$lang/checkout/information"
+                params={{ lang }}
+                className="text-blue-600 hover:underline shrink-0"
+              >
+                {t('Change')}
+              </Link>
+            </div>
+
+            {shippingAddress && (
+              <div className="p-4 flex items-start justify-between gap-4">
+                <div className="flex flex-1 gap-4">
+                  <span className="text-gray-500 w-20 shrink-0">
+                    {t('Ship to')}
+                  </span>
+                  <span className="text-gray-900">
+                    {shippingAddress.address1}, {shippingAddress.city},{' '}
+                    {shippingAddress.province} {shippingAddress.zip},{' '}
+                    {shippingAddress.country}
+                  </span>
+                </div>
+                <Link
+                  to="/$lang/checkout/information"
+                  params={{ lang }}
+                  className="text-blue-600 hover:underline shrink-0"
+                >
+                  {t('Change')}
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Shipping method section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">{t('Shipping method')}</h2>
+
+            {shippingRates.length > 0 ? (
+              <ShippingMethodSelector
+                rates={shippingRates}
+                selectedRateId={effectiveRateId}
+                onSelect={setSelectedRateId}
+                currency={checkout.currency}
+              />
+            ) : (
+              <div className="p-8 rounded-lg border bg-gray-50 text-gray-500 text-center">
+                {t('No shipping options available')}
+              </div>
+            )}
+          </div>
+
+          {/* Error display */}
+          {saveShippingMutation.error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm"
+            >
+              {saveShippingMutation.error.message}
+            </motion.div>
+          )}
+
+          {/* Navigation buttons */}
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-4">
+            <Link
+              to="/$lang/checkout/information"
+              params={{ lang }}
+              className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {t('Return to information')}
+            </Link>
+
+            <Button
+              type="submit"
+              disabled={!effectiveRateId || saveShippingMutation.isPending}
+              className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+            >
+              {saveShippingMutation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('Saving...')}
+                </span>
+              ) : (
+                t('Continue to payment')
+              )}
+            </Button>
+          </div>
+        </motion.form>
+      </AnimatePresence>
+    </CheckoutLayout>
+  )
+}

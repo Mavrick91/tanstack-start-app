@@ -32,8 +32,8 @@ export function CollectionSort({
 
   const handleSortChange = (value: string) => {
     router.navigate({
-      search: (prev: any) => ({ ...prev, sort: value }),
-    } as any)
+      search: (prev: Record<string, unknown>) => ({ ...prev, sort: value }),
+    } as Parameters<typeof router.navigate>[0])
   }
 
   return (

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '../../../ui/dialog'
 import { Input } from '../../../ui/input'
+
 import type { Product } from '../types'
 
 interface ProductPickerDialogProps {

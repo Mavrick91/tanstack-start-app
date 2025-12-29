@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -28,8 +29,16 @@ export function CartDrawer({
   products = [],
 }: CartDrawerProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { lang } = useParams({ strict: false }) as { lang?: string }
+  const currentLang = lang || 'en'
   const { items, totalPrice, totalItems, removeItem, updateQuantity } =
     useCart(products)
+
+  const handleCheckout = async () => {
+    onOpenChange(false)
+    await navigate({ to: '/$lang/checkout', params: { lang: currentLang } })
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -158,7 +167,10 @@ export function CartDrawer({
                 </span>
               </div>
             </div>
-            <Button className="w-full bg-white text-black hover:bg-white/90 font-bold py-6 text-base">
+            <Button
+              onClick={handleCheckout}
+              className="w-full bg-white text-black hover:bg-white/90 font-bold py-6 text-base"
+            >
               {t('Checkout')}
             </Button>
           </SheetFooter>

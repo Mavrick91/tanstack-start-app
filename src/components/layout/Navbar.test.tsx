@@ -26,7 +26,7 @@ vi.mock('../../hooks/useCart', () => ({
     fn({ items: [] }),
 }))
 
-vi.mock('../../data/products', () => ({
+vi.mock('../../data/storefront', () => ({
   getProducts: vi.fn(() => Promise.resolve([])),
 }))
 

@@ -1,7 +1,25 @@
+import { hash, compare } from 'bcrypt-ts'
 import { and, eq, gt } from 'drizzle-orm'
 
 import { db } from '../db'
 import { sessions, users } from '../db/schema'
+
+/**
+ * Hash a password using bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return await hash(password, 10)
+}
+
+/**
+ * Verify a password against a hash
+ */
+export async function verifyPassword(
+  password: string,
+  passwordHash: string,
+): Promise<boolean> {
+  return await compare(password, passwordHash)
+}
 
 /**
  * Parse cookies from request header, handling values with '=' characters

@@ -1,0 +1,1 @@
+ALTER TABLE "checkouts" ADD COLUMN "pending_save_address" boolean DEFAULT false;

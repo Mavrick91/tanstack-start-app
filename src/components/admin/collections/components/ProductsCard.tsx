@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../../../ui/card'
+
 import type { Product } from '../types'
 
 interface PackageIconProps {

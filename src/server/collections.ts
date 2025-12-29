@@ -443,7 +443,7 @@ export const duplicateCollectionFn = createServerFn({ method: 'POST' })
     let handle = baseHandle
     let suffix = 1
 
-    while (true) {
+    for (;;) {
       const [existing] = await db
         .select({ id: collections.id })
         .from(collections)

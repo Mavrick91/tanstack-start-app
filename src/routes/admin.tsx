@@ -10,6 +10,7 @@ import {
   LogOut,
   Package,
   FolderOpen,
+  ShoppingCart,
   User,
 } from 'lucide-react'
 import { useEffect } from 'react'
@@ -26,6 +27,7 @@ export const Route = createFileRoute('/admin')({
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+  { label: 'Orders', path: '/admin/orders', icon: ShoppingCart },
   { label: 'Products', path: '/admin/products', icon: Package },
   { label: 'Collections', path: '/admin/collections', icon: FolderOpen },
 ]

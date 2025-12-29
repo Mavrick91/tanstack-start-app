@@ -44,6 +44,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const currentLang = lang || 'en'
   const routerState = useRouterState()
   const isAdminRoute = routerState.location.pathname.startsWith('/admin')
+  const isCheckoutRoute = routerState.location.pathname.includes('/checkout')
 
   // Create QueryClient once per app instance
   const [queryClient] = useState(
@@ -64,11 +65,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
-          {!isAdminRoute && <Navbar />}
-          {children}
-          <Toaster richColors position="top-right" />
-        </QueryClientProvider>
+        <div className="min-h-screen flex flex-col h-full">
+          <QueryClientProvider client={queryClient}>
+            {!isAdminRoute && !isCheckoutRoute && <Navbar />}
+            {children}
+            <Toaster richColors position="top-right" />
+          </QueryClientProvider>
+        </div>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

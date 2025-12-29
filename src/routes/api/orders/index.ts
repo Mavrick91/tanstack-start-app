@@ -1,0 +1,145 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { and, count, desc, eq, ilike, SQL, asc } from 'drizzle-orm'
+
+import { db } from '../../../db'
+import { orders, orderItems } from '../../../db/schema'
+import { errorResponse, requireAuth, successResponse } from '../../../lib/api'
+
+export const Route = createFileRoute('/api/orders/')({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        try {
+          const auth = await requireAuth(request)
+          if (!auth.success) return auth.response
+
+          // Only admin can access orders
+          if (auth.user.role !== 'admin') {
+            return new Response('Forbidden', { status: 403 })
+          }
+
+          const url = new URL(request.url)
+          const page = Math.max(
+            1,
+            parseInt(url.searchParams.get('page') || '1', 10),
+          )
+          const limit = Math.min(
+            100,
+            Math.max(1, parseInt(url.searchParams.get('limit') || '10', 10)),
+          )
+          const search = url.searchParams.get('q') || ''
+          const status = url.searchParams.get('status')
+          const paymentStatus = url.searchParams.get('paymentStatus')
+          const fulfillmentStatus = url.searchParams.get('fulfillmentStatus')
+          const sortKey = url.searchParams.get('sort') || 'createdAt'
+          const sortOrder =
+            url.searchParams.get('order') === 'asc' ? 'asc' : 'desc'
+
+          const conditions: SQL[] = []
+
+          if (status && status !== 'all') {
+            conditions.push(
+              eq(
+                orders.status,
+                status as (typeof orders.status.enumValues)[number],
+              ),
+            )
+          }
+
+          if (paymentStatus && paymentStatus !== 'all') {
+            conditions.push(
+              eq(
+                orders.paymentStatus,
+                paymentStatus as (typeof orders.paymentStatus.enumValues)[number],
+              ),
+            )
+          }
+
+          if (fulfillmentStatus && fulfillmentStatus !== 'all') {
+            conditions.push(
+              eq(
+                orders.fulfillmentStatus,
+                fulfillmentStatus as (typeof orders.fulfillmentStatus.enumValues)[number],
+              ),
+            )
+          }
+
+          if (search) {
+            conditions.push(ilike(orders.email, `%${search}%`) as SQL)
+          }
+
+          const whereClause =
+            conditions.length > 0 ? and(...conditions) : undefined
+
+          // Sorting
+          const sortColumn =
+            {
+              orderNumber: orders.orderNumber,
+              total: orders.total,
+              status: orders.status,
+              paymentStatus: orders.paymentStatus,
+              fulfillmentStatus: orders.fulfillmentStatus,
+              createdAt: orders.createdAt,
+            }[sortKey] || orders.createdAt
+
+          const orderBy =
+            sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
+
+          // Get total count
+          const [{ total }] = await db
+            .select({ total: count() })
+            .from(orders)
+            .where(whereClause)
+
+          // Get orders with pagination
+          const offset = (page - 1) * limit
+          const ordersList = await db
+            .select()
+            .from(orders)
+            .where(whereClause)
+            .orderBy(orderBy)
+            .limit(limit)
+            .offset(offset)
+
+          // Get item counts for each order
+          const orderIds = ordersList.map((o) => o.id)
+          const itemCounts = new Map<string, number>()
+
+          for (const orderId of orderIds) {
+            const [{ itemCount }] = await db
+              .select({ itemCount: count() })
+              .from(orderItems)
+              .where(eq(orderItems.orderId, orderId))
+            itemCounts.set(orderId, itemCount)
+          }
+
+          const ordersWithItemCount = ordersList.map((order) => ({
+            id: order.id,
+            orderNumber: order.orderNumber,
+            email: order.email,
+            subtotal: parseFloat(order.subtotal),
+            shippingTotal: parseFloat(order.shippingTotal),
+            taxTotal: parseFloat(order.taxTotal),
+            total: parseFloat(order.total),
+            currency: order.currency,
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            fulfillmentStatus: order.fulfillmentStatus,
+            itemCount: itemCounts.get(order.id) || 0,
+            createdAt: order.createdAt,
+          }))
+
+          return successResponse({
+            orders: ordersWithItemCount,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+          })
+        } catch (error) {
+          return errorResponse('Failed to fetch orders', error)
+        }
+      },
+    },
+  },
+})

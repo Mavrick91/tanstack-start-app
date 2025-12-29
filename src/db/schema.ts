@@ -1,10 +1,12 @@
 import {
+  boolean,
   decimal,
   integer,
   jsonb,
   pgEnum,
   pgTable,
   primaryKey,
+  serial,
   text,
   timestamp,
   uuid,
@@ -175,3 +177,202 @@ export const collectionProducts = pgTable(
   },
   (table) => [primaryKey({ columns: [table.collectionId, table.productId] })],
 )
+
+// ============================================
+// CHECKOUT & ORDER TABLES
+// ============================================
+
+// Order status enums
+export const orderStatusEnum = pgEnum('order_status', [
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+])
+
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'paid',
+  'failed',
+  'refunded',
+])
+
+export const fulfillmentStatusEnum = pgEnum('fulfillment_status', [
+  'unfulfilled',
+  'partial',
+  'fulfilled',
+])
+
+export const addressTypeEnum = pgEnum('address_type', ['shipping', 'billing'])
+
+// Address type for JSONB storage
+export type AddressSnapshot = {
+  firstName: string
+  lastName: string
+  company?: string
+  address1: string
+  address2?: string
+  city: string
+  province?: string
+  provinceCode?: string
+  country: string
+  countryCode: string
+  zip: string
+  phone?: string
+}
+
+// Customers (extends users for customer-specific data, null user_id for guests)
+export const customers = pgTable('customers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  email: text('email').notNull(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  phone: text('phone'),
+  acceptsMarketing: boolean('accepts_marketing').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// Customer addresses
+export const addresses = pgTable('addresses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id')
+    .notNull()
+    .references(() => customers.id, { onDelete: 'cascade' }),
+  type: addressTypeEnum('type').default('shipping').notNull(),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  company: text('company'),
+  address1: text('address1').notNull(),
+  address2: text('address2'),
+  city: text('city').notNull(),
+  province: text('province'),
+  provinceCode: text('province_code'),
+  country: text('country').notNull(),
+  countryCode: text('country_code').notNull(),
+  zip: text('zip').notNull(),
+  phone: text('phone'),
+  isDefault: boolean('is_default').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// Checkout sessions (temporary state before order creation)
+export const checkouts = pgTable('checkouts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id').references(() => customers.id, {
+    onDelete: 'set null',
+  }),
+  email: text('email'),
+  // Flag to save address when guest creates account
+  pendingSaveAddress: boolean('pending_save_address').default(false),
+  // Cart items snapshot
+  cartItems: jsonb('cart_items')
+    .$type<
+      Array<{
+        productId: string
+        variantId?: string
+        quantity: number
+        title: string
+        variantTitle?: string
+        sku?: string
+        price: number
+        imageUrl?: string
+      }>
+    >()
+    .notNull(),
+  // Totals
+  subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
+  shippingTotal: decimal('shipping_total', { precision: 10, scale: 2 }).default(
+    '0',
+  ),
+  taxTotal: decimal('tax_total', { precision: 10, scale: 2 }).default('0'),
+  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  currency: text('currency').default('USD').notNull(),
+  // Shipping
+  shippingAddress: jsonb('shipping_address').$type<AddressSnapshot>(),
+  billingAddress: jsonb('billing_address').$type<AddressSnapshot>(),
+  shippingRateId: text('shipping_rate_id'),
+  shippingMethod: text('shipping_method'),
+  // Status
+  completedAt: timestamp('completed_at'),
+  expiresAt: timestamp('expires_at').notNull(),
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// Orders
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderNumber: serial('order_number').notNull(),
+  customerId: uuid('customer_id').references(() => customers.id),
+  email: text('email').notNull(),
+  // Financial
+  subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
+  shippingTotal: decimal('shipping_total', { precision: 10, scale: 2 })
+    .default('0')
+    .notNull(),
+  taxTotal: decimal('tax_total', { precision: 10, scale: 2 })
+    .default('0')
+    .notNull(),
+  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  currency: text('currency').default('USD').notNull(),
+  // Status
+  status: orderStatusEnum('status').default('pending').notNull(),
+  paymentStatus: paymentStatusEnum('payment_status')
+    .default('pending')
+    .notNull(),
+  fulfillmentStatus: fulfillmentStatusEnum('fulfillment_status')
+    .default('unfulfilled')
+    .notNull(),
+  // Shipping
+  shippingMethod: text('shipping_method'),
+  shippingAddress: jsonb('shipping_address').$type<AddressSnapshot>().notNull(),
+  billingAddress: jsonb('billing_address').$type<AddressSnapshot>(),
+  // Payment
+  paymentProvider: text('payment_provider'), // 'stripe' | 'paypal'
+  paymentId: text('payment_id'), // Stripe PaymentIntent ID or PayPal Order ID
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  paidAt: timestamp('paid_at'),
+  cancelledAt: timestamp('cancelled_at'),
+})
+
+// Order line items
+export const orderItems = pgTable('order_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('order_id')
+    .notNull()
+    .references(() => orders.id, { onDelete: 'cascade' }),
+  productId: uuid('product_id').references(() => products.id, {
+    onDelete: 'set null',
+  }),
+  variantId: uuid('variant_id').references(() => productVariants.id, {
+    onDelete: 'set null',
+  }),
+  // Snapshot of product at time of order
+  title: text('title').notNull(),
+  variantTitle: text('variant_title'),
+  sku: text('sku'),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  quantity: integer('quantity').notNull(),
+  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  // Product image snapshot
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// Shipping rates configuration
+export const shippingRates = pgTable('shipping_rates', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  minOrderAmount: decimal('min_order_amount', { precision: 10, scale: 2 }),
+  estimatedDaysMin: integer('estimated_days_min'),
+  estimatedDaysMax: integer('estimated_days_max'),
+  isActive: boolean('is_active').default(true),
+  position: integer('position').default(0),
+})

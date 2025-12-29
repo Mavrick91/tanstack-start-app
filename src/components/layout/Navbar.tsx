@@ -3,7 +3,7 @@ import { Menu, Search, ShoppingBag } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { getProducts } from '../../data/products'
+import { getProducts } from '../../data/storefront'
 import { useCartStore } from '../../hooks/useCart'
 import { cn } from '../../lib/utils'
 import { CartDrawer } from '../cart/CartDrawer'
@@ -22,8 +22,10 @@ export function Navbar() {
   const currentLang = lang || 'en'
 
   useEffect(() => {
-    getProducts().then(setProducts)
-  }, [])
+    getProducts({ data: { lang: currentLang } })
+      .then(setProducts)
+      .catch((err) => console.error('Failed to load products for cart:', err))
+  }, [currentLang])
 
   return (
     <nav className="sticky top-0 z-50 w-full glass border-b border-white/5">
@@ -34,7 +36,7 @@ export function Navbar() {
             params={{ lang: currentLang }}
             className="text-xl font-bold tracking-tighter flex items-center gap-2"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-black">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-black">
               FN
             </div>
             <span>FineNail Season</span>

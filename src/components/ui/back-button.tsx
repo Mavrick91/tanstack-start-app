@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils'
 
 interface BackButtonProps {
   to: string
-  params?: Record<string, any>
+  params?: Record<string, string>
   label: string
   className?: string
 }

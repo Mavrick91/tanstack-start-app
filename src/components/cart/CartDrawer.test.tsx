@@ -20,6 +20,8 @@ vi.mock('@tanstack/react-router', () => ({
       {children}
     </a>
   ),
+  useNavigate: () => vi.fn(),
+  useParams: () => ({ lang: 'en' }),
 }))
 
 vi.mock('../ui/sheet', () => ({
