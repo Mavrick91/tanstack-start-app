@@ -1,20 +1,20 @@
-import { Package, CheckCircle2, FileEdit, AlertTriangle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, FileEdit, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import type { Product } from '../types'
+import type { ProductStats as ProductStatsData } from '../../../../hooks/useProductStats'
 
 interface ProductStatsProps {
-  products: Product[]
+  stats: ProductStatsData
 }
 
-export function ProductStats({ products }: ProductStatsProps) {
+export function ProductStats({ stats }: ProductStatsProps) {
   const { t } = useTranslation()
-  const total = products.length
-  const active = products.filter((p) => p.status === 'active').length
-  const draft = products.filter((p) => p.status === 'draft').length
-  const lowStock = products.filter((p) => p.inventoryQuantity < 5).length
+  const total = stats.totalProducts
+  const active = stats.activeCount
+  const draft = stats.draftCount
+  const lowStock = stats.lowStockCount
 
-  const stats = [
+  const statCards = [
     {
       label: t('Total Products'),
       value: total,
@@ -47,7 +47,7 @@ export function ProductStats({ products }: ProductStatsProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat) => (
+      {statCards.map((stat) => (
         <div
           key={stat.label}
           className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"

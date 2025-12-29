@@ -5,7 +5,13 @@ import {
   useRouterState,
   Link,
 } from '@tanstack/react-router'
-import { LayoutDashboard, LogOut, Package, FolderOpen, User } from 'lucide-react'
+import {
+  LayoutDashboard,
+  LogOut,
+  Package,
+  FolderOpen,
+  User,
+} from 'lucide-react'
 import { useEffect } from 'react'
 
 import { Button } from '../components/ui/button'
@@ -27,7 +33,8 @@ const navItems = [
 function AdminLayout() {
   const router = useRouter()
   const { location } = useRouterState()
-  const { user, logout, isAuthenticated, isLoading, checkSession } = useAuthStore()
+  const { user, logout, isAuthenticated, isLoading, checkSession } =
+    useAuthStore()
   const isLoginPage = location.pathname === '/admin/login'
 
   useEffect(() => {
@@ -66,7 +73,9 @@ function AdminLayout() {
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">FineNail</h1>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-pink-500">Control Panel</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-pink-500">
+              Control Panel
+            </p>
           </div>
         </div>
 
@@ -74,7 +83,8 @@ function AdminLayout() {
           {navItems.map((item) => {
             const isActive =
               location.pathname === item.path ||
-              (item.path !== '/admin' && location.pathname.startsWith(item.path))
+              (item.path !== '/admin' &&
+                location.pathname.startsWith(item.path))
             return (
               <Link
                 key={item.label}
@@ -85,7 +95,9 @@ function AdminLayout() {
                     : 'text-muted-foreground hover:bg-pink-500/5 hover:text-pink-600'
                 }`}
               >
-                <item.icon className={`size-4 ${isActive ? '' : 'text-pink-500/40 group-hover:text-pink-600'}`} />
+                <item.icon
+                  className={`size-4 ${isActive ? '' : 'text-pink-500/40 group-hover:text-pink-600'}`}
+                />
                 <span className="text-sm font-semibold">{item.label}</span>
               </Link>
             )
@@ -98,8 +110,12 @@ function AdminLayout() {
               <User className="size-4 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate">{user?.email?.split('@')[0]}</p>
-              <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest">Admin</p>
+              <p className="text-xs font-bold truncate">
+                {user?.email?.split('@')[0]}
+              </p>
+              <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest">
+                Admin
+              </p>
             </div>
           </div>
           <Button
@@ -109,7 +125,9 @@ function AdminLayout() {
             onClick={handleLogout}
           >
             <LogOut className="size-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Logout</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">
+              Logout
+            </span>
           </Button>
         </div>
       </aside>

@@ -13,12 +13,13 @@ export interface TableState<TSortKey extends string = string> {
   filters: Record<string, string | undefined>
 }
 
-export interface TableResponse<TData> {
+export interface TableResponse<TData, TExtra = unknown> {
   data: TData[]
   total: number
   page: number
   limit: number
   totalPages: number
+  extra?: TExtra
 }
 
 export interface UseDataTableOptions<TData, TSortKey extends string = string> {
@@ -80,6 +81,7 @@ export function useDataTable<
   const items = useMemo(() => data?.data || [], [data?.data])
   const total = data?.total || 0
   const totalPages = data?.totalPages || 1
+  const extra = data?.extra
 
   const setSearch = useCallback((value: string) => {
     setSearchState(value)
@@ -193,6 +195,7 @@ export function useDataTable<
     items,
     total,
     totalPages,
+    extra,
     isLoading,
     error,
     refetch,

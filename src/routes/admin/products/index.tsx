@@ -12,6 +12,8 @@ import {
 } from '../../../components/admin/products/components/ProductTable'
 import { Button } from '../../../components/ui/button'
 import { useDataTable } from '../../../hooks/useDataTable'
+import { useProductStats } from '../../../hooks/useProductStats'
+import { fetchProducts } from '../../../lib/api/products'
 
 import type {
   Product,
@@ -36,8 +38,8 @@ export const Route = createFileRoute('/admin/products/')({
   validateSearch: searchSchema,
 })
 
-// API fetcher for useDataTable
-async function fetchProducts(state: {
+// Wrapper for fetchProducts for useDataTable
+async function fetchProductsForTable(state: {
   search: string
   page: number
   limit: number
@@ -45,28 +47,13 @@ async function fetchProducts(state: {
   sortOrder: string
   filters: Record<string, string | undefined>
 }) {
-  const params = new URLSearchParams()
-  params.set('page', String(state.page))
-  params.set('limit', String(state.limit))
-  if (state.search) params.set('q', state.search)
-  if (state.filters.status && state.filters.status !== 'all') {
-    params.set('status', state.filters.status)
-  }
-  if (state.sortKey) params.set('sort', state.sortKey)
-  if (state.sortOrder) params.set('order', state.sortOrder)
-
-  const res = await fetch(`/api/products?${params.toString()}`, {
-    credentials: 'include',
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error)
-
+  const result = await fetchProducts(state)
   return {
-    data: json.products as Product[],
-    total: json.total as number,
-    page: json.page as number,
-    limit: json.limit as number,
-    totalPages: json.totalPages as number,
+    data: result.data,
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
   }
 }
 
@@ -74,12 +61,15 @@ function AdminProductsPage() {
   const { t } = useTranslation()
   const searchParams = Route.useSearch()
 
+  // Separate query for stats - independent of table filtering
+  const { data: stats } = useProductStats()
+
   const table = useDataTable<Product, SortKey>({
     id: 'products',
     routePath: '/admin/products',
     defaultSortKey: 'createdAt',
     defaultLimit: 10,
-    queryFn: fetchProducts,
+    queryFn: fetchProductsForTable,
     initialState: {
       search: searchParams.q || '',
       page: searchParams.page || 1,
@@ -92,6 +82,12 @@ function AdminProductsPage() {
   })
 
   const statusFilter = (table.filters.status || 'all') as ProductStatus | 'all'
+
+  // Handler to clear both search and status filter
+  const handleClearFilters = () => {
+    table.setSearch('')
+    table.setFilter('status', 'all')
+  }
 
   // Determine empty state type
   const isEmptyCatalog =
@@ -142,10 +138,8 @@ function AdminProductsPage() {
         </Link>
       </div>
 
-      {/* Stats - only show when we have products */}
-      {!table.isLoading && table.total > 0 && (
-        <ProductStats products={table.items} />
-      )}
+      {/* Stats - fetched independently, always shows aggregate totals */}
+      {stats && stats.totalProducts > 0 && <ProductStats stats={stats} />}
 
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3 px-1">
@@ -156,17 +150,23 @@ function AdminProductsPage() {
             onChange={(e) => table.setSearch(e.target.value)}
             placeholder={t('Search products...')}
             className="w-full h-10 pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 transition-all text-sm"
+            aria-label={t('Search products')}
           />
           {table.search && (
             <button
               onClick={() => table.setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={t('Clear search')}
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
-        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50">
+        <div
+          className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50"
+          role="group"
+          aria-label={t('Filter by status')}
+        >
           {statusOptions.map((opt) => (
             <button
               key={opt.value}
@@ -176,6 +176,8 @@ function AdminProductsPage() {
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
+              aria-pressed={statusFilter === opt.value}
+              aria-label={t('Filter by {{status}}', { status: opt.label })}
             >
               {opt.label}
             </button>
@@ -189,7 +191,7 @@ function AdminProductsPage() {
       ) : isEmptyCatalog ? (
         <EmptyState />
       ) : isNoFilterResults ? (
-        <NoResults onClear={() => table.setSearch('')} />
+        <NoResults onClear={handleClearFilters} />
       ) : (
         <>
           <ProductTable
@@ -242,7 +244,7 @@ function EmptyState() {
   )
 }
 
-function NoResults({ onClear }: { onClear: () => void }) {
+export function NoResults({ onClear }: { onClear: () => void }) {
   const { t } = useTranslation()
   return (
     <div className="text-center py-16 bg-card border border-border/50 rounded-2xl shadow-sm">
@@ -254,8 +256,9 @@ function NoResults({ onClear }: { onClear: () => void }) {
         size="sm"
         className="rounded-lg"
         onClick={onClear}
+        aria-label={t('Clear filters')}
       >
-        {t('Clear Search')}
+        {t('Clear Filters')}
       </Button>
     </div>
   )

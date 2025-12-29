@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { ProductStats } from './ProductStats'
 
-import type { Product } from '../types'
+import type { ProductStats as ProductStatsData } from '../../../../hooks/useProductStats'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -11,27 +11,22 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
-const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
-  id: 'prod-1',
-  handle: 'test-product',
-  name: { en: 'Test Product' },
-  status: 'active',
-  price: '29.99',
-  compareAtPrice: null,
-  inventoryQuantity: 50,
-  sku: 'SKU-001',
-  vendor: 'TestVendor',
-  firstImageUrl: null,
-  productType: 'nail-polish',
-  createdAt: '2024-01-01T00:00:00.000Z',
+const createMockStats = (
+  overrides: Partial<ProductStatsData> = {},
+): ProductStatsData => ({
+  totalProducts: 10,
+  activeCount: 5,
+  draftCount: 3,
+  archivedCount: 2,
+  lowStockCount: 1,
   ...overrides,
 })
 
 describe('ProductStats', () => {
   describe('Rendering', () => {
     it('renders all four stat cards', () => {
-      const products = [createMockProduct()]
-      render(<ProductStats products={products} />)
+      const stats = createMockStats()
+      render(<ProductStats stats={stats} />)
 
       expect(screen.getByText('Total Products')).toBeInTheDocument()
       expect(screen.getByText('Active')).toBeInTheDocument()
@@ -39,8 +34,15 @@ describe('ProductStats', () => {
       expect(screen.getByText('Low Stock')).toBeInTheDocument()
     })
 
-    it('renders with empty products array', () => {
-      render(<ProductStats products={[]} />)
+    it('renders with zero stats', () => {
+      const stats = createMockStats({
+        totalProducts: 0,
+        activeCount: 0,
+        draftCount: 0,
+        archivedCount: 0,
+        lowStockCount: 0,
+      })
+      render(<ProductStats stats={stats} />)
 
       const zeros = screen.getAllByText('0')
       expect(zeros).toHaveLength(4) // All 4 stats show 0
@@ -49,19 +51,16 @@ describe('ProductStats', () => {
 
   describe('Total Products', () => {
     it('shows correct total count', () => {
-      const products = [
-        createMockProduct({ id: '1' }),
-        createMockProduct({ id: '2' }),
-        createMockProduct({ id: '3' }),
-      ]
-      render(<ProductStats products={products} />)
+      const stats = createMockStats({ totalProducts: 42 })
+      render(<ProductStats stats={stats} />)
 
       const totalCard = screen.getByText('Total Products').parentElement
-      expect(totalCard).toHaveTextContent('3')
+      expect(totalCard).toHaveTextContent('42')
     })
 
     it('shows zero when no products', () => {
-      render(<ProductStats products={[]} />)
+      const stats = createMockStats({ totalProducts: 0 })
+      render(<ProductStats stats={stats} />)
 
       const totalCard = screen.getByText('Total Products').parentElement
       expect(totalCard).toHaveTextContent('0')
@@ -69,25 +68,17 @@ describe('ProductStats', () => {
   })
 
   describe('Active count', () => {
-    it('counts only active products', () => {
-      const products = [
-        createMockProduct({ id: '1', status: 'active' }),
-        createMockProduct({ id: '2', status: 'active' }),
-        createMockProduct({ id: '3', status: 'draft' }),
-        createMockProduct({ id: '4', status: 'archived' }),
-      ]
-      render(<ProductStats products={products} />)
+    it('displays active count from stats', () => {
+      const stats = createMockStats({ activeCount: 25 })
+      render(<ProductStats stats={stats} />)
 
       const activeCard = screen.getByText('Active').parentElement
-      expect(activeCard).toHaveTextContent('2')
+      expect(activeCard).toHaveTextContent('25')
     })
 
     it('shows zero when no active products', () => {
-      const products = [
-        createMockProduct({ id: '1', status: 'draft' }),
-        createMockProduct({ id: '2', status: 'archived' }),
-      ]
-      render(<ProductStats products={products} />)
+      const stats = createMockStats({ activeCount: 0 })
+      render(<ProductStats stats={stats} />)
 
       const activeCard = screen.getByText('Active').parentElement
       expect(activeCard).toHaveTextContent('0')
@@ -95,25 +86,17 @@ describe('ProductStats', () => {
   })
 
   describe('Draft count', () => {
-    it('counts only draft products', () => {
-      const products = [
-        createMockProduct({ id: '1', status: 'active' }),
-        createMockProduct({ id: '2', status: 'draft' }),
-        createMockProduct({ id: '3', status: 'draft' }),
-        createMockProduct({ id: '4', status: 'draft' }),
-      ]
-      render(<ProductStats products={products} />)
+    it('displays draft count from stats', () => {
+      const stats = createMockStats({ draftCount: 15 })
+      render(<ProductStats stats={stats} />)
 
       const draftCard = screen.getByText('Drafts').parentElement
-      expect(draftCard).toHaveTextContent('3')
+      expect(draftCard).toHaveTextContent('15')
     })
 
     it('shows zero when no draft products', () => {
-      const products = [
-        createMockProduct({ id: '1', status: 'active' }),
-        createMockProduct({ id: '2', status: 'archived' }),
-      ]
-      render(<ProductStats products={products} />)
+      const stats = createMockStats({ draftCount: 0 })
+      render(<ProductStats stats={stats} />)
 
       const draftCard = screen.getByText('Drafts').parentElement
       expect(draftCard).toHaveTextContent('0')
@@ -121,61 +104,56 @@ describe('ProductStats', () => {
   })
 
   describe('Low Stock count', () => {
-    it('counts products with inventory less than 5', () => {
-      const products = [
-        createMockProduct({ id: '1', inventoryQuantity: 0 }),
-        createMockProduct({ id: '2', inventoryQuantity: 2 }),
-        createMockProduct({ id: '3', inventoryQuantity: 4 }),
-        createMockProduct({ id: '4', inventoryQuantity: 5 }),
-        createMockProduct({ id: '5', inventoryQuantity: 50 }),
-      ]
-      render(<ProductStats products={products} />)
+    it('displays low stock count from stats', () => {
+      const stats = createMockStats({ lowStockCount: 8 })
+      render(<ProductStats stats={stats} />)
 
       const lowStockCard = screen.getByText('Low Stock').parentElement
-      expect(lowStockCard).toHaveTextContent('3') // 0, 2, 4 are < 5
+      expect(lowStockCard).toHaveTextContent('8')
     })
 
-    it('includes zero inventory as low stock', () => {
-      const products = [createMockProduct({ id: '1', inventoryQuantity: 0 })]
-      render(<ProductStats products={products} />)
-
-      const lowStockCard = screen.getByText('Low Stock').parentElement
-      expect(lowStockCard).toHaveTextContent('1')
-    })
-
-    it('excludes products with exactly 5 inventory', () => {
-      const products = [
-        createMockProduct({ id: '1', inventoryQuantity: 5 }),
-        createMockProduct({ id: '2', inventoryQuantity: 6 }),
-      ]
-      render(<ProductStats products={products} />)
-
-      const lowStockCard = screen.getByText('Low Stock').parentElement
-      expect(lowStockCard).toHaveTextContent('0')
-    })
-
-    it('shows zero when all products have sufficient stock', () => {
-      const products = [
-        createMockProduct({ id: '1', inventoryQuantity: 10 }),
-        createMockProduct({ id: '2', inventoryQuantity: 100 }),
-      ]
-      render(<ProductStats products={products} />)
+    it('shows zero when no low stock products', () => {
+      const stats = createMockStats({ lowStockCount: 0 })
+      render(<ProductStats stats={stats} />)
 
       const lowStockCard = screen.getByText('Low Stock').parentElement
       expect(lowStockCard).toHaveTextContent('0')
     })
   })
 
+  describe('Aggregate stats from API', () => {
+    it('displays aggregate stats correctly (not paginated data)', () => {
+      // This test verifies that we're using API-provided stats
+      // rather than calculating from paginated page data
+      const stats: ProductStatsData = {
+        totalProducts: 1000,
+        activeCount: 600,
+        draftCount: 300,
+        archivedCount: 100,
+        lowStockCount: 50,
+      }
+      render(<ProductStats stats={stats} />)
+
+      // These should show the aggregate counts, not page-level counts
+      expect(screen.getByText('1000')).toBeInTheDocument()
+      expect(screen.getByText('600')).toBeInTheDocument()
+      expect(screen.getByText('300')).toBeInTheDocument()
+      expect(screen.getByText('50')).toBeInTheDocument()
+    })
+  })
+
   describe('Styling', () => {
     it('renders stat cards in a grid', () => {
-      const { container } = render(<ProductStats products={[]} />)
+      const stats = createMockStats()
+      const { container } = render(<ProductStats stats={stats} />)
       const grid = container.firstChild as HTMLElement
       expect(grid).toHaveClass('grid')
       expect(grid).toHaveClass('grid-cols-2')
     })
 
     it('renders four card elements', () => {
-      const { container } = render(<ProductStats products={[]} />)
+      const stats = createMockStats()
+      const { container } = render(<ProductStats stats={stats} />)
       const cards = container.querySelectorAll('.bg-card')
       expect(cards).toHaveLength(4)
     })
