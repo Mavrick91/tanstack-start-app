@@ -1,34 +1,72 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { aiProductDetailsSchema, generateProductDetails } from './ai'
+import {
+  aiProductDetailsSchema,
+  generateCompositeImageWithGemini,
+  generateProductDetails,
+  generateCompositeImageSchema,
+  ASPECT_RATIOS,
+} from './ai'
 
-// Mock Gemini
-vi.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-    getGenerativeModel: vi.fn().mockImplementation(() => ({
-      generateContent: vi.fn().mockResolvedValue({
-        response: {
-          text: () =>
-            JSON.stringify({
-              name: {
-                en: 'Silk Scarf',
-                fr: 'Écharpe en soie',
-                id: 'Syal Sutra',
+// Mock Gemini - unified @google/genai SDK
+// This mock handles both text generation (for product details) and image generation
+vi.mock('@google/genai', () => ({
+  GoogleGenAI: vi.fn().mockImplementation(() => ({
+    models: {
+      generateContent: vi.fn().mockImplementation(({ config }) => {
+        // Image generation mode
+        if (config?.responseModalities?.includes('IMAGE')) {
+          return Promise.resolve({
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      inlineData: {
+                        data: 'MOCK_GENERATED_IMAGE',
+                        mimeType: 'image/png',
+                      },
+                    },
+                  ],
+                },
               },
-              description: {
-                en: 'A beautiful handmade silk scarf.',
-                fr: 'Une belle écharpe en soie faite à la main.',
-                id: 'Syal sutra buatan tangan yang indah.',
+            ],
+          })
+        }
+        // Text generation mode (for product details)
+        return Promise.resolve({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      name: {
+                        en: 'Silk Scarf',
+                        fr: 'Écharpe en soie',
+                        id: 'Syal Sutra',
+                      },
+                      description: {
+                        en: 'A beautiful handmade silk scarf.',
+                        fr: 'Une belle écharpe en soie faite à la main.',
+                        id: 'Syal sutra buatan tangan yang indah.',
+                      },
+                      metaTitle: { en: 'Handmade Silk Scarf' },
+                      metaDescription: {
+                        en: 'Buy premium silk scarves online.',
+                      },
+                      handle: 'silk-scarf',
+                      tags: ['silk', 'scarf', 'handmade'],
+                      targetAudience: 'fashion-conscious women 25-40',
+                    }),
+                  },
+                ],
               },
-              metaTitle: { en: 'Handmade Silk Scarf' },
-              metaDescription: { en: 'Buy premium silk scarves online.' },
-              handle: 'silk-scarf',
-              tags: ['silk', 'scarf', 'handmade'],
-              targetAudience: 'fashion-conscious women 25-40',
-            }),
-        },
+            },
+          ],
+        })
       }),
-    })),
+    },
   })),
 }))
 
@@ -259,6 +297,133 @@ describe('AI Detail Generation Logic', () => {
 
       const result = aiProductDetailsSchema.safeParse(validData)
       expect(result.success).toBe(true)
+    })
+  })
+
+  describe('generateCompositeImageWithGemini', () => {
+    it('should generate an image with valid inputs', async () => {
+      const result = await generateCompositeImageWithGemini({
+        backgroundImage: { base64: 'BG_DATA', mimeType: 'image/jpeg' },
+        productImage: { base64: 'PROD_DATA', mimeType: 'image/png' },
+        apiKey: 'test-key',
+      })
+
+      expect(result.imageBase64).toBe('MOCK_GENERATED_IMAGE')
+      expect(result.mimeType).toBe('image/png')
+    })
+
+    it('should use default prompts if not provided', async () => {
+      const result = await generateCompositeImageWithGemini({
+        backgroundImage: { base64: 'BG', mimeType: 'image/jpeg' },
+        productImage: { base64: 'PROD', mimeType: 'image/jpeg' },
+        apiKey: 'test-key',
+      })
+      expect(result.imageBase64).toBe('MOCK_GENERATED_IMAGE')
+    })
+
+    it('should accept optional prompt parameter', async () => {
+      const result = await generateCompositeImageWithGemini({
+        backgroundImage: { base64: 'BG', mimeType: 'image/jpeg' },
+        productImage: { base64: 'PROD', mimeType: 'image/jpeg' },
+        prompt: 'Custom variant prompt',
+        apiKey: 'test-key',
+      })
+      expect(result.imageBase64).toBe('MOCK_GENERATED_IMAGE')
+    })
+
+    it('should accept optional aspectRatio parameter', async () => {
+      const result = await generateCompositeImageWithGemini({
+        backgroundImage: { base64: 'BG', mimeType: 'image/jpeg' },
+        productImage: { base64: 'PROD', mimeType: 'image/jpeg' },
+        aspectRatio: '4:5',
+        apiKey: 'test-key',
+      })
+      expect(result.imageBase64).toBe('MOCK_GENERATED_IMAGE')
+    })
+  })
+
+  describe('generateCompositeImageSchema', () => {
+    it('should validate valid input', () => {
+      const validData = {
+        backgroundImage: { base64: 'abc123', mimeType: 'image/jpeg' },
+        productImage: { base64: 'def456', mimeType: 'image/png' },
+      }
+      const result = generateCompositeImageSchema.safeParse(validData)
+      expect(result.success).toBe(true)
+    })
+
+    it('should validate with optional prompt', () => {
+      const validData = {
+        backgroundImage: { base64: 'abc123', mimeType: 'image/jpeg' },
+        productImage: { base64: 'def456', mimeType: 'image/png' },
+        prompt: 'Apply Almond shape',
+      }
+      const result = generateCompositeImageSchema.safeParse(validData)
+      expect(result.success).toBe(true)
+    })
+
+    it('should validate with optional aspectRatio', () => {
+      const validData = {
+        backgroundImage: { base64: 'abc123', mimeType: 'image/jpeg' },
+        productImage: { base64: 'def456', mimeType: 'image/png' },
+        aspectRatio: '1:1',
+      }
+      const result = generateCompositeImageSchema.safeParse(validData)
+      expect(result.success).toBe(true)
+    })
+
+    it('should fail on missing backgroundImage', () => {
+      const invalidData = {
+        productImage: { base64: 'def456', mimeType: 'image/png' },
+      }
+      const result = generateCompositeImageSchema.safeParse(invalidData)
+      expect(result.success).toBe(false)
+    })
+
+    it('should fail on missing productImage', () => {
+      const invalidData = {
+        backgroundImage: { base64: 'abc123', mimeType: 'image/jpeg' },
+      }
+      const result = generateCompositeImageSchema.safeParse(invalidData)
+      expect(result.success).toBe(false)
+    })
+
+    it('should fail on invalid aspectRatio', () => {
+      const invalidData = {
+        backgroundImage: { base64: 'abc123', mimeType: 'image/jpeg' },
+        productImage: { base64: 'def456', mimeType: 'image/png' },
+        aspectRatio: '5:5', // not a valid ratio
+      }
+      const result = generateCompositeImageSchema.safeParse(invalidData)
+      expect(result.success).toBe(false)
+    })
+
+    it('should use default mimeType when not provided', () => {
+      const validData = {
+        backgroundImage: { base64: 'abc123' },
+        productImage: { base64: 'def456' },
+      }
+      const result = generateCompositeImageSchema.safeParse(validData)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.backgroundImage.mimeType).toBe('image/jpeg')
+        expect(result.data.productImage.mimeType).toBe('image/jpeg')
+      }
+    })
+  })
+
+  describe('ASPECT_RATIOS', () => {
+    it('should contain all expected ratios', () => {
+      expect(ASPECT_RATIOS).toContain('1:1')
+      expect(ASPECT_RATIOS).toContain('4:5')
+      expect(ASPECT_RATIOS).toContain('16:9')
+      expect(ASPECT_RATIOS).toContain('9:16')
+      expect(ASPECT_RATIOS).toContain('3:4')
+      expect(ASPECT_RATIOS).toContain('4:3')
+    })
+
+    it('should have 9 aspect ratios', () => {
+      expect(ASPECT_RATIOS.length).toBe(9)
     })
   })
 })

@@ -6,6 +6,16 @@ import { ProductForm } from './ProductForm'
 
 import type { Product } from './ProductForm'
 
+// Mock Fancybox (used by AIProductGenerator which is imported by ProductForm)
+vi.mock('@fancyapps/ui', () => ({
+  Fancybox: {
+    bind: vi.fn(),
+    destroy: vi.fn(),
+  },
+}))
+
+vi.mock('@fancyapps/ui/dist/fancybox/fancybox.css', () => ({}))
+
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ navigate: vi.fn() }),

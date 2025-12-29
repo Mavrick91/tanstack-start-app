@@ -32,6 +32,9 @@ export type ImageItem = {
   url: string
   file?: File
   altText: LocalizedString
+  _aiGenerated?: boolean
+  _base64?: string
+  _mimeType?: string
 }
 
 type SortableImageProps = {
