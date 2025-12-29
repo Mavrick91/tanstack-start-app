@@ -5,8 +5,8 @@ export default {
   keySeparator: false,
 
   // Namespace separator that will be used to separate namespaces in JSON file
-  // Setting it to false because we don't use namespaces currently
-  nsSeparator: false,
+  // Setting it to false because we use plain English keys with colons
+  namespaceSeparator: false,
 
   pluralSeparator: '_',
   interpolation: {
@@ -23,12 +23,35 @@ export default {
   // Locales to generate
   locales: ['en', 'fr', 'id'],
 
+  // Don't create _old.json backup files
+  createOldCatalogs: false,
+
   // Expression to find within the source code
   lexers: {
-    ts: ['JsxLexer'],
-    tsx: ['JsxLexer'],
-    js: ['JsxLexer'],
-    jsx: ['JsxLexer'],
+    ts: [
+      {
+        lexer: 'JsxLexer',
+        functions: ['t'],
+      },
+    ],
+    tsx: [
+      {
+        lexer: 'JsxLexer',
+        functions: ['t'],
+      },
+    ],
+    js: [
+      {
+        lexer: 'JsxLexer',
+        functions: ['t'],
+      },
+    ],
+    jsx: [
+      {
+        lexer: 'JsxLexer',
+        functions: ['t'],
+      },
+    ],
     default: ['JsxLexer'],
   },
 
@@ -38,8 +61,8 @@ export default {
   // Where to look for keys
   input: ['src/**/*.{ts,tsx}'],
 
-  // Keep existing keys in the output files
-  keepRemoved: true,
+  // Remove unused keys from the output files
+  keepRemoved: false,
 
   // Sort keys alphabetically
   sort: true,
