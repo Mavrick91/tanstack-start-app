@@ -1,4 +1,3 @@
-import { useForm } from '@tanstack/react-form'
 import {
   createFileRoute,
   useNavigate,
@@ -16,7 +15,11 @@ import { CheckoutLayout } from '../../../components/checkout/CheckoutLayout'
 import { OrderSummary } from '../../../components/checkout/OrderSummary'
 import { Button } from '../../../components/ui/button'
 import { Checkbox } from '../../../components/ui/checkbox'
-import { Input } from '../../../components/ui/input'
+import {
+  FNForm,
+  type FormDefinition,
+  type FNFormRef,
+} from '../../../components/ui/fn-form'
 import { Label } from '../../../components/ui/label'
 import { useAuthStore } from '../../../hooks/useAuth'
 import { useCartStore } from '../../../hooks/useCart'
@@ -61,30 +64,35 @@ function CheckoutInformationPage() {
 
   const [saveAddress, setSaveAddress] = useState(false)
   const addressFormRef = useRef<{ submit: () => void } | null>(null)
+  const emailFormRef = useRef<FNFormRef | null>(null)
 
-  // Email form with TanStack Form
-  const emailForm = useForm({
-    defaultValues: {
-      email: checkout?.email || '',
-    },
-    validators: {
-      onSubmit: ({ value }) => {
-        if (!value.email) return { fields: { email: 'Email is required' } }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value.email)) {
-          return { fields: { email: 'Invalid email format' } }
-        }
-        return undefined
+  // Email form definition
+  const emailFormDefinition: FormDefinition = {
+    fields: [
+      {
+        name: 'email',
+        type: 'email',
+        label: t('Email'),
+        placeholder: t('Email address'),
+        required: true,
+        inputClassName: 'h-11',
+        validate: (value) => {
+          const email = String(value || '')
+          if (!email) return 'Email is required'
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          if (!emailRegex.test(email)) return 'Invalid email format'
+          return undefined
+        },
       },
-    },
-  })
+    ],
+  }
 
   // Sync email from checkout when it loads
   useEffect(() => {
-    if (checkout?.email) {
-      emailForm.setFieldValue('email', checkout.email)
+    if (checkout?.email && emailFormRef.current) {
+      emailFormRef.current.setFieldValue('email', checkout.email)
     }
-  }, [checkout?.email, emailForm])
+  }, [checkout?.email])
 
   // Create checkout if needed
   useEffect(() => {
@@ -108,9 +116,16 @@ function CheckoutInformationPage() {
   }, [checkoutId, cartItems, clearCart, createCheckoutMutation, lang, navigate])
 
   const handleSubmit = async () => {
-    // Validate email
-    await emailForm.handleSubmit()
-    if (!emailForm.state.isValid) return
+    if (!emailFormRef.current) return
+
+    const email = String(emailFormRef.current.getValues().email || '')
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    // Trigger FNForm validation if invalid
+    if (!email || !emailRegex.test(email)) {
+      emailFormRef.current.submit()
+      return
+    }
 
     // Trigger address form submission
     if (addressFormRef.current) {
@@ -119,12 +134,14 @@ function CheckoutInformationPage() {
   }
 
   const handleAddressSubmit = async (addressData: AddressFormData) => {
-    if (!checkoutId) return
+    if (!checkoutId || !emailFormRef.current) return
+
+    const emailValue = String(emailFormRef.current.getValues().email || '')
 
     try {
       // Save customer info first
       await saveCustomerMutation.mutateAsync({
-        email: emailForm.state.values.email,
+        email: emailValue,
       })
 
       // Then save address
@@ -215,27 +232,13 @@ function CheckoutInformationPage() {
               </Link>
             </div>
 
-            <emailForm.Field name="email">
-              {(field) => (
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">{t('Email')}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder={t('Email address')}
-                    className="h-11"
-                  />
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </emailForm.Field>
+            <FNForm
+              formDefinition={emailFormDefinition}
+              onSubmit={() => {}}
+              defaultValues={{ email: checkout?.email || '' }}
+              formRef={emailFormRef}
+              hideSubmitButton
+            />
           </div>
 
           {/* Shipping address section */}

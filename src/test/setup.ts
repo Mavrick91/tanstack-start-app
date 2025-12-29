@@ -12,6 +12,22 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 }
 
+// Mock pointer capture methods for JSDOM (required by Radix UI Select)
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false
+}
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = () => {}
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = () => {}
+}
+
+// Mock scrollIntoView for JSDOM (required by Radix UI Select)
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
+
 // Runs a cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
   cleanup()

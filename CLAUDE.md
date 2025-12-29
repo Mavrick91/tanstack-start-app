@@ -110,6 +110,134 @@ npm run test              # Run all tests
 npx vitest run path/file  # Run single test file
 ```
 
+### Forms (FNForm)
+
+Use the centralized `FNForm` component for all forms. Located at `/src/components/ui/fn-form.tsx`.
+
+#### Basic Usage
+
+```typescript
+import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
+
+const formDefinition: FormDefinition = {
+  fields: [
+    { name: 'email', type: 'email', label: 'Email', required: true },
+    { name: 'name', type: 'text', label: 'Name', placeholder: 'Your name' },
+  ],
+}
+
+<FNForm
+  formDefinition={formDefinition}
+  onSubmit={(values) => handleSubmit(values)}
+  defaultValues={{ email: 'user@example.com' }}
+/>
+```
+
+#### Field Types
+
+- `text`, `email`, `password`, `number` - Standard inputs
+- `textarea` - Multi-line text
+- `select` - Dropdown with `options: [{ value, label }]`
+- `checkbox`, `switch` - Boolean toggles
+- `hidden` - Hidden field (included in submission)
+- `custom` - Custom render with `render` function
+
+#### Grid Layouts
+
+Use `rows` with `columns` for multi-column layouts:
+
+```typescript
+const formDefinition: FormDefinition = {
+  rows: [
+    { fields: [{ name: 'email', type: 'email', label: 'Email' }] },
+    {
+      columns: 2,
+      fields: [
+        { name: 'firstName', type: 'text', label: 'First Name' },
+        { name: 'lastName', type: 'text', label: 'Last Name' },
+      ],
+    },
+    {
+      columns: 3,
+      fields: [
+        { name: 'city', type: 'text', label: 'City' },
+        { name: 'state', type: 'text', label: 'State' },
+        { name: 'zip', type: 'text', label: 'ZIP' },
+      ],
+    },
+  ],
+}
+```
+
+#### Custom Fields
+
+For special inputs (masked inputs, autocomplete, etc.):
+
+```typescript
+{
+  name: 'phone',
+  type: 'custom',
+  label: 'Phone',
+  render: (props) => (
+    <IMaskInput
+      id={props.id}
+      mask="+{1} (000) 000-0000"
+      value={String(props.value ?? '')}
+      onAccept={(value) => props.onChange(value)}
+    />
+  ),
+}
+```
+
+#### Form Ref (External Control)
+
+```typescript
+const formRef = useRef<FNFormRef | null>(null)
+
+<FNForm formRef={formRef} hideSubmitButton ... />
+
+// External submit
+formRef.current?.submit()
+
+// Get/set values
+formRef.current?.getValues()
+formRef.current?.setFieldValue('email', 'new@example.com')
+```
+
+#### Field Change Callbacks
+
+For cross-field dependencies:
+
+```typescript
+<FNForm
+  onFieldChange={(name, value, setFieldValue) => {
+    if (name === 'countryCode') {
+      setFieldValue('country', countryMap[value])
+    }
+  }}
+  ...
+/>
+```
+
+#### Field Options
+
+```typescript
+interface FieldDefinition {
+  name: string
+  type: FieldType
+  label: string
+  placeholder?: string
+  required?: boolean // Shows * and validates
+  optional?: boolean // Shows "(optional)"
+  disabled?: boolean
+  options?: SelectOption[] // For select type
+  validate?: (value) => string | undefined
+  inputClassName?: string
+  className?: string
+  render?: (props) => ReactNode // For custom type
+}
+```
+
 ## Code Style
 
 - No semicolons, single quotes, trailing commas (Prettier)

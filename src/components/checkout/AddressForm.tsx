@@ -1,38 +1,42 @@
-import { useForm } from '@tanstack/react-form'
-import { useImperativeHandle } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IMaskInput } from 'react-imask'
 
 import { AddressAutocomplete } from './AddressAutocomplete'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select'
+  FNForm,
+  type FormDefinition,
+  type FNFormRef,
+  type CustomFieldRenderProps,
+} from '../ui/fn-form'
 
 import type { AddressFormData } from '../../lib/checkout-schemas'
 
 type AddressFormProps = {
   defaultValues?: Partial<AddressFormData>
   onSubmit: (data: AddressFormData) => void | Promise<void>
-  formRef?: React.RefObject<{ submit: () => void } | null>
+  formRef?: React.MutableRefObject<{ submit: () => void } | null>
 }
 
 const COUNTRIES = [
-  { code: 'US', name: 'United States' },
-  { code: 'CA', name: 'Canada' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'AU', name: 'Australia' },
-  { code: 'DE', name: 'Germany' },
-  { code: 'FR', name: 'France' },
-  { code: 'ID', name: 'Indonesia' },
-  { code: 'JP', name: 'Japan' },
-  { code: 'SG', name: 'Singapore' },
+  { value: 'US', label: 'United States' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'ID', label: 'Indonesia' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'SG', label: 'Singapore' },
 ]
+
+const COUNTRY_MAP = COUNTRIES.reduce(
+  (acc, country) => {
+    acc[country.value] = country.label
+    return acc
+  },
+  {} as Record<string, string>,
+)
 
 export function AddressForm({
   defaultValues,
@@ -40,293 +44,188 @@ export function AddressForm({
   formRef,
 }: AddressFormProps) {
   const { t } = useTranslation()
+  const internalFormRef = useRef<FNFormRef | null>(null)
 
-  const form = useForm({
-    defaultValues: {
-      firstName: defaultValues?.firstName || '',
-      lastName: defaultValues?.lastName || '',
-      company: defaultValues?.company || '',
-      address1: defaultValues?.address1 || '',
-      address2: defaultValues?.address2 || '',
-      city: defaultValues?.city || '',
-      province: defaultValues?.province || '',
-      provinceCode: defaultValues?.provinceCode || '',
-      country: defaultValues?.country || '',
-      countryCode: defaultValues?.countryCode || '',
-      zip: defaultValues?.zip || '',
-      phone: defaultValues?.phone || '',
-    },
-    validators: {
-      onSubmit: ({ value }) => {
-        const errors: Record<string, string> = {}
-        if (!value.firstName) errors.firstName = 'First name is required'
-        if (!value.lastName) errors.lastName = 'Last name is required'
-        if (!value.address1) errors.address1 = 'Address is required'
-        if (!value.city) errors.city = 'City is required'
-        if (!value.countryCode) errors.countryCode = 'Country is required'
-        if (!value.zip) errors.zip = 'ZIP code is required'
-
-        return Object.keys(errors).length > 0 ? { fields: errors } : undefined
-      },
-    },
-    onSubmit: async ({ value }) => {
-      await onSubmit(value as AddressFormData)
-    },
-  })
-
-  // Expose submit method via ref
-  useImperativeHandle(
-    formRef,
-    () => ({
-      submit: () => form.handleSubmit(),
-    }),
-    [form],
-  )
+  // Expose submit method via formRef for backwards compatibility
+  useEffect(() => {
+    if (formRef) {
+      formRef.current = {
+        submit: () => internalFormRef.current?.submit(),
+      }
+    }
+  }, [formRef])
 
   const handleAddressSelect = (address: Partial<AddressFormData>) => {
-    if (address.address1) form.setFieldValue('address1', address.address1)
-    if (address.city) form.setFieldValue('city', address.city)
-    if (address.province) form.setFieldValue('province', address.province)
+    const ref = internalFormRef.current
+    if (!ref) return
+
+    if (address.address1) ref.setFieldValue('address1', address.address1)
+    if (address.city) ref.setFieldValue('city', address.city)
+    if (address.province) ref.setFieldValue('province', address.province)
     if (address.provinceCode)
-      form.setFieldValue('provinceCode', address.provinceCode)
-    if (address.country) form.setFieldValue('country', address.country)
+      ref.setFieldValue('provinceCode', address.provinceCode)
+    if (address.country) ref.setFieldValue('country', address.country)
     if (address.countryCode)
-      form.setFieldValue('countryCode', address.countryCode)
-    if (address.zip) form.setFieldValue('zip', address.zip)
+      ref.setFieldValue('countryCode', address.countryCode)
+    if (address.zip) ref.setFieldValue('zip', address.zip)
+  }
+
+  const formDefinition: FormDefinition = {
+    rows: [
+      // Country
+      {
+        fields: [
+          {
+            name: 'countryCode',
+            type: 'select',
+            label: t('Country'),
+            placeholder: t('Select country'),
+            required: true,
+            options: COUNTRIES,
+            inputClassName: 'h-11',
+          },
+        ],
+      },
+      // Name row (2 columns)
+      {
+        columns: 2,
+        fields: [
+          {
+            name: 'firstName',
+            type: 'text',
+            label: t('First name'),
+            required: true,
+            inputClassName: 'h-11',
+          },
+          {
+            name: 'lastName',
+            type: 'text',
+            label: t('Last name'),
+            required: true,
+            inputClassName: 'h-11',
+          },
+        ],
+      },
+      // Company
+      {
+        fields: [
+          {
+            name: 'company',
+            type: 'text',
+            label: t('Company'),
+            optional: true,
+            inputClassName: 'h-11',
+          },
+        ],
+      },
+      // Address with autocomplete
+      {
+        fields: [
+          {
+            name: 'address1',
+            type: 'custom',
+            label: t('Address'),
+            required: true,
+            render: (props: CustomFieldRenderProps) => (
+              <AddressAutocomplete
+                value={String(props.value ?? '')}
+                onChange={(value) => props.onChange(value)}
+                onAddressSelect={handleAddressSelect}
+                placeholder={t('Street address')}
+                className="h-11"
+              />
+            ),
+          },
+        ],
+      },
+      // Apartment
+      {
+        fields: [
+          {
+            name: 'address2',
+            type: 'text',
+            label: t('Apartment, suite, etc.'),
+            optional: true,
+            inputClassName: 'h-11',
+          },
+        ],
+      },
+      // City, State, ZIP (3 columns)
+      {
+        columns: 3,
+        fields: [
+          {
+            name: 'city',
+            type: 'text',
+            label: t('City'),
+            required: true,
+            inputClassName: 'h-11',
+          },
+          {
+            name: 'province',
+            type: 'text',
+            label: t('State'),
+            inputClassName: 'h-11',
+          },
+          {
+            name: 'zip',
+            type: 'text',
+            label: t('ZIP code'),
+            required: true,
+            inputClassName: 'h-11',
+          },
+        ],
+      },
+      // Phone with mask
+      {
+        fields: [
+          {
+            name: 'phone',
+            type: 'custom',
+            label: t('Phone'),
+            optional: true,
+            render: (props: CustomFieldRenderProps) => (
+              <IMaskInput
+                id={props.id}
+                mask="+{1} (000) 000-0000"
+                value={String(props.value ?? '')}
+                onAccept={(value) => props.onChange(value)}
+                placeholder="+1 (555) 123-4567"
+                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            ),
+          },
+        ],
+      },
+      // Hidden fields
+      {
+        fields: [
+          { name: 'country', type: 'hidden', label: 'Country Name' },
+          { name: 'provinceCode', type: 'hidden', label: 'Province Code' },
+        ],
+      },
+    ],
+  }
+
+  const handleFieldChange = (
+    name: string,
+    value: unknown,
+    setFieldValue: (name: string, value: unknown) => void,
+  ) => {
+    if (name === 'countryCode') {
+      const countryName = COUNTRY_MAP[value as string] || ''
+      setFieldValue('country', countryName)
+    }
   }
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        form.handleSubmit()
-      }}
-      className="space-y-4"
-    >
-      {/* Country - First for better UX */}
-      <form.Field name="countryCode">
-        {(field) => (
-          <div className="space-y-1.5">
-            <Label htmlFor="country">
-              {t('Country')} <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={field.state.value}
-              onValueChange={(value) => {
-                field.handleChange(value)
-                const country = COUNTRIES.find((c) => c.code === value)
-                if (country) {
-                  form.setFieldValue('country', country.name)
-                }
-              }}
-            >
-              <SelectTrigger id="country" className="h-11">
-                <SelectValue placeholder={t('Select country')} />
-              </SelectTrigger>
-              <SelectContent>
-                {COUNTRIES.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {field.state.meta.errors.length > 0 && (
-              <p className="text-sm text-red-500">
-                {field.state.meta.errors[0]}
-              </p>
-            )}
-          </div>
-        )}
-      </form.Field>
-
-      {/* Name row */}
-      <div className="grid grid-cols-2 gap-3">
-        <form.Field name="firstName">
-          {(field) => (
-            <div className="space-y-1.5">
-              <Label htmlFor="firstName">
-                {t('First name')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="firstName"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                className="h-11"
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-sm text-red-500">
-                  {field.state.meta.errors[0]}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-
-        <form.Field name="lastName">
-          {(field) => (
-            <div className="space-y-1.5">
-              <Label htmlFor="lastName">
-                {t('Last name')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="lastName"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                className="h-11"
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-sm text-red-500">
-                  {field.state.meta.errors[0]}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-      </div>
-
-      {/* Company */}
-      <form.Field name="company">
-        {(field) => (
-          <div className="space-y-1.5">
-            <Label htmlFor="company">
-              {t('Company')}{' '}
-              <span className="text-gray-400">({t('optional')})</span>
-            </Label>
-            <Input
-              id="company"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              className="h-11"
-            />
-          </div>
-        )}
-      </form.Field>
-
-      {/* Address with autocomplete */}
-      <form.Field name="address1">
-        {(field) => (
-          <div className="space-y-1.5">
-            <Label htmlFor="address1">
-              {t('Address')} <span className="text-red-500">*</span>
-            </Label>
-            <AddressAutocomplete
-              value={field.state.value}
-              onChange={(value) => field.handleChange(value)}
-              onAddressSelect={handleAddressSelect}
-              placeholder={t('Street address')}
-              className="h-11"
-            />
-            {field.state.meta.errors.length > 0 && (
-              <p className="text-sm text-red-500">
-                {field.state.meta.errors[0]}
-              </p>
-            )}
-          </div>
-        )}
-      </form.Field>
-
-      {/* Apartment */}
-      <form.Field name="address2">
-        {(field) => (
-          <div className="space-y-1.5">
-            <Label htmlFor="address2">
-              {t('Apartment, suite, etc.')}{' '}
-              <span className="text-gray-400">({t('optional')})</span>
-            </Label>
-            <Input
-              id="address2"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              className="h-11"
-            />
-          </div>
-        )}
-      </form.Field>
-
-      {/* City, State, ZIP */}
-      <div className="grid grid-cols-3 gap-3">
-        <form.Field name="city">
-          {(field) => (
-            <div className="space-y-1.5">
-              <Label htmlFor="city">
-                {t('City')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="city"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                className="h-11"
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-sm text-red-500">
-                  {field.state.meta.errors[0]}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-
-        <form.Field name="province">
-          {(field) => (
-            <div className="space-y-1.5">
-              <Label htmlFor="province">{t('State')}</Label>
-              <Input
-                id="province"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                className="h-11"
-              />
-            </div>
-          )}
-        </form.Field>
-
-        <form.Field name="zip">
-          {(field) => (
-            <div className="space-y-1.5">
-              <Label htmlFor="zip">
-                {t('ZIP code')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="zip"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                className="h-11"
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="text-sm text-red-500">
-                  {field.state.meta.errors[0]}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-      </div>
-
-      {/* Phone with mask */}
-      <form.Field name="phone">
-        {(field) => (
-          <div className="space-y-1.5">
-            <Label htmlFor="phone">
-              {t('Phone')}{' '}
-              <span className="text-gray-400">({t('optional')})</span>
-            </Label>
-            <IMaskInput
-              id="phone"
-              mask="+{1} (000) 000-0000"
-              value={field.state.value}
-              onAccept={(value) => field.handleChange(value)}
-              placeholder="+1 (555) 123-4567"
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-        )}
-      </form.Field>
-    </form>
+    <FNForm
+      formDefinition={formDefinition}
+      onSubmit={(values) => onSubmit(values as AddressFormData)}
+      defaultValues={defaultValues}
+      formRef={internalFormRef}
+      hideSubmitButton
+      onFieldChange={handleFieldChange}
+    />
   )
 }

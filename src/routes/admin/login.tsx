@@ -1,7 +1,12 @@
-import { useForm } from '@tanstack/react-form'
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { useRef } from 'react'
 
 import { Button } from '../../components/ui/button'
+import {
+  FNForm,
+  type FormDefinition,
+  type FNFormRef,
+} from '../../components/ui/fn-form'
 import { useAuthStore } from '../../hooks/useAuth'
 
 export const Route = createFileRoute('/admin/login')({
@@ -17,24 +22,57 @@ export const Route = createFileRoute('/admin/login')({
 function LoginPage() {
   const router = useRouter()
   const login = useAuthStore((state) => state.login)
+  const formRef = useRef<FNFormRef | null>(null)
 
-  const form = useForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-    onSubmit: async ({ value }) => {
-      const success = await login(value.email, value.password)
-      if (success) {
-        router.navigate({ to: '/admin' })
-      } else {
-        form.setFieldMeta('email', (prev) => ({
-          ...prev,
-          errorMap: { onChange: 'Invalid email or password' },
-        }))
-      }
-    },
-  })
+  const formDefinition: FormDefinition = {
+    fields: [
+      {
+        name: 'email',
+        type: 'email',
+        label: 'Email',
+        placeholder: 'admin@finenail.com',
+        required: true,
+        validateOnChange: true,
+        inputClassName:
+          'w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500',
+        validate: (value) => {
+          const email = String(value || '')
+          if (!email) return 'Email is required'
+          if (!/^\S+@\S+\.\S+$/.test(email)) return 'Invalid email format'
+          return undefined
+        },
+      },
+      {
+        name: 'password',
+        type: 'password',
+        label: 'Password',
+        placeholder: '••••••••',
+        required: true,
+        validateOnChange: true,
+        inputClassName:
+          'w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500',
+        validate: (value) => {
+          const password = String(value || '')
+          if (!password) return 'Password is required'
+          if (password.length < 6)
+            return 'Password must be at least 6 characters'
+          return undefined
+        },
+      },
+    ],
+  }
+
+  const handleSubmit = async (values: Record<string, unknown>) => {
+    const email = String(values.email || '')
+    const password = String(values.password || '')
+
+    const success = await login(email, password)
+    if (success) {
+      router.navigate({ to: '/admin' })
+    } else {
+      formRef.current?.setFieldError('email', 'Invalid email or password')
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100 dark:from-zinc-900 dark:to-zinc-800">
@@ -46,100 +84,21 @@ function LoginPage() {
           <span className="text-2xl font-bold">Admin</span>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
-          }}
+        <FNForm
+          formDefinition={formDefinition}
+          onSubmit={handleSubmit}
+          formRef={formRef}
           className="space-y-6"
-        >
-          <form.Field
-            name="email"
-            validators={{
-              onChange: ({ value }) =>
-                !value
-                  ? 'Email is required'
-                  : !/^\S+@\S+\.\S+$/.test(value)
-                    ? 'Invalid email format'
-                    : undefined,
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <label
-                  htmlFor={field.name}
-                  className="text-sm font-medium text-foreground"
-                >
-                  Email
-                </label>
-                <input
-                  id={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  placeholder="admin@finenail.com"
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-red-500">
-                    {field.state.meta.errors.join(', ')}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field
-            name="password"
-            validators={{
-              onChange: ({ value }) =>
-                !value
-                  ? 'Password is required'
-                  : value.length < 6
-                    ? 'Password must be at least 6 characters'
-                    : undefined,
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <label
-                  htmlFor={field.name}
-                  className="text-sm font-medium text-foreground"
-                >
-                  Password
-                </label>
-                <input
-                  id={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  placeholder="••••••••"
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-red-500">
-                    {field.state.meta.errors.join(', ')}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(isSubmitting) => (
-              <Button
-                type="submit"
-                className="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
-              </Button>
-            )}
-          </form.Subscribe>
-        </form>
+          renderSubmitButton={(isSubmitting) => (
+            <Button
+              type="submit"
+              className="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </Button>
+          )}
+        />
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Demo: admin@finenail.com / admin123

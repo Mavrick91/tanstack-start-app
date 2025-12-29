@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, Loader2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -14,6 +14,12 @@ import { CheckoutLayout } from '../../../components/checkout/CheckoutLayout'
 import { OrderSummary } from '../../../components/checkout/OrderSummary'
 import { ShippingMethodSelector } from '../../../components/checkout/ShippingMethodSelector'
 import { Button } from '../../../components/ui/button'
+import {
+  FNForm,
+  type FormDefinition,
+  type FNFormRef,
+  type CustomFieldRenderProps,
+} from '../../../components/ui/fn-form'
 import {
   useCheckoutIdStore,
   useCheckout,
@@ -37,31 +43,27 @@ function CheckoutShippingPage() {
   const { data: shippingRates = [], isLoading: isLoadingRates } =
     useShippingRates(checkoutId)
   const saveShippingMutation = useSaveShippingMethod(checkoutId || '')
+  const formRef = useRef<FNFormRef | null>(null)
 
-  // Compute initial selected rate without effect
+  // Compute initial selected rate
   const initialRateId = useMemo(() => {
     if (checkout?.shippingRateId) return checkout.shippingRateId
     if (shippingRates.length > 0) return shippingRates[0].id
-    return undefined
+    return ''
   }, [checkout?.shippingRateId, shippingRates])
-
-  const [selectedRateId, setSelectedRateId] = useState<string | undefined>()
-
-  // Use the selected rate or fall back to initial
-  const effectiveRateId = selectedRateId ?? initialRateId
 
   // Redirect if no checkout
   if (!checkoutId) {
     navigate({ to: '/$lang/checkout', params: { lang } })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (values: Record<string, unknown>) => {
+    const shippingRateId = String(values.shippingRateId || '')
 
-    if (!effectiveRateId || !checkoutId) return
+    if (!shippingRateId || !checkoutId) return
 
     try {
-      await saveShippingMutation.mutateAsync(effectiveRateId)
+      await saveShippingMutation.mutateAsync(shippingRateId)
       navigate({ to: '/$lang/checkout/payment', params: { lang } })
     } catch (err) {
       console.error('Failed to save shipping method:', err)
@@ -87,6 +89,30 @@ function CheckoutShippingPage() {
 
   const shippingAddress = checkout.shippingAddress
 
+  const formDefinition: FormDefinition = {
+    fields: [
+      {
+        name: 'shippingRateId',
+        type: 'custom',
+        label: t('Shipping method'),
+        required: true,
+        render: (props: CustomFieldRenderProps) =>
+          shippingRates.length > 0 ? (
+            <ShippingMethodSelector
+              rates={shippingRates}
+              selectedRateId={String(props.value ?? '')}
+              onSelect={(rateId) => props.onChange(rateId)}
+              currency={checkout.currency}
+            />
+          ) : (
+            <div className="p-8 rounded-lg border bg-gray-50 text-gray-500 text-center">
+              {t('No shipping options available')}
+            </div>
+          ),
+      },
+    ],
+  }
+
   return (
     <CheckoutLayout
       currentStep="shipping"
@@ -105,12 +131,11 @@ function CheckoutShippingPage() {
       }
     >
       <AnimatePresence mode="wait">
-        <motion.form
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          onSubmit={handleSubmit}
           className="space-y-8"
         >
           {/* Contact & Shipping summary */}
@@ -156,23 +181,14 @@ function CheckoutShippingPage() {
             )}
           </div>
 
-          {/* Shipping method section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">{t('Shipping method')}</h2>
-
-            {shippingRates.length > 0 ? (
-              <ShippingMethodSelector
-                rates={shippingRates}
-                selectedRateId={effectiveRateId}
-                onSelect={setSelectedRateId}
-                currency={checkout.currency}
-              />
-            ) : (
-              <div className="p-8 rounded-lg border bg-gray-50 text-gray-500 text-center">
-                {t('No shipping options available')}
-              </div>
-            )}
-          </div>
+          {/* Shipping method form */}
+          <FNForm
+            formDefinition={formDefinition}
+            onSubmit={handleSubmit}
+            defaultValues={{ shippingRateId: initialRateId }}
+            formRef={formRef}
+            hideSubmitButton
+          />
 
           {/* Error display */}
           {saveShippingMutation.error && (
@@ -197,8 +213,9 @@ function CheckoutShippingPage() {
             </Link>
 
             <Button
-              type="submit"
-              disabled={!effectiveRateId || saveShippingMutation.isPending}
+              type="button"
+              onClick={() => formRef.current?.submit()}
+              disabled={saveShippingMutation.isPending}
               className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
             >
               {saveShippingMutation.isPending ? (
@@ -211,7 +228,7 @@ function CheckoutShippingPage() {
               )}
             </Button>
           </div>
-        </motion.form>
+        </motion.div>
       </AnimatePresence>
     </CheckoutLayout>
   )
