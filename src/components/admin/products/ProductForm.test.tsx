@@ -6,7 +6,7 @@ import { ProductForm } from './ProductForm'
 
 import type { Product } from './ProductForm'
 
-// Mock Fancybox (used by AIProductGenerator which is imported by ProductForm)
+// Mock Fancybox
 vi.mock('@fancyapps/ui', () => ({
   Fancybox: {
     bind: vi.fn(),

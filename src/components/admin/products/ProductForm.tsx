@@ -23,7 +23,6 @@ import {
   type ProductVariant,
 } from './components/ProductVariantsTable'
 import { ImageUploader, type ImageItem } from './ImageUploader'
-import { AIProductGenerator } from './ProductAIGenerator'
 import { cn } from '../../../lib/utils'
 import { generateProductDetailsFn } from '../../../server/ai'
 import { createProductFn } from '../../../server/products'
@@ -129,7 +128,6 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [aiProvider, setAiProvider] = useState<'gemini' | 'openai'>('gemini')
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false)
-  const [isAIStudioOpen, setIsAIStudioOpen] = useState(false)
 
   // Images state for edit mode (tracks local state separately from form)
   const initialImages: ImageItem[] = (product?.images || []).map((img) => ({
@@ -700,26 +698,15 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                 <div className="space-y-4">
                   <ImageUploader images={images} onChange={setImages} />
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-11 rounded-xl gap-2 font-semibold border-dashed"
-                      onClick={() => setIsMediaLibraryOpen(true)}
-                    >
-                      <ImagePlus className="w-4 h-4" />
-                      {t('Add from Media Library')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-11 rounded-xl gap-2 font-semibold border-dashed text-indigo-600 border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/20"
-                      onClick={() => setIsAIStudioOpen(true)}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      {t('AI Studio')}
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                    onClick={() => setIsMediaLibraryOpen(true)}
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                    {t('Add from Media Library')}
+                  </Button>
 
                   {images.length > 0 && images[0]?.url && (
                     <div className="flex gap-2">
@@ -774,26 +761,15 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                         }}
                       />
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-11 rounded-xl gap-2 font-semibold border-dashed"
-                          onClick={() => setIsMediaLibraryOpen(true)}
-                        >
-                          <ImagePlus className="w-4 h-4" />
-                          {t('Add from Media Library')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-11 rounded-xl gap-2 font-semibold border-dashed text-indigo-600 border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/20"
-                          onClick={() => setIsAIStudioOpen(true)}
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          {t('AI Studio')}
-                        </Button>
-                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
+                        onClick={() => setIsMediaLibraryOpen(true)}
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                        {t('Add from Media Library')}
+                      </Button>
 
                       {field.state.value.length > 0 &&
                         field.state.value[0]?.url && (
@@ -852,42 +828,6 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
                       })),
                     ])
                   }
-                }}
-              />
-
-              <AIProductGenerator
-                open={isAIStudioOpen}
-                onClose={() => setIsAIStudioOpen(false)}
-                variants={variants}
-                productImages={
-                  isEditMode ? images : form.getFieldValue('images')
-                }
-                onKeepImages={(keptImages) => {
-                  const newImages = keptImages.map((img) => ({
-                    id: `ai-${Date.now()}-${Math.random()}`,
-                    url: `data:${img.mimeType};base64,${img.base64}`,
-                    altText: { en: img.altText, fr: '', id: '' },
-                    _aiGenerated: true,
-                    _base64: img.base64,
-                    _mimeType: img.mimeType,
-                  }))
-
-                  if (isEditMode) {
-                    setImages((prev) => [...prev, ...newImages])
-                  } else {
-                    const current = form.getFieldValue('images')
-                    form.setFieldValue('images', [
-                      ...current,
-                      ...newImages.map((img) => ({
-                        url: img.url,
-                        altText: img.altText,
-                        _aiGenerated: true,
-                        _base64: img._base64,
-                        _mimeType: img._mimeType,
-                      })),
-                    ])
-                  }
-                  setIsAIStudioOpen(false)
                 }}
               />
             </CardContent>
