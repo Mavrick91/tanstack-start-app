@@ -9,6 +9,13 @@ import {
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
+import {
+  parseDecimal,
+  recordStatusChange,
+  validateManualPaymentStatusChange,
+  cancelOrderWithRefund,
+  type PaymentStatus,
+} from '../../../server/orders'
 
 export const Route = createFileRoute('/api/orders/$orderId')({
   server: {
@@ -58,10 +65,10 @@ export const Route = createFileRoute('/api/orders/$orderId')({
               id: order.id,
               orderNumber: order.orderNumber,
               email: order.email,
-              subtotal: parseFloat(order.subtotal),
-              shippingTotal: parseFloat(order.shippingTotal),
-              taxTotal: parseFloat(order.taxTotal),
-              total: parseFloat(order.total),
+              subtotal: parseDecimal(order.subtotal),
+              shippingTotal: parseDecimal(order.shippingTotal),
+              taxTotal: parseDecimal(order.taxTotal),
+              total: parseDecimal(order.total),
               currency: order.currency,
               status: order.status,
               paymentStatus: order.paymentStatus,
@@ -80,9 +87,9 @@ export const Route = createFileRoute('/api/orders/$orderId')({
                 title: item.title,
                 variantTitle: item.variantTitle,
                 sku: item.sku,
-                price: parseFloat(item.price),
+                price: parseDecimal(item.price),
                 quantity: item.quantity,
-                total: parseFloat(item.total),
+                total: parseDecimal(item.total),
                 imageUrl: item.imageUrl,
               })),
               customer: customer
@@ -113,7 +120,7 @@ export const Route = createFileRoute('/api/orders/$orderId')({
 
           const { orderId } = params
           const body = await request.json()
-          const { status, paymentStatus, fulfillmentStatus } = body
+          const { status, paymentStatus, fulfillmentStatus, reason } = body
 
           // Get order
           const [order] = await db
@@ -126,12 +133,47 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             return simpleErrorResponse('Order not found', 404)
           }
 
+          // Handle cancellation with refund
+          if (status === 'cancelled' && order.status !== 'cancelled') {
+            const cancellationResult = await cancelOrderWithRefund(
+              orderId,
+              auth.user.id,
+              reason,
+            )
+
+            if (!cancellationResult.success) {
+              return simpleErrorResponse(
+                cancellationResult.error || 'Failed to cancel order',
+              )
+            }
+
+            // Fetch updated order
+            const [updatedOrder] = await db
+              .select()
+              .from(orders)
+              .where(eq(orders.id, orderId))
+              .limit(1)
+
+            return successResponse({
+              order: {
+                id: updatedOrder.id,
+                orderNumber: updatedOrder.orderNumber,
+                status: updatedOrder.status,
+                paymentStatus: updatedOrder.paymentStatus,
+                fulfillmentStatus: updatedOrder.fulfillmentStatus,
+                updatedAt: updatedOrder.updatedAt,
+                cancelledAt: updatedOrder.cancelledAt,
+              },
+              refundResult: cancellationResult.refundResult,
+            })
+          }
+
           // Build update object
           const updates: Record<string, unknown> = {
             updatedAt: new Date(),
           }
 
-          if (status) {
+          if (status && status !== order.status) {
             const validStatuses = [
               'pending',
               'processing',
@@ -144,13 +186,19 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             }
             updates.status = status
 
-            // Set cancelledAt if cancelled
-            if (status === 'cancelled') {
-              updates.cancelledAt = new Date()
-            }
+            // Record in audit trail
+            recordStatusChange({
+              orderId,
+              field: 'status',
+              previousValue: order.status,
+              newValue: status,
+              changedBy: auth.user.id,
+              changedAt: new Date(),
+              reason,
+            })
           }
 
-          if (paymentStatus) {
+          if (paymentStatus && paymentStatus !== order.paymentStatus) {
             const validPaymentStatuses = [
               'pending',
               'paid',
@@ -160,15 +208,49 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             if (!validPaymentStatuses.includes(paymentStatus)) {
               return simpleErrorResponse('Invalid payment status')
             }
+
+            // Validate manual payment status change to 'paid'
+            const validation = validateManualPaymentStatusChange(
+              order.paymentStatus as PaymentStatus,
+              paymentStatus as PaymentStatus,
+              !!order.paymentId,
+              reason,
+            )
+
+            if (!validation.allowed) {
+              return simpleErrorResponse(
+                validation.error || 'Payment status change not allowed',
+                400,
+              )
+            }
+
             updates.paymentStatus = paymentStatus
 
             // Set paidAt if paid
             if (paymentStatus === 'paid' && !order.paidAt) {
               updates.paidAt = new Date()
             }
+
+            // Record in audit trail
+            recordStatusChange({
+              orderId,
+              field: 'paymentStatus',
+              previousValue: order.paymentStatus,
+              newValue: paymentStatus,
+              changedBy: auth.user.id,
+              changedAt: new Date(),
+              reason:
+                reason ||
+                (order.paymentId
+                  ? `Verified payment: ${order.paymentId}`
+                  : 'Manual update'),
+            })
           }
 
-          if (fulfillmentStatus) {
+          if (
+            fulfillmentStatus &&
+            fulfillmentStatus !== order.fulfillmentStatus
+          ) {
             const validFulfillmentStatuses = [
               'unfulfilled',
               'partial',
@@ -178,6 +260,17 @@ export const Route = createFileRoute('/api/orders/$orderId')({
               return simpleErrorResponse('Invalid fulfillment status')
             }
             updates.fulfillmentStatus = fulfillmentStatus
+
+            // Record in audit trail
+            recordStatusChange({
+              orderId,
+              field: 'fulfillmentStatus',
+              previousValue: order.fulfillmentStatus,
+              newValue: fulfillmentStatus,
+              changedBy: auth.user.id,
+              changedAt: new Date(),
+              reason,
+            })
           }
 
           // Update order

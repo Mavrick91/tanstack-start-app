@@ -2,8 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { and, count, desc, eq, ilike, SQL, asc } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { orders, orderItems } from '../../../db/schema'
+import { orders } from '../../../db/schema'
 import { errorResponse, requireAuth, successResponse } from '../../../lib/api'
+import { getOrderItemCounts, parseDecimal } from '../../../server/orders'
 
 export const Route = createFileRoute('/api/orders/')({
   server: {
@@ -101,26 +102,18 @@ export const Route = createFileRoute('/api/orders/')({
             .limit(limit)
             .offset(offset)
 
-          // Get item counts for each order
+          // Get item counts for all orders in a single query (fixes N+1)
           const orderIds = ordersList.map((o) => o.id)
-          const itemCounts = new Map<string, number>()
-
-          for (const orderId of orderIds) {
-            const [{ itemCount }] = await db
-              .select({ itemCount: count() })
-              .from(orderItems)
-              .where(eq(orderItems.orderId, orderId))
-            itemCounts.set(orderId, itemCount)
-          }
+          const itemCounts = await getOrderItemCounts(orderIds)
 
           const ordersWithItemCount = ordersList.map((order) => ({
             id: order.id,
             orderNumber: order.orderNumber,
             email: order.email,
-            subtotal: parseFloat(order.subtotal),
-            shippingTotal: parseFloat(order.shippingTotal),
-            taxTotal: parseFloat(order.taxTotal),
-            total: parseFloat(order.total),
+            subtotal: parseDecimal(order.subtotal),
+            shippingTotal: parseDecimal(order.shippingTotal),
+            taxTotal: parseDecimal(order.taxTotal),
+            total: parseDecimal(order.total),
             currency: order.currency,
             status: order.status,
             paymentStatus: order.paymentStatus,

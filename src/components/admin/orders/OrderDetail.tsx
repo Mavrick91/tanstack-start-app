@@ -1,6 +1,8 @@
 import { Loader2, Package, CreditCard, Truck, User } from 'lucide-react'
 import { useState } from 'react'
 
+import { OrderCancellationDialog } from './OrderCancellationDialog'
+import { OrderHistory, type OrderHistoryEntry } from './OrderHistory'
 import { OrderStatusBadge } from './OrderStatusBadge'
 import { formatCurrency } from '../../../lib/format'
 import { Button } from '../../ui/button'
@@ -26,11 +28,21 @@ type OrderDetailProps = {
     status?: OrderStatus
     paymentStatus?: PaymentStatus
     fulfillmentStatus?: FulfillmentStatus
+    reason?: string
   }) => Promise<void>
+  historyEntries?: OrderHistoryEntry[]
+  isLoadingHistory?: boolean
 }
 
-export function OrderDetail({ order, onUpdateStatus }: OrderDetailProps) {
+export function OrderDetail({
+  order,
+  onUpdateStatus,
+  historyEntries = [],
+  isLoadingHistory = false,
+}: OrderDetailProps) {
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [status, setStatus] = useState(order.status)
   const [fulfillmentStatus, setFulfillmentStatus] = useState(
     order.fulfillmentStatus,
@@ -48,6 +60,12 @@ export function OrderDetail({ order, onUpdateStatus }: OrderDetailProps) {
   }
 
   const handleSaveStatus = async () => {
+    // If user selected cancelled, show the confirmation dialog instead
+    if (status === 'cancelled' && order.status !== 'cancelled') {
+      setShowCancelDialog(true)
+      return
+    }
+
     setIsUpdating(true)
     try {
       await onUpdateStatus({
@@ -62,8 +80,24 @@ export function OrderDetail({ order, onUpdateStatus }: OrderDetailProps) {
     }
   }
 
+  const handleCancelOrder = async (reason: string) => {
+    setIsCancelling(true)
+    try {
+      await onUpdateStatus({
+        status: 'cancelled',
+        reason,
+      })
+      setShowCancelDialog(false)
+      setStatus('cancelled')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
   const hasChanges =
     status !== order.status || fulfillmentStatus !== order.fulfillmentStatus
+
+  const isCancelledOrder = order.status === 'cancelled'
 
   return (
     <div className="space-y-6">
@@ -281,69 +315,110 @@ export function OrderDetail({ order, onUpdateStatus }: OrderDetailProps) {
           {/* Status update */}
           <div className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4">Update Status</h2>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">
-                  Order Status
-                </label>
-                <Select
-                  value={status}
-                  onValueChange={(v) => setStatus(v as OrderStatus)}
-                >
-                  <SelectTrigger className="bg-background border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">
-                  Fulfillment
-                </label>
-                <Select
-                  value={fulfillmentStatus}
-                  onValueChange={(v) =>
-                    setFulfillmentStatus(v as FulfillmentStatus)
-                  }
-                >
-                  <SelectTrigger className="bg-background border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unfulfilled">Unfulfilled</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                    <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                  </SelectContent>
-                </Select>
+            {isCancelledOrder ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                  <OrderStatusBadge status="cancelled" type="order" />
+                  <span>This order has been cancelled</span>
+                </div>
+                {order.cancelledAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Cancelled on {formatDate(order.cancelledAt)}
+                  </p>
+                )}
               </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">
+                    Order Status
+                  </label>
+                  <Select
+                    value={status}
+                    onValueChange={(v) => setStatus(v as OrderStatus)}
+                  >
+                    <SelectTrigger className="bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem
+                        value="cancelled"
+                        className="text-destructive"
+                      >
+                        Cancelled
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {hasChanges && (
-                <Button
-                  onClick={handleSaveStatus}
-                  disabled={isUpdating}
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl"
-                >
-                  {isUpdating ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </span>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">
+                    Fulfillment
+                  </label>
+                  <Select
+                    value={fulfillmentStatus}
+                    onValueChange={(v) =>
+                      setFulfillmentStatus(v as FulfillmentStatus)
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unfulfilled">Unfulfilled</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
+                      <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {hasChanges && (
+                  <Button
+                    onClick={handleSaveStatus}
+                    disabled={isUpdating}
+                    className={`w-full rounded-xl ${
+                      status === 'cancelled'
+                        ? 'bg-destructive hover:bg-destructive/90 text-white'
+                        : 'bg-pink-500 hover:bg-pink-600 text-white'
+                    }`}
+                  >
+                    {isUpdating ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </span>
+                    ) : status === 'cancelled' ? (
+                      'Cancel Order...'
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Order History */}
+          <OrderHistory entries={historyEntries} isLoading={isLoadingHistory} />
         </div>
       </div>
+
+      {/* Cancellation Dialog */}
+      <OrderCancellationDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        onConfirm={handleCancelOrder}
+        orderNumber={order.orderNumber}
+        paymentStatus={order.paymentStatus}
+        total={order.total}
+        currency={order.currency}
+        isLoading={isCancelling}
+      />
     </div>
   )
 }

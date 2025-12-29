@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { OrderDetail } from '../../../components/admin/orders/OrderDetail'
+import { type OrderHistoryEntry } from '../../../components/admin/orders/OrderHistory'
 import { Button } from '../../../components/ui/button'
 
 import type {
@@ -37,6 +38,7 @@ async function updateOrderStatus(
     status?: OrderStatus
     paymentStatus?: PaymentStatus
     fulfillmentStatus?: FulfillmentStatus
+    reason?: string
   },
 ) {
   const response = await fetch(`/api/orders/${orderId}`, {
@@ -47,10 +49,27 @@ async function updateOrderStatus(
   })
 
   if (!response.ok) {
-    throw new Error('Failed to update order')
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.error || 'Failed to update order')
   }
 
   return await response.json()
+}
+
+async function fetchOrderHistory(
+  orderId: string,
+): Promise<OrderHistoryEntry[]> {
+  const response = await fetch(`/api/orders/${orderId}/history`, {
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    // History might not be available yet, return empty
+    return []
+  }
+
+  const data = await response.json()
+  return data.history || []
 }
 
 function AdminOrderDetailPage() {
@@ -59,6 +78,8 @@ function AdminOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [historyEntries, setHistoryEntries] = useState<OrderHistoryEntry[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -77,10 +98,27 @@ function AdminOrderDetailPage() {
     loadOrder()
   }, [orderId])
 
+  // Load history separately (non-blocking)
+  useEffect(() => {
+    const loadHistory = async () => {
+      setIsLoadingHistory(true)
+      try {
+        const history = await fetchOrderHistory(orderId)
+        setHistoryEntries(history)
+      } catch (err) {
+        console.error('Failed to fetch order history:', err)
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+    loadHistory()
+  }, [orderId])
+
   const handleUpdateStatus = async (updates: {
     status?: OrderStatus
     paymentStatus?: PaymentStatus
     fulfillmentStatus?: FulfillmentStatus
+    reason?: string
   }) => {
     if (!Object.values(updates).some(Boolean)) return
 
@@ -97,14 +135,34 @@ function AdminOrderDetailPage() {
               fulfillmentStatus:
                 result.order.fulfillmentStatus ?? prev.fulfillmentStatus,
               updatedAt: result.order.updatedAt,
+              cancelledAt: result.order.cancelledAt ?? prev.cancelledAt,
             }
           : null,
       )
 
-      toast.success(t('Order status updated'))
+      // Show appropriate success message
+      if (updates.status === 'cancelled') {
+        if (result.refundResult?.success) {
+          toast.success(t('Order cancelled and refund processed'))
+        } else if (result.refundResult?.error) {
+          toast.success(t('Order cancelled'), {
+            description: `Refund failed: ${result.refundResult.error}`,
+          })
+        } else {
+          toast.success(t('Order cancelled'))
+        }
+      } else {
+        toast.success(t('Order status updated'))
+      }
+
+      // Refresh history after status change
+      const history = await fetchOrderHistory(orderId)
+      setHistoryEntries(history)
     } catch (err) {
       console.error('Failed to update order:', err)
-      toast.error(t('Failed to update order status'))
+      toast.error(
+        err instanceof Error ? err.message : t('Failed to update order status'),
+      )
       throw err
     }
   }
@@ -148,7 +206,12 @@ function AdminOrderDetailPage() {
         </Button>
       </Link>
 
-      <OrderDetail order={order} onUpdateStatus={handleUpdateStatus} />
+      <OrderDetail
+        order={order}
+        onUpdateStatus={handleUpdateStatus}
+        historyEntries={historyEntries}
+        isLoadingHistory={isLoadingHistory}
+      />
     </div>
   )
 }

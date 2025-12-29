@@ -54,14 +54,30 @@ export const Route = createFileRoute(
             return simpleErrorResponse('Shipping method is required')
           }
 
-          // Create PayPal order
+          // Create PayPal order with customer info pre-filled
           const total = parseFloat(checkout.total)
+          const shippingAddr = checkout.shippingAddress
 
           const { orderId } = await createPayPalOrder({
             amount: total,
             currency: checkout.currency,
             description: `Order from checkout ${checkout.id}`,
             checkoutId: checkout.id,
+            email: checkout.email,
+            shippingAddress: shippingAddr
+              ? {
+                  firstName: shippingAddr.firstName,
+                  lastName: shippingAddr.lastName,
+                  address1: shippingAddr.address1,
+                  address2: shippingAddr.address2,
+                  city: shippingAddr.city,
+                  province:
+                    shippingAddr.province || shippingAddr.provinceCode || '',
+                  zip: shippingAddr.zip,
+                  countryCode: shippingAddr.countryCode,
+                  phone: shippingAddr.phone,
+                }
+              : undefined,
           })
 
           return successResponse({

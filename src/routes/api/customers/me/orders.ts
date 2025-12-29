@@ -2,13 +2,17 @@ import { createFileRoute } from '@tanstack/react-router'
 import { eq, desc, count } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { customers, orders, orderItems } from '../../../../db/schema'
+import { customers, orders } from '../../../../db/schema'
 import {
   errorResponse,
   requireAuth,
   simpleErrorResponse,
   successResponse,
 } from '../../../../lib/api'
+import {
+  getOrderItemsByOrderIds,
+  parseDecimal,
+} from '../../../../server/orders'
 
 export const Route = createFileRoute('/api/customers/me/orders')({
   server: {
@@ -55,30 +59,18 @@ export const Route = createFileRoute('/api/customers/me/orders')({
             .limit(limit)
             .offset(offset)
 
-          // Get order items for each order
+          // Get order items for all orders in a single query (fixes N+1)
           const orderIds = customerOrders.map((o) => o.id)
-
-          // For multiple orders, we need to fetch items separately
-          const itemsByOrderId = new Map<
-            string,
-            (typeof orderItems.$inferSelect)[]
-          >()
-          for (const orderId of orderIds) {
-            const orderItemResults = await db
-              .select()
-              .from(orderItems)
-              .where(eq(orderItems.orderId, orderId))
-            itemsByOrderId.set(orderId, orderItemResults)
-          }
+          const itemsByOrderId = await getOrderItemsByOrderIds(orderIds)
 
           const ordersWithItems = customerOrders.map((order) => ({
             id: order.id,
             orderNumber: order.orderNumber,
             email: order.email,
-            subtotal: parseFloat(order.subtotal),
-            shippingTotal: parseFloat(order.shippingTotal),
-            taxTotal: parseFloat(order.taxTotal),
-            total: parseFloat(order.total),
+            subtotal: parseDecimal(order.subtotal),
+            shippingTotal: parseDecimal(order.shippingTotal),
+            taxTotal: parseDecimal(order.taxTotal),
+            total: parseDecimal(order.total),
             currency: order.currency,
             status: order.status,
             paymentStatus: order.paymentStatus,
@@ -91,8 +83,8 @@ export const Route = createFileRoute('/api/customers/me/orders')({
               title: item.title,
               variantTitle: item.variantTitle,
               quantity: item.quantity,
-              price: parseFloat(item.price),
-              total: parseFloat(item.total),
+              price: parseDecimal(item.price),
+              total: parseDecimal(item.total),
               imageUrl: item.imageUrl,
             })),
           }))

@@ -2,11 +2,18 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Package, Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { OrderBulkActionsBar } from '../../../components/admin/orders/OrderBulkActionsBar'
 import { OrdersTable } from '../../../components/admin/orders/OrdersTable'
+import {
+  OrderStatsCards,
+  type OrderStats,
+} from '../../../components/admin/orders/OrderStatsCards'
 import { Button } from '../../../components/ui/button'
 
+import type { OrderStatus, FulfillmentStatus } from '../../../types/checkout'
 import type { OrderListItem } from '../../../types/order'
 
 const searchSchema = z.object({
@@ -67,6 +74,54 @@ async function fetchOrders(params: {
   return await response.json()
 }
 
+async function fetchOrderStats(): Promise<OrderStats> {
+  const response = await fetch('/api/orders/stats', {
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch order stats')
+  }
+
+  const data = await response.json()
+  return data.stats
+}
+
+async function updateOrderStatus(
+  orderId: string,
+  updates: { status?: OrderStatus; fulfillmentStatus?: FulfillmentStatus },
+) {
+  const response = await fetch(`/api/orders/${orderId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(updates),
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.error || 'Failed to update order')
+  }
+
+  return await response.json()
+}
+
+async function bulkUpdateOrders(ids: string[], action: string, value: string) {
+  const response = await fetch('/api/orders/bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ ids, action, value }),
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.error || 'Failed to bulk update orders')
+  }
+
+  return await response.json()
+}
+
 type StatusFilter =
   | 'all'
   | 'pending'
@@ -86,6 +141,10 @@ function AdminOrdersPage() {
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState(searchParams.q || '')
+  const [stats, setStats] = useState<OrderStats | null>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const page = searchParams.page || 1
   const limit = 10
@@ -95,6 +154,23 @@ function AdminOrdersPage() {
   const sort = searchParams.sort || 'createdAt'
   const order = searchParams.order || 'desc'
 
+  // Load stats
+  useEffect(() => {
+    const loadStats = async () => {
+      setIsLoadingStats(true)
+      try {
+        const statsData = await fetchOrderStats()
+        setStats(statsData)
+      } catch (err) {
+        console.error('Failed to fetch stats:', err)
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+    loadStats()
+  }, [orders]) // Refresh stats when orders change
+
+  // Load orders
   useEffect(() => {
     const loadOrders = async () => {
       setIsLoading(true)
@@ -111,6 +187,7 @@ function AdminOrdersPage() {
         })
         setOrders(result.orders)
         setTotal(result.total)
+        setSelectedIds(new Set()) // Clear selection on filter change
       } catch (err) {
         console.error('Failed to fetch orders:', err)
       } finally {
@@ -150,6 +227,68 @@ function AdminOrdersPage() {
     updateSearch({ q: undefined })
   }
 
+  const handleQuickStatusChange = async (
+    orderId: string,
+    updates: { status?: OrderStatus; fulfillmentStatus?: FulfillmentStatus },
+  ) => {
+    setIsUpdating(true)
+    try {
+      await updateOrderStatus(orderId, updates)
+      // Refresh orders
+      const result = await fetchOrders({
+        search: searchParams.q || '',
+        page,
+        limit,
+        status,
+        paymentStatus,
+        fulfillmentStatus,
+        sort,
+        order,
+      })
+      setOrders(result.orders)
+      setTotal(result.total)
+      toast.success(t('Order status updated'))
+    } catch (err) {
+      console.error('Failed to update order:', err)
+      toast.error(
+        err instanceof Error ? err.message : t('Failed to update order status'),
+      )
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleBulkAction = async (actionType: string, value: string) => {
+    if (selectedIds.size === 0) return
+
+    setIsUpdating(true)
+    try {
+      await bulkUpdateOrders(Array.from(selectedIds), actionType, value)
+      // Refresh orders
+      const result = await fetchOrders({
+        search: searchParams.q || '',
+        page,
+        limit,
+        status,
+        paymentStatus,
+        fulfillmentStatus,
+        sort,
+        order,
+      })
+      setOrders(result.orders)
+      setTotal(result.total)
+      setSelectedIds(new Set())
+      toast.success(t('{{count}} orders updated', { count: selectedIds.size }))
+    } catch (err) {
+      console.error('Failed to bulk update orders:', err)
+      toast.error(
+        err instanceof Error ? err.message : t('Failed to update orders'),
+      )
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / limit)
 
   const statusOptions: { value: StatusFilter; label: string }[] = [
@@ -186,6 +325,13 @@ function AdminOrdersPage() {
           </p>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      {stats && (
+        <div className="px-1">
+          <OrderStatsCards stats={stats} isLoading={isLoadingStats} />
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3 px-1">
@@ -298,8 +444,23 @@ function AdminOrdersPage() {
           </p>
         </div>
       ) : (
-        <OrdersTable orders={orders} />
+        <OrdersTable
+          orders={orders}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          onQuickStatusChange={handleQuickStatusChange}
+          isUpdating={isUpdating}
+        />
       )}
+
+      {/* Bulk Actions Bar */}
+      <OrderBulkActionsBar
+        selectedCount={selectedIds.size}
+        selectedIds={selectedIds}
+        onClearSelection={() => setSelectedIds(new Set())}
+        onBulkAction={handleBulkAction}
+        isLoading={isUpdating}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

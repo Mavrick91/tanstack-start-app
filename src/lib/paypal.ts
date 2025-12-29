@@ -33,19 +33,83 @@ async function getAccessToken(): Promise<string> {
   return data.access_token
 }
 
+// Shipping address for PayPal order
+export interface PayPalShippingAddress {
+  firstName: string
+  lastName: string
+  address1: string
+  address2?: string
+  city: string
+  province: string
+  zip: string
+  countryCode: string
+  phone?: string
+}
+
 // Create a PayPal order
 export async function createPayPalOrder({
   amount,
   currency = 'USD',
   description,
   checkoutId,
+  email,
+  shippingAddress,
 }: {
   amount: number
   currency?: string
   description?: string
   checkoutId: string
+  email?: string
+  shippingAddress?: PayPalShippingAddress
 }) {
   const accessToken = await getAccessToken()
+
+  // Build purchase unit with optional shipping
+  const purchaseUnit: Record<string, unknown> = {
+    amount: {
+      currency_code: currency,
+      value: amount.toFixed(2),
+    },
+    description,
+    custom_id: checkoutId,
+  }
+
+  // Add shipping address if provided
+  if (shippingAddress) {
+    purchaseUnit.shipping = {
+      name: {
+        full_name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+      },
+      address: {
+        address_line_1: shippingAddress.address1,
+        ...(shippingAddress.address2 && {
+          address_line_2: shippingAddress.address2,
+        }),
+        admin_area_2: shippingAddress.city,
+        admin_area_1: shippingAddress.province,
+        postal_code: shippingAddress.zip,
+        country_code: shippingAddress.countryCode,
+      },
+    }
+  }
+
+  // Build payer info
+  const payer: Record<string, unknown> = {}
+  if (email) {
+    payer.email_address = email
+  }
+  if (shippingAddress?.phone) {
+    // Remove non-digits for PayPal phone format
+    const cleanPhone = shippingAddress.phone.replace(/\D/g, '')
+    if (cleanPhone.length >= 10) {
+      payer.phone = {
+        phone_type: 'MOBILE',
+        phone_number: {
+          national_number: cleanPhone.slice(-10), // Last 10 digits
+        },
+      }
+    }
+  }
 
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: 'POST',
@@ -55,16 +119,13 @@ export async function createPayPalOrder({
     },
     body: JSON.stringify({
       intent: 'CAPTURE',
-      purchase_units: [
-        {
-          amount: {
-            currency_code: currency,
-            value: amount.toFixed(2),
-          },
-          description,
-          custom_id: checkoutId,
-        },
-      ],
+      purchase_units: [purchaseUnit],
+      ...(Object.keys(payer).length > 0 && { payer }),
+      application_context: {
+        shipping_preference: shippingAddress
+          ? 'SET_PROVIDED_ADDRESS'
+          : 'GET_FROM_FILE',
+      },
     }),
   })
 
