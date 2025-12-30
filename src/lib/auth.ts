@@ -86,9 +86,7 @@ export async function validateSession(request: Request) {
  * Require authentication and valid CSRF token
  * Returns error Response if invalid, otherwise returns user + session
  */
-export async function requireAuthWithCsrf(
-  request: Request,
-): Promise<
+export async function requireAuthWithCsrf(request: Request): Promise<
   | {
       success: true
       user: { id: string; email: string; role: string }
@@ -119,9 +117,7 @@ export async function requireAuthWithCsrf(
 /**
  * Require admin role with CSRF validation
  */
-export async function requireAdminWithCsrf(
-  request: Request,
-): Promise<
+export async function requireAdminWithCsrf(request: Request): Promise<
   | {
       success: true
       user: { id: string; email: string; role: string }
