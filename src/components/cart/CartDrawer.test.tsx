@@ -109,7 +109,9 @@ describe('CartDrawer Component', () => {
 
     it('should show checkout button', () => {
       render(<CartDrawer open={true} onOpenChange={() => {}} />)
-      expect(screen.getByRole('button', { name: /checkout/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /checkout/i }),
+      ).toBeInTheDocument()
     })
   })
 
@@ -118,9 +120,9 @@ describe('CartDrawer Component', () => {
       const user = userEvent.setup()
       render(<CartDrawer open={true} onOpenChange={() => {}} />)
 
-      const incrementButton = screen.getAllByRole('button').find(
-        (btn) => btn.querySelector('svg.lucide-plus')
-      )
+      const incrementButton = screen
+        .getAllByRole('button')
+        .find((btn) => btn.querySelector('svg.lucide-plus'))
 
       if (incrementButton) {
         await user.click(incrementButton)
@@ -132,9 +134,9 @@ describe('CartDrawer Component', () => {
       const user = userEvent.setup()
       render(<CartDrawer open={true} onOpenChange={() => {}} />)
 
-      const decrementButton = screen.getAllByRole('button').find(
-        (btn) => btn.querySelector('svg.lucide-minus')
-      )
+      const decrementButton = screen
+        .getAllByRole('button')
+        .find((btn) => btn.querySelector('svg.lucide-minus'))
 
       if (decrementButton) {
         await user.click(decrementButton)
@@ -146,9 +148,9 @@ describe('CartDrawer Component', () => {
       const user = userEvent.setup()
       render(<CartDrawer open={true} onOpenChange={() => {}} />)
 
-      const removeButton = screen.getAllByRole('button').find(
-        (btn) => btn.querySelector('svg.lucide-trash2')
-      )
+      const removeButton = screen
+        .getAllByRole('button')
+        .find((btn) => btn.querySelector('svg.lucide-trash2'))
 
       if (removeButton) {
         await user.click(removeButton)

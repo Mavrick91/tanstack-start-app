@@ -25,7 +25,9 @@ describe('image-utils', () => {
   describe('isCloudinaryUrl', () => {
     it('should return true for Cloudinary URLs', () => {
       expect(
-        isCloudinaryUrl('https://res.cloudinary.com/demo/image/upload/v1/test.jpg'),
+        isCloudinaryUrl(
+          'https://res.cloudinary.com/demo/image/upload/v1/test.jpg',
+        ),
       ).toBe(true)
     })
 

@@ -6,36 +6,40 @@ Systematic improvements to the test suite addressing 7 identified issues: CSS cl
 
 ## Decisions Made
 
-| Issue | Decision |
-|-------|----------|
-| CSS Class Assertions | Delete styling tests entirely |
-| Under-Tested Components | Full coverage for CartDrawer, focused for Navbar |
-| Form Testing Inconsistency | Standardize on `userEvent.setup()` |
-| Logic Tests Outside Component | Extract to `src/lib/image-utils.ts` |
-| Drag-and-Drop Not Tested | Test reorder callback via mock |
-| Missing Error Coverage | Comprehensive for all data-fetching components |
-| Integration Tests | Deferred to separate task |
+| Issue                         | Decision                                         |
+| ----------------------------- | ------------------------------------------------ |
+| CSS Class Assertions          | Delete styling tests entirely                    |
+| Under-Tested Components       | Full coverage for CartDrawer, focused for Navbar |
+| Form Testing Inconsistency    | Standardize on `userEvent.setup()`               |
+| Logic Tests Outside Component | Extract to `src/lib/image-utils.ts`              |
+| Drag-and-Drop Not Tested      | Test reorder callback via mock                   |
+| Missing Error Coverage        | Comprehensive for all data-fetching components   |
+| Integration Tests             | Deferred to separate task                        |
 
 ---
 
 ## 1. CSS Class Assertion Cleanup
 
 ### Files
+
 - `src/components/admin/orders/OrderStatusBadge.test.tsx`
 - `src/components/products/ProductGallery.test.tsx`
 
 ### Changes
 
 **OrderStatusBadge.test.tsx:**
+
 - Delete `describe('Status Styling')` block (lines 73-144)
 - Delete `describe('Common Badge Styles')` block (lines 165-197)
 - Keep: rendering tests, unknown status handling, default type
 
 **ProductGallery.test.tsx:**
+
 - Delete `describe('Styling')` block (lines 113-149)
 - Keep: empty state, single/multiple image rendering, fancybox attributes
 
 ### Rationale
+
 Tests coupled to Tailwind implementation break on design changes despite no functional change.
 
 ---
@@ -43,6 +47,7 @@ Tests coupled to Tailwind implementation break on design changes despite no func
 ## 2. CartDrawer Test Expansion
 
 ### File
+
 `src/components/cart/CartDrawer.test.tsx`
 
 ### New Tests
@@ -62,6 +67,7 @@ describe('Empty Cart State', () => {
 ```
 
 ### Mock Updates
+
 - Make `removeItem` and `updateQuantity` accessible as spies
 - Add empty cart state mock configuration
 - Mock `useNavigate` for checkout navigation verification
@@ -71,6 +77,7 @@ describe('Empty Cart State', () => {
 ## 3. Navbar Test Expansion
 
 ### File
+
 `src/components/layout/Navbar.test.tsx`
 
 ### New Tests
@@ -95,6 +102,7 @@ describe('Mobile Menu', () => {
 ```
 
 ### Mock Updates
+
 - Update `useCartStore` mock for item count
 - Track CartDrawer open state
 - Consider `window.matchMedia` mock for mobile tests
@@ -104,6 +112,7 @@ describe('Mobile Menu', () => {
 ## 4. Form Testing Standardization
 
 ### Files
+
 - `src/components/admin/products/ImageUploader.test.tsx`
 - Any other form tests using `fireEvent`
 
@@ -120,6 +129,7 @@ await user.type(altTextInputs[0], 'Updated')
 ```
 
 ### Tests to Update in ImageUploader.test.tsx
+
 - `should call onChange when alt text is updated`
 - `should call onChange when image is removed`
 - `should preserve remaining images after removing one`
@@ -134,15 +144,24 @@ await user.type(altTextInputs[0], 'Updated')
 ```typescript
 export function isBlobUrl(url: string): boolean
 export function isCloudinaryUrl(url: string): boolean
-export function getImagesNeedingUpload<T extends { url: string }>(images: T[]): T[]
-export function getAlreadyUploadedImages<T extends { url: string }>(images: T[]): T[]
-export function getRemovedImageUrls(original: { url: string }[], current: { url: string }[]): string[]
+export function getImagesNeedingUpload<T extends { url: string }>(
+  images: T[],
+): T[]
+export function getAlreadyUploadedImages<T extends { url: string }>(
+  images: T[],
+): T[]
+export function getRemovedImageUrls(
+  original: { url: string }[],
+  current: { url: string }[],
+): string[]
 ```
 
 ### New File: `src/lib/image-utils.test.ts`
+
 Move all logic tests from ProductForm.test.tsx here.
 
 ### ProductForm.test.tsx Changes
+
 - Delete `describe('Image Handling Logic')` block (lines 280-490)
 - Keep component rendering tests only
 
@@ -151,6 +170,7 @@ Move all logic tests from ProductForm.test.tsx here.
 ## 6. ImageUploader Drag Reorder Testing
 
 ### File
+
 `src/components/admin/products/ImageUploader.test.tsx`
 
 ### New Tests
@@ -163,6 +183,7 @@ describe('Image Reordering', () => {
 ```
 
 ### Implementation
+
 1. Update dnd-kit mock to capture `onDragEnd` callback
 2. Call with simulated `DragEndEvent` containing `active.id` and `over.id`
 3. Assert `onChange` receives correctly reordered array
@@ -172,6 +193,7 @@ describe('Image Reordering', () => {
 ## 7. Error Scenario Coverage
 
 ### Files to Update
+
 - `src/components/checkout/AddressForm.test.tsx`
 - `src/components/admin/products/ProductForm.test.tsx`
 - `src/components/checkout/PayPalButton.test.tsx`
@@ -207,17 +229,17 @@ Multi-step flow tests (address → shipping → payment → confirmation) deferr
 
 ## Files Summary
 
-| Action | File |
-|--------|------|
-| Delete tests | `OrderStatusBadge.test.tsx` |
-| Delete tests | `ProductGallery.test.tsx` |
-| Add tests | `CartDrawer.test.tsx` |
-| Add tests | `Navbar.test.tsx` |
-| Refactor | `ImageUploader.test.tsx` |
-| Delete + refactor | `ProductForm.test.tsx` |
-| Create | `src/lib/image-utils.ts` |
-| Create | `src/lib/image-utils.test.ts` |
-| Add tests | `AddressForm.test.tsx` |
-| Add tests | `PayPalButton.test.tsx` |
-| Add tests | `ProductsList.test.tsx` |
-| Add tests | `OrdersTable.test.tsx` |
+| Action            | File                          |
+| ----------------- | ----------------------------- |
+| Delete tests      | `OrderStatusBadge.test.tsx`   |
+| Delete tests      | `ProductGallery.test.tsx`     |
+| Add tests         | `CartDrawer.test.tsx`         |
+| Add tests         | `Navbar.test.tsx`             |
+| Refactor          | `ImageUploader.test.tsx`      |
+| Delete + refactor | `ProductForm.test.tsx`        |
+| Create            | `src/lib/image-utils.ts`      |
+| Create            | `src/lib/image-utils.test.ts` |
+| Add tests         | `AddressForm.test.tsx`        |
+| Add tests         | `PayPalButton.test.tsx`       |
+| Add tests         | `ProductsList.test.tsx`       |
+| Add tests         | `OrdersTable.test.tsx`        |
