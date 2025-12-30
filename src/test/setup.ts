@@ -1,11 +1,38 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import React from 'react'
 import { afterEach, beforeEach, vi } from 'vitest'
 
 import { resetFactories } from './factories/data'
 
 // Initialize i18n
 import '../lib/i18n'
+
+// =============================================================================
+// Global Mocks - Router
+// =============================================================================
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    to,
+    params,
+    className,
+  }: {
+    children: React.ReactNode
+    to: string
+    params?: Record<string, string>
+    className?: string
+  }) => {
+    const href = params?.lang ? to.replace('$lang', params.lang) : to
+    return React.createElement('a', { href, className }, children)
+  },
+  useNavigate: () => vi.fn(),
+  useParams: () => ({ lang: 'en' }),
+  useSearch: () => ({}),
+  useLocation: () => ({ pathname: '/' }),
+  useRouter: () => ({ navigate: vi.fn() }),
+}))
 
 // =============================================================================
 // Standardized cleanup after EVERY test
