@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { ImageUploader, type ImageItem } from './ImageUploader'
@@ -95,32 +96,34 @@ describe('ImageUploader', () => {
     expect(altTextInputs[1]).toHaveValue('Second image')
   })
 
-  it('should call onChange when alt text is updated', () => {
+  it('should call onChange when alt text is updated', async () => {
+    const user = userEvent.setup()
     render(<ImageUploader images={sampleImages} onChange={mockOnChange} />)
 
     const altTextInputs = screen.getAllByPlaceholderText(/alt text/i)
-    fireEvent.change(altTextInputs[0], {
-      target: { value: 'Updated alt text' },
-    })
+    // Type a single character to append
+    await user.type(altTextInputs[0], 'X')
 
+    // userEvent.type() triggers onChange for each keystroke
     expect(mockOnChange).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           id: 'img-1',
-          altText: expect.objectContaining({ en: 'Updated alt text' }),
+          altText: expect.objectContaining({ en: 'First imageX' }),
         }),
       ]),
     )
   })
 
-  it('should call onChange when image is removed', () => {
+  it('should call onChange when image is removed', async () => {
+    const user = userEvent.setup()
     render(<ImageUploader images={sampleImages} onChange={mockOnChange} />)
 
     // Remove buttons are the only buttons with Trash2 icon
     const removeButtons = screen
       .getAllByRole('button')
       .filter((btn) => btn.querySelector('svg.lucide-trash2'))
-    fireEvent.click(removeButtons[0])
+    await user.click(removeButtons[0])
 
     expect(mockOnChange).toHaveBeenCalledWith([
       expect.objectContaining({ id: 'img-2' }),
@@ -161,7 +164,8 @@ describe('ImageUploader', () => {
     expect(imgs[1]).toHaveAttribute('src', 'https://example.com/image2.jpg')
   })
 
-  it('should preserve remaining images after removing one', () => {
+  it('should preserve remaining images after removing one', async () => {
+    const user = userEvent.setup()
     const fiveImages: ImageItem[] = [
       { id: '1', url: 'https://example.com/1.jpg', altText: { en: 'One' } },
       { id: '2', url: 'https://example.com/2.jpg', altText: { en: 'Two' } },
@@ -177,7 +181,7 @@ describe('ImageUploader', () => {
     const removeButtons = screen
       .getAllByRole('button')
       .filter((btn) => btn.querySelector('svg.lucide-trash2'))
-    fireEvent.click(removeButtons[0])
+    await user.click(removeButtons[0])
 
     expect(mockOnChange).toHaveBeenCalledWith([
       expect.objectContaining({ id: '2' }),
@@ -187,7 +191,8 @@ describe('ImageUploader', () => {
     ])
   })
 
-  it('should correctly pass the remaining 4 images after deletion', () => {
+  it('should correctly pass the remaining 4 images after deletion', async () => {
+    const user = userEvent.setup()
     const fiveImages: ImageItem[] = [
       { id: 'a', url: 'blob:local/a', altText: { en: 'A' } },
       { id: 'b', url: 'blob:local/b', altText: { en: 'B' } },
@@ -201,7 +206,7 @@ describe('ImageUploader', () => {
     const removeButtons = screen
       .getAllByRole('button')
       .filter((btn) => btn.querySelector('svg.lucide-trash2'))
-    fireEvent.click(removeButtons[2])
+    await user.click(removeButtons[2])
 
     expect(mockOnChange).toHaveBeenCalledWith(
       expect.arrayContaining([
