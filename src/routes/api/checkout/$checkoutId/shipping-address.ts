@@ -8,6 +8,7 @@ import {
   simpleErrorResponse,
   successResponse,
 } from '../../../../lib/api'
+import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
 
 import type { AddressSnapshot } from '../../../../db/schema'
 
@@ -19,7 +20,7 @@ export const Route = createFileRoute(
       POST: async ({ params, request }) => {
         try {
           const { checkoutId } = params
-          const body = await request.json()
+          const body = await request.clone().json()
           const {
             firstName,
             lastName,
@@ -56,27 +57,21 @@ export const Route = createFileRoute(
             return simpleErrorResponse('ZIP/Postal code is required')
           }
 
-          // Get checkout
-          const [checkout] = await db
-            .select()
-            .from(checkouts)
-            .where(eq(checkouts.id, checkoutId))
-            .limit(1)
-
-          if (!checkout) {
-            return simpleErrorResponse('Checkout not found', 404)
+          const access = await validateCheckoutAccess(checkoutId, request)
+          if (!access.valid) {
+            const status =
+              access.error === 'Checkout not found'
+                ? 404
+                : access.error === 'Unauthorized'
+                  ? 403
+                  : 410
+            return new Response(JSON.stringify({ error: access.error }), {
+              status,
+              headers: { 'Content-Type': 'application/json' },
+            })
           }
 
-          if (checkout.expiresAt < new Date()) {
-            return simpleErrorResponse('Checkout has expired', 410)
-          }
-
-          if (checkout.completedAt) {
-            return simpleErrorResponse(
-              'Checkout has already been completed',
-              410,
-            )
-          }
+          const checkout = access.checkout!
 
           const shippingAddress: AddressSnapshot = {
             firstName: firstName.trim(),

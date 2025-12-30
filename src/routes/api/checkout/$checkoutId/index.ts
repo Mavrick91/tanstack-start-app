@@ -1,43 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { eq } from 'drizzle-orm'
 
-import { db } from '../../../../db'
-import { checkouts } from '../../../../db/schema'
-import {
-  errorResponse,
-  simpleErrorResponse,
-  successResponse,
-} from '../../../../lib/api'
+import { errorResponse, successResponse } from '../../../../lib/api'
+import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
 
 export const Route = createFileRoute('/api/checkout/$checkoutId/')({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ params, request }) => {
         try {
           const { checkoutId } = params
-
-          const [checkout] = await db
-            .select()
-            .from(checkouts)
-            .where(eq(checkouts.id, checkoutId))
-            .limit(1)
-
-          if (!checkout) {
-            return simpleErrorResponse('Checkout not found', 404)
+          const access = await validateCheckoutAccess(checkoutId, request)
+          if (!access.valid) {
+            const status =
+              access.error === 'Checkout not found'
+                ? 404
+                : access.error === 'Unauthorized'
+                  ? 403
+                  : 410
+            return new Response(JSON.stringify({ error: access.error }), {
+              status,
+              headers: { 'Content-Type': 'application/json' },
+            })
           }
 
-          // Check if checkout is expired
-          if (checkout.expiresAt < new Date()) {
-            return simpleErrorResponse('Checkout has expired', 410)
-          }
-
-          // Check if checkout is already completed
-          if (checkout.completedAt) {
-            return simpleErrorResponse(
-              'Checkout has already been completed',
-              410,
-            )
-          }
+          const checkout = access.checkout!
 
           return successResponse({
             checkout: {

@@ -10,6 +10,7 @@ import {
 } from '../../../db/schema'
 import {
   errorResponse,
+  requireAdmin,
   requireAuth,
   sanitizeProductFields,
   simpleErrorResponse,
@@ -59,7 +60,7 @@ export const Route = createFileRoute('/api/products/$productId')({
 
       PUT: async ({ params, request }) => {
         try {
-          const auth = await requireAuth(request)
+          const auth = await requireAdmin(request)
           if (!auth.success) return auth.response
 
           const body = await request.json()
@@ -180,7 +181,7 @@ export const Route = createFileRoute('/api/products/$productId')({
 
       DELETE: async ({ params, request }) => {
         try {
-          const auth = await requireAuth(request)
+          const auth = await requireAdmin(request)
           if (!auth.success) return auth.response
 
           const [deleted] = await db

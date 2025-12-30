@@ -6,7 +6,7 @@ import { db } from '../../../db'
 import { media } from '../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/media/')({
     handlers: {
       // GET: List all media items
       GET: async ({ request }) => {
-        const auth = await requireAuth(request)
+        const auth = await requireAdmin(request)
         if (!auth.success) return auth.response
 
         try {
@@ -39,7 +39,7 @@ export const Route = createFileRoute('/api/media/')({
 
       // DELETE: Delete media items by ID
       DELETE: async ({ request }) => {
-        const auth = await requireAuth(request)
+        const auth = await requireAdmin(request)
         if (!auth.success) return auth.response
 
         try {

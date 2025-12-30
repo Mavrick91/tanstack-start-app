@@ -127,7 +127,7 @@ export function OrderHistory({
                   {/* Reason */}
                   {entry.reason && (
                     <p className="text-sm text-muted-foreground italic">
-                      "{entry.reason}"
+                      &ldquo;{entry.reason}&rdquo;
                     </p>
                   )}
 

@@ -5,7 +5,7 @@ import { db } from '../../../db'
 import { productImages, products } from '../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/api/products/bulk')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const auth = await requireAuth(request)
+          const auth = await requireAdmin(request)
           if (!auth.success) return auth.response
 
           const body = await request.json()

@@ -10,6 +10,7 @@ import {
 } from '../../../db/schema'
 import {
   errorResponse,
+  requireAdmin,
   requireAuth,
   sanitizeProductFields,
   simpleErrorResponse,
@@ -138,7 +139,7 @@ export const Route = createFileRoute('/api/products/')({
 
       POST: async ({ request }) => {
         try {
-          const auth = await requireAuth(request)
+          const auth = await requireAdmin(request)
           if (!auth.success) return auth.response
 
           const body = await request.json()

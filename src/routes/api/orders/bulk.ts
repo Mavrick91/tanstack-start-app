@@ -87,7 +87,7 @@ export const Route = createFileRoute('/api/orders/bulk')({
           for (const order of currentOrders) {
             const previousValue = order[action as keyof typeof order] as string
             if (previousValue !== value) {
-              recordStatusChange({
+              await recordStatusChange({
                 orderId: order.id,
                 field: action as
                   | 'status'

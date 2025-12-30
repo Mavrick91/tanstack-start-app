@@ -3,6 +3,11 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { orders } from '../../../db/schema'
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  rateLimitResponse,
+} from '../../../lib/rate-limit'
 import { constructWebhookEvent } from '../../../lib/stripe'
 
 export const Route = createFileRoute('/api/webhooks/stripe')({
@@ -10,6 +15,12 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const key = getRateLimitKey(request)
+          const rateLimit = await checkRateLimit('webhook', key)
+          if (!rateLimit.allowed) {
+            return rateLimitResponse(rateLimit.retryAfter || 60)
+          }
+
           const body = await request.text()
           const signature = request.headers.get('stripe-signature')
 

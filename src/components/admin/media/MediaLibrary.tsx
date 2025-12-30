@@ -11,6 +11,7 @@ import { Button } from '../../ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -162,9 +163,9 @@ export function MediaLibrary({
                   <ImageIcon className="w-5 h-5 text-pink-500" />
                   {t('Media Library')}
                 </DialogTitle>
-                <p className="text-xs text-muted-foreground">
+                <DialogDescription className="text-xs text-muted-foreground">
                   {t('Manage your products and inventory')}
-                </p>
+                </DialogDescription>
               </div>
               <div className="flex items-center gap-4">
                 {selectedIds.size > 0 && (

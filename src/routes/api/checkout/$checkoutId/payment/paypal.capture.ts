@@ -1,13 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { eq } from 'drizzle-orm'
 
-import { db } from '../../../../../db'
-import { checkouts } from '../../../../../db/schema'
 import {
   errorResponse,
   simpleErrorResponse,
   successResponse,
 } from '../../../../../lib/api'
+import { validateCheckoutAccess } from '../../../../../lib/checkout-auth'
 import { capturePayPalOrder } from '../../../../../lib/paypal'
 
 export const Route = createFileRoute(
@@ -18,33 +16,25 @@ export const Route = createFileRoute(
       POST: async ({ request, params }) => {
         try {
           const { checkoutId } = params
-          const body = await request.json()
+          const body = await request.clone().json()
           const { orderId } = body
 
           if (!orderId) {
             return simpleErrorResponse('PayPal order ID is required')
           }
 
-          // Get checkout
-          const [checkout] = await db
-            .select()
-            .from(checkouts)
-            .where(eq(checkouts.id, checkoutId))
-            .limit(1)
-
-          if (!checkout) {
-            return simpleErrorResponse('Checkout not found', 404)
-          }
-
-          if (checkout.expiresAt < new Date()) {
-            return simpleErrorResponse('Checkout has expired', 410)
-          }
-
-          if (checkout.completedAt) {
-            return simpleErrorResponse(
-              'Checkout has already been completed',
-              410,
-            )
+          const access = await validateCheckoutAccess(checkoutId, request)
+          if (!access.valid) {
+            const status =
+              access.error === 'Checkout not found'
+                ? 404
+                : access.error === 'Unauthorized'
+                  ? 403
+                  : 410
+            return new Response(JSON.stringify({ error: access.error }), {
+              status,
+              headers: { 'Content-Type': 'application/json' },
+            })
           }
 
           // Capture the PayPal order

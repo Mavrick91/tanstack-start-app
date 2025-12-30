@@ -13,6 +13,13 @@ import {
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
+import { createCheckoutSessionCookie } from '../../../lib/checkout-auth'
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  rateLimitResponse,
+} from '../../../lib/rate-limit'
+import { calculateTax } from '../../../lib/tax'
 import {
   SHIPPING_RATES,
   FREE_SHIPPING_THRESHOLD,
@@ -31,6 +38,12 @@ export const Route = createFileRoute('/api/checkout/create')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const key = getRateLimitKey(request)
+          const rateLimit = await checkRateLimit('api', key)
+          if (!rateLimit.allowed) {
+            return rateLimitResponse(rateLimit.retryAfter || 60)
+          }
+
           const body = await request.json()
           const { items, currency = 'USD' } = body as {
             items: CartItem[]
@@ -125,7 +138,8 @@ export const Route = createFileRoute('/api/checkout/create')({
           const defaultShippingRate =
             subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_RATES[0].price
           const shippingTotal = defaultShippingRate
-          const taxTotal = 0 // No tax calculation per PRD
+
+          const taxTotal = calculateTax(subtotal)
           const total = subtotal + shippingTotal + taxTotal
 
           // Create checkout session (expires in 24 hours)
@@ -144,7 +158,7 @@ export const Route = createFileRoute('/api/checkout/create')({
             })
             .returning()
 
-          return successResponse({
+          const response = successResponse({
             checkout: {
               id: checkout.id,
               cartItems: checkout.cartItems,
@@ -156,6 +170,13 @@ export const Route = createFileRoute('/api/checkout/create')({
               expiresAt: checkout.expiresAt,
             },
           })
+
+          response.headers.set(
+            'Set-Cookie',
+            createCheckoutSessionCookie(checkout.id),
+          )
+
+          return response
         } catch (error) {
           console.error('Checkout creation error:', error)
           const message =

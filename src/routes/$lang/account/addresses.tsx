@@ -14,6 +14,7 @@ import { Button } from '../../../components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -197,6 +198,9 @@ function AccountAddressesPage() {
                 <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
                   <DialogHeader>
                     <DialogTitle>{t('Add new address')}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                      {t('Fill out the form to add a new shipping address')}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="mt-4">
                     <AddressForm

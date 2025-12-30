@@ -1,6 +1,7 @@
 import { AlertTriangle, Loader2, XCircle, RefreshCw, Ban } from 'lucide-react'
 import { useState } from 'react'
 
+import { formatCurrency } from '../../../lib/format'
 import { Button } from '../../ui/button'
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
   DialogTitle,
 } from '../../ui/dialog'
 import { Textarea } from '../../ui/textarea'
-import { formatCurrency } from '../../../lib/format'
 
 import type { PaymentStatus } from '../../../types/checkout'
 

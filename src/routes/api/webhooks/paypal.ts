@@ -4,12 +4,23 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { orders } from '../../../db/schema'
 import { verifyWebhookSignature } from '../../../lib/paypal'
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  rateLimitResponse,
+} from '../../../lib/rate-limit'
 
 export const Route = createFileRoute('/api/webhooks/paypal')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          const key = getRateLimitKey(request)
+          const rateLimit = await checkRateLimit('webhook', key)
+          if (!rateLimit.allowed) {
+            return rateLimitResponse(rateLimit.retryAfter || 60)
+          }
+
           const body = await request.text()
 
           const webhookId = process.env.PAYPAL_WEBHOOK_ID

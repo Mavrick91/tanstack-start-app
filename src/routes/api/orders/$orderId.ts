@@ -187,7 +187,7 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             updates.status = status
 
             // Record in audit trail
-            recordStatusChange({
+            await recordStatusChange({
               orderId,
               field: 'status',
               previousValue: order.status,
@@ -232,7 +232,7 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             }
 
             // Record in audit trail
-            recordStatusChange({
+            await recordStatusChange({
               orderId,
               field: 'paymentStatus',
               previousValue: order.paymentStatus,
@@ -262,7 +262,7 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             updates.fulfillmentStatus = fulfillmentStatus
 
             // Record in audit trail
-            recordStatusChange({
+            await recordStatusChange({
               orderId,
               field: 'fulfillmentStatus',
               previousValue: order.fulfillmentStatus,

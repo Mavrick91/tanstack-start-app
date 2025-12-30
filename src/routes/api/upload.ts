@@ -5,7 +5,7 @@ import { db } from '../../db'
 import { media } from '../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../lib/api'
@@ -30,7 +30,7 @@ export const Route = createFileRoute('/api/upload')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = await requireAuth(request)
+        const auth = await requireAdmin(request)
         if (!auth.success) return auth.response
 
         try {

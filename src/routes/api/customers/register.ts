@@ -15,12 +15,24 @@ import {
   successResponse,
 } from '../../../lib/api'
 import { hashPassword } from '../../../lib/auth'
+import { validatePassword } from '../../../lib/password-validation'
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  rateLimitResponse,
+} from '../../../lib/rate-limit'
 
 export const Route = createFileRoute('/api/customers/register')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          const key = getRateLimitKey(request)
+          const rateLimit = await checkRateLimit('auth', key)
+          if (!rateLimit.allowed) {
+            return rateLimitResponse(rateLimit.retryAfter || 60)
+          }
+
           const body = await request.json()
           const {
             email,
@@ -41,8 +53,9 @@ export const Route = createFileRoute('/api/customers/register')({
             return simpleErrorResponse('Invalid email format')
           }
 
-          if (!password || password.length < 8) {
-            return simpleErrorResponse('Password must be at least 8 characters')
+          const passwordValidation = validatePassword(password)
+          if (!passwordValidation.valid) {
+            return simpleErrorResponse(passwordValidation.error!)
           }
 
           // Check if user already exists

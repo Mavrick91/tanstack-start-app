@@ -1,6 +1,7 @@
-import { eq, inArray, sql } from 'drizzle-orm'
+import { desc, eq, inArray, sql } from 'drizzle-orm'
+
 import { db } from '../db'
-import { orders, orderItems } from '../db/schema'
+import { orders, orderItems, orderStatusHistory } from '../db/schema'
 import { stripe } from '../lib/stripe'
 
 // ============================================
@@ -125,33 +126,44 @@ export async function getOrderItemsByOrderIds(
   return itemsMap
 }
 
-// ============================================
-// ORDER STATUS AUDIT TRAIL
-// ============================================
-
-// In-memory audit log for now (could be extended to database table)
-const auditLog: OrderStatusChange[] = []
-
-/**
- * Record an order status change in the audit trail
- */
-export function recordStatusChange(change: OrderStatusChange): void {
-  auditLog.push(change)
+// Record an order status change in the audit trail
+export async function recordStatusChange(
+  change: OrderStatusChange,
+): Promise<void> {
+  await db.insert(orderStatusHistory).values({
+    orderId: change.orderId,
+    field: change.field,
+    previousValue: change.previousValue,
+    newValue: change.newValue,
+    changedBy: change.changedBy,
+    reason: change.reason,
+    createdAt: change.changedAt,
+  })
 }
 
-/**
- * Get audit trail for an order
- */
-export function getOrderAuditTrail(orderId: string): OrderStatusChange[] {
-  return auditLog.filter((entry) => entry.orderId === orderId)
+// Get audit trail for an order
+export async function getOrderAuditTrail(
+  orderId: string,
+): Promise<OrderStatusChange[]> {
+  const history = await db
+    .select()
+    .from(orderStatusHistory)
+    .where(eq(orderStatusHistory.orderId, orderId))
+    .orderBy(desc(orderStatusHistory.createdAt))
+
+  return history.map((entry) => ({
+    orderId: entry.orderId,
+    field: entry.field as 'status' | 'paymentStatus' | 'fulfillmentStatus',
+    previousValue: entry.previousValue,
+    newValue: entry.newValue,
+    changedBy: entry.changedBy,
+    changedAt: entry.createdAt,
+    reason: entry.reason || undefined,
+  }))
 }
 
-/**
- * Clear audit trail (for testing)
- */
-export function clearAuditTrail(): void {
-  auditLog.length = 0
-}
+// Clear audit trail (for testing only)
+export async function clearAuditTrail(): Promise<void> {}
 
 // ============================================
 // PAYMENT STATUS VALIDATION
@@ -405,7 +417,7 @@ export async function cancelOrderWithRefund(
   await db.update(orders).set(updates).where(eq(orders.id, orderId))
 
   // Record in audit trail
-  recordStatusChange({
+  await recordStatusChange({
     orderId,
     field: 'status',
     previousValue: order.status,
@@ -416,7 +428,7 @@ export async function cancelOrderWithRefund(
   })
 
   if (refundResult?.success) {
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'paymentStatus',
       previousValue: order.paymentStatus,

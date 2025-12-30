@@ -5,6 +5,11 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { sessions, users } from '../../../db/schema'
 import { errorResponse, simpleErrorResponse } from '../../../lib/api'
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  rateLimitResponse,
+} from '../../../lib/rate-limit'
 
 // Session expires in 7 days
 const SESSION_EXPIRY_DAYS = 7
@@ -14,6 +19,12 @@ export const Route = createFileRoute('/api/auth/login')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const key = getRateLimitKey(request)
+          const rateLimit = await checkRateLimit('auth', key)
+          if (!rateLimit.allowed) {
+            return rateLimitResponse(rateLimit.retryAfter || 60)
+          }
+
           const body = await request.json()
           const { email, password } = body
 

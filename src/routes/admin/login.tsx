@@ -30,7 +30,7 @@ function LoginPage() {
         name: 'email',
         type: 'email',
         label: 'Email',
-        placeholder: 'admin@finenail.com',
+        placeholder: 'Enter your email',
         required: true,
         validateOnChange: true,
         inputClassName:
@@ -99,10 +99,6 @@ function LoginPage() {
             </Button>
           )}
         />
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Demo: admin@finenail.com / admin123
-        </p>
       </div>
     </div>
   )

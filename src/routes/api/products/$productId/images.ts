@@ -5,7 +5,7 @@ import { db } from '../../../../db'
 import { productImages } from '../../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   successResponse,
 } from '../../../../lib/api'
 import { deleteImagesFromCloudinary } from '../../../../lib/cloudinary'
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/api/products/$productId/images')({
     handlers: {
       PUT: async ({ params, request }) => {
         try {
-          const auth = await requireAuth(request)
+          const auth = await requireAdmin(request)
           if (!auth.success) return auth.response
 
           const { productId } = params

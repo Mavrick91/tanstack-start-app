@@ -376,3 +376,17 @@ export const shippingRates = pgTable('shipping_rates', {
   isActive: boolean('is_active').default(true),
   position: integer('position').default(0),
 })
+
+// Order status change history (audit trail)
+export const orderStatusHistory = pgTable('order_status_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('order_id')
+    .notNull()
+    .references(() => orders.id, { onDelete: 'cascade' }),
+  field: text('field').notNull(),
+  previousValue: text('previous_value').notNull(),
+  newValue: text('new_value').notNull(),
+  changedBy: text('changed_by').notNull(),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})

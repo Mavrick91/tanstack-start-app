@@ -22,8 +22,7 @@ export const Route = createFileRoute('/api/orders/$orderId/history')({
 
           const { orderId } = params
 
-          // Get audit trail for this order
-          const auditTrail = getOrderAuditTrail(orderId)
+          const auditTrail = await getOrderAuditTrail(orderId)
 
           // Transform to API response format
           const history = auditTrail.map((entry, index) => ({

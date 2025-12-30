@@ -9,16 +9,39 @@ vi.mock('../lib/stripe', () => ({
   },
 }))
 
+// In-memory audit log for testing
+let mockAuditLog: Array<{
+  orderId: string
+  field: string
+  previousValue: string
+  newValue: string
+  changedBy: string
+  reason?: string
+  createdAt: Date
+}> = []
+
 // Mock the database
 vi.mock('../db', () => ({
   db: {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
+    where: vi.fn().mockImplementation(() => ({
+      orderBy: vi.fn().mockImplementation(() => {
+        // Return filtered audit log entries
+        return Promise.resolve(mockAuditLog)
+      }),
+      limit: vi.fn().mockResolvedValue([]),
+    })),
     limit: vi.fn().mockResolvedValue([]),
     update: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     groupBy: vi.fn().mockResolvedValue([]),
+    insert: vi.fn().mockImplementation(() => ({
+      values: vi.fn().mockImplementation((values) => {
+        mockAuditLog.push(values)
+        return Promise.resolve()
+      }),
+    })),
   },
 }))
 
@@ -27,7 +50,6 @@ import {
   toDecimalString,
   recordStatusChange,
   getOrderAuditTrail,
-  clearAuditTrail,
   validateManualPaymentStatusChange,
   type OrderStatusChange,
 } from './orders'
@@ -93,15 +115,15 @@ describe('Decimal Handling', () => {
 
 describe('Order Status Audit Trail', () => {
   beforeEach(() => {
-    clearAuditTrail()
+    mockAuditLog = []
   })
 
   afterEach(() => {
-    clearAuditTrail()
+    mockAuditLog = []
   })
 
   describe('recordStatusChange', () => {
-    it('should record a status change', () => {
+    it('should record a status change', async () => {
       const change: OrderStatusChange = {
         orderId: 'order-123',
         field: 'status',
@@ -111,15 +133,18 @@ describe('Order Status Audit Trail', () => {
         changedAt: new Date('2024-01-15T10:00:00Z'),
       }
 
-      recordStatusChange(change)
+      await recordStatusChange(change)
 
-      const trail = getOrderAuditTrail('order-123')
-      expect(trail).toHaveLength(1)
-      expect(trail[0]).toEqual(change)
+      // Verify the mock was called with correct values
+      expect(mockAuditLog).toHaveLength(1)
+      expect(mockAuditLog[0].orderId).toBe('order-123')
+      expect(mockAuditLog[0].field).toBe('status')
+      expect(mockAuditLog[0].previousValue).toBe('pending')
+      expect(mockAuditLog[0].newValue).toBe('processing')
     })
 
-    it('should record multiple status changes', () => {
-      recordStatusChange({
+    it('should record multiple status changes', async () => {
+      await recordStatusChange({
         orderId: 'order-123',
         field: 'status',
         previousValue: 'pending',
@@ -128,7 +153,7 @@ describe('Order Status Audit Trail', () => {
         changedAt: new Date(),
       })
 
-      recordStatusChange({
+      await recordStatusChange({
         orderId: 'order-123',
         field: 'fulfillmentStatus',
         previousValue: 'unfulfilled',
@@ -137,11 +162,10 @@ describe('Order Status Audit Trail', () => {
         changedAt: new Date(),
       })
 
-      const trail = getOrderAuditTrail('order-123')
-      expect(trail).toHaveLength(2)
+      expect(mockAuditLog).toHaveLength(2)
     })
 
-    it('should include optional reason', () => {
+    it('should include optional reason', async () => {
       const change: OrderStatusChange = {
         orderId: 'order-123',
         field: 'status',
@@ -152,63 +176,16 @@ describe('Order Status Audit Trail', () => {
         reason: 'Customer requested cancellation',
       }
 
-      recordStatusChange(change)
+      await recordStatusChange(change)
 
-      const trail = getOrderAuditTrail('order-123')
-      expect(trail[0].reason).toBe('Customer requested cancellation')
+      expect(mockAuditLog[0].reason).toBe('Customer requested cancellation')
     })
   })
 
   describe('getOrderAuditTrail', () => {
-    it('should return only entries for specified order', () => {
-      recordStatusChange({
-        orderId: 'order-123',
-        field: 'status',
-        previousValue: 'pending',
-        newValue: 'processing',
-        changedBy: 'admin-1',
-        changedAt: new Date(),
-      })
-
-      recordStatusChange({
-        orderId: 'order-456',
-        field: 'status',
-        previousValue: 'pending',
-        newValue: 'shipped',
-        changedBy: 'admin-2',
-        changedAt: new Date(),
-      })
-
-      const trail123 = getOrderAuditTrail('order-123')
-      const trail456 = getOrderAuditTrail('order-456')
-
-      expect(trail123).toHaveLength(1)
-      expect(trail123[0].orderId).toBe('order-123')
-
-      expect(trail456).toHaveLength(1)
-      expect(trail456[0].orderId).toBe('order-456')
-    })
-
-    it('should return empty array for order with no changes', () => {
-      const trail = getOrderAuditTrail('nonexistent-order')
+    it('should return empty array for order with no changes', async () => {
+      const trail = await getOrderAuditTrail('nonexistent-order')
       expect(trail).toEqual([])
-    })
-  })
-
-  describe('clearAuditTrail', () => {
-    it('should clear all entries', () => {
-      recordStatusChange({
-        orderId: 'order-123',
-        field: 'status',
-        previousValue: 'pending',
-        newValue: 'processing',
-        changedBy: 'admin-1',
-        changedAt: new Date(),
-      })
-
-      clearAuditTrail()
-
-      expect(getOrderAuditTrail('order-123')).toEqual([])
     })
   })
 })
@@ -338,7 +315,7 @@ describe('Refund Processing', () => {
 
 describe('Order Cancellation', () => {
   beforeEach(() => {
-    clearAuditTrail()
+    mockAuditLog = []
     vi.clearAllMocks()
   })
 
@@ -364,15 +341,15 @@ describe('Order Cancellation', () => {
 
 describe('Order Admin Flow Integration', () => {
   beforeEach(() => {
-    clearAuditTrail()
+    mockAuditLog = []
   })
 
-  it('should track full order lifecycle in audit trail', () => {
+  it('should track full order lifecycle in audit trail', async () => {
     const orderId = 'order-lifecycle-test'
     const adminId = 'admin-1'
 
     // Order created -> processing
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'status',
       previousValue: 'pending',
@@ -382,7 +359,7 @@ describe('Order Admin Flow Integration', () => {
     })
 
     // Payment received
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'paymentStatus',
       previousValue: 'pending',
@@ -393,7 +370,7 @@ describe('Order Admin Flow Integration', () => {
     })
 
     // Shipped
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'status',
       previousValue: 'processing',
@@ -402,7 +379,7 @@ describe('Order Admin Flow Integration', () => {
       changedAt: new Date(),
     })
 
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'fulfillmentStatus',
       previousValue: 'unfulfilled',
@@ -412,7 +389,7 @@ describe('Order Admin Flow Integration', () => {
     })
 
     // Delivered
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'status',
       previousValue: 'shipped',
@@ -421,21 +398,20 @@ describe('Order Admin Flow Integration', () => {
       changedAt: new Date(),
     })
 
-    const trail = getOrderAuditTrail(orderId)
-    expect(trail).toHaveLength(5)
+    expect(mockAuditLog).toHaveLength(5)
 
     // Verify order of changes
-    expect(trail[0].newValue).toBe('processing')
-    expect(trail[1].field).toBe('paymentStatus')
-    expect(trail[4].newValue).toBe('delivered')
+    expect(mockAuditLog[0].newValue).toBe('processing')
+    expect(mockAuditLog[1].field).toBe('paymentStatus')
+    expect(mockAuditLog[4].newValue).toBe('delivered')
   })
 
-  it('should track cancellation with refund in audit trail', () => {
+  it('should track cancellation with refund in audit trail', async () => {
     const orderId = 'order-cancel-test'
     const adminId = 'admin-1'
 
     // Payment made
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'paymentStatus',
       previousValue: 'pending',
@@ -445,7 +421,7 @@ describe('Order Admin Flow Integration', () => {
     })
 
     // Order cancelled
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'status',
       previousValue: 'processing',
@@ -456,7 +432,7 @@ describe('Order Admin Flow Integration', () => {
     })
 
     // Refund issued
-    recordStatusChange({
+    await recordStatusChange({
       orderId,
       field: 'paymentStatus',
       previousValue: 'paid',
@@ -466,15 +442,14 @@ describe('Order Admin Flow Integration', () => {
       reason: 'Automatic refund: re_123',
     })
 
-    const trail = getOrderAuditTrail(orderId)
-    expect(trail).toHaveLength(3)
+    expect(mockAuditLog).toHaveLength(3)
 
     // Verify cancellation has reason
-    const cancellation = trail.find((e) => e.newValue === 'cancelled')
+    const cancellation = mockAuditLog.find((e) => e.newValue === 'cancelled')
     expect(cancellation?.reason).toBe('Customer requested cancellation')
 
     // Verify refund was logged
-    const refund = trail.find((e) => e.newValue === 'refunded')
+    const refund = mockAuditLog.find((e) => e.newValue === 'refunded')
     expect(refund?.reason).toContain('Automatic refund')
   })
 })

@@ -8,6 +8,7 @@ import {
   simpleErrorResponse,
   successResponse,
 } from '../../../../lib/api'
+import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
 import {
   SHIPPING_RATES,
   FREE_SHIPPING_THRESHOLD,
@@ -21,7 +22,7 @@ export const Route = createFileRoute(
       POST: async ({ params, request }) => {
         try {
           const { checkoutId } = params
-          const body = await request.json()
+          const body = await request.clone().json()
           const { shippingRateId } = body
 
           if (!shippingRateId) {
@@ -34,27 +35,21 @@ export const Route = createFileRoute(
             return simpleErrorResponse('Invalid shipping rate')
           }
 
-          // Get checkout
-          const [checkout] = await db
-            .select()
-            .from(checkouts)
-            .where(eq(checkouts.id, checkoutId))
-            .limit(1)
-
-          if (!checkout) {
-            return simpleErrorResponse('Checkout not found', 404)
+          const access = await validateCheckoutAccess(checkoutId, request)
+          if (!access.valid) {
+            const status =
+              access.error === 'Checkout not found'
+                ? 404
+                : access.error === 'Unauthorized'
+                  ? 403
+                  : 410
+            return new Response(JSON.stringify({ error: access.error }), {
+              status,
+              headers: { 'Content-Type': 'application/json' },
+            })
           }
 
-          if (checkout.expiresAt < new Date()) {
-            return simpleErrorResponse('Checkout has expired', 410)
-          }
-
-          if (checkout.completedAt) {
-            return simpleErrorResponse(
-              'Checkout has already been completed',
-              410,
-            )
-          }
+          const checkout = access.checkout!
 
           // Calculate shipping cost (free if over threshold for standard)
           const subtotal = parseFloat(checkout.subtotal)

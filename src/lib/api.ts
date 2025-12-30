@@ -58,3 +58,19 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
   }
   return { success: true, user: auth.user }
 }
+
+export async function requireAdmin(request: Request): Promise<AuthResult> {
+  const auth = await requireAuth(request)
+  if (!auth.success) {
+    return auth
+  }
+
+  if (auth.user.role !== 'admin') {
+    return {
+      success: false,
+      response: simpleErrorResponse('Forbidden', 403),
+    }
+  }
+
+  return auth
+}
