@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CollectionTable, CollectionTableSkeleton } from './CollectionTable'
@@ -84,16 +83,12 @@ const mockCollections: CollectionListItem[] = [
 ]
 
 describe('CollectionTable', () => {
-  let queryClient: QueryClient
   const mockOnToggleSelect = vi.fn()
   const mockOnToggleSelectAll = vi.fn()
   const mockOnSort = vi.fn()
 
   beforeEach(() => {
     vi.resetAllMocks()
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
   })
 
   const renderComponent = (
@@ -110,11 +105,7 @@ describe('CollectionTable', () => {
       sortOrder: 'asc' as const,
       onSort: mockOnSort,
     }
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <CollectionTable {...defaultProps} {...props} />
-      </QueryClientProvider>,
-    )
+    return render(<CollectionTable {...defaultProps} {...props} />)
   }
 
   describe('Rendering', () => {

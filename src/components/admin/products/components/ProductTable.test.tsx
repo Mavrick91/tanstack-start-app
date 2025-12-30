@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ProductTable, ProductTableSkeleton } from './ProductTable'
@@ -76,9 +75,6 @@ const mockProducts: Product[] = [
 ]
 
 describe('ProductTable', () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
   const mockOnToggleSelect = vi.fn()
   const mockOnToggleSelectAll = vi.fn()
   const mockOnSort = vi.fn()
@@ -97,11 +93,7 @@ describe('ProductTable', () => {
       sortOrder: 'asc' as const,
       onSort: mockOnSort,
     }
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <ProductTable {...defaultProps} {...props} />
-      </QueryClientProvider>,
-    )
+    return render(<ProductTable {...defaultProps} {...props} />)
   }
 
   describe('Rendering', () => {

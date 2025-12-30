@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductsListContent } from './ProductsList'
@@ -10,26 +9,13 @@ const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
 describe('Products List Page', () => {
-  let queryClient: QueryClient
-
   beforeEach(() => {
     mockFetch.mockReset()
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
   })
-
-  const renderWithProviders = (component: React.ReactNode) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        {component}
-      </QueryClientProvider>,
-    )
-  }
 
   it('should show loading state initially', () => {
     mockFetch.mockImplementation(() => new Promise(() => {}))
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
@@ -38,7 +24,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: true, products: [] }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       expect(screen.getByText('No products yet')).toBeInTheDocument()
@@ -79,7 +65,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: true, products: mockProducts }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       expect(screen.getByText('Red Polish')).toBeInTheDocument()
@@ -104,7 +90,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: false, error: 'Server error' }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load products')).toBeInTheDocument()
@@ -116,7 +102,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: true, products: [] }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       // There are multiple "Add Product" buttons on empty state - check they all link correctly
@@ -149,7 +135,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: true, products: mockProducts }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       expect(screen.getByText('$10.00 - $20.00')).toBeInTheDocument()
@@ -177,7 +163,7 @@ describe('Products List Page', () => {
       json: () => Promise.resolve({ success: true, products: mockProducts }),
     })
 
-    renderWithProviders(<ProductsListContent />)
+    render(<ProductsListContent />)
 
     await waitFor(() => {
       expect(screen.getByText('TestVendor')).toBeInTheDocument()

@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CollectionForm } from './CollectionForm'
@@ -58,25 +57,10 @@ vi.mock('../../../server/products', () => ({
   }),
 }))
 
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  })
-
-const renderWithProviders = (ui: React.ReactElement) => {
-  const queryClient = createTestQueryClient()
-  return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
-  )
-}
-
 describe('CollectionForm Integration', () => {
   describe('Create Mode', () => {
     it('renders the form in create mode', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(screen.getByText('New Collection')).toBeInTheDocument()
       expect(screen.getByText('Creating')).toBeInTheDocument()
@@ -86,7 +70,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('shows required form fields', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(
         screen.getByPlaceholderText('Enter collection name...'),
@@ -96,7 +80,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('updates name input when typing', async () => {
-      const { user } = renderWithProviders(<CollectionForm />)
+      const { user } = render(<CollectionForm />)
 
       const nameInput = screen.getByPlaceholderText('Enter collection name...')
       await user.type(nameInput, 'Best Sellers')
@@ -109,7 +93,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('updates SEO preview when name changes', async () => {
-      const { user } = renderWithProviders(<CollectionForm />)
+      const { user } = render(<CollectionForm />)
 
       const nameInput = screen.getByPlaceholderText('Enter collection name...')
       await user.type(nameInput, 'Summer')
@@ -123,7 +107,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('does not show Products Management card in create mode', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       // Products card should only appear in edit mode
       expect(screen.queryByText('Products')).not.toBeInTheDocument()
@@ -152,7 +136,7 @@ describe('CollectionForm Integration', () => {
     }
 
     it('renders the form in edit mode with collection data', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       expect(screen.getByText('Existing Collection')).toBeInTheDocument()
       expect(screen.getByText('Editing')).toBeInTheDocument()
@@ -162,7 +146,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('shows Duplicate button in edit mode', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       expect(
         screen.getByRole('button', { name: /Duplicate/i }),
@@ -170,7 +154,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('shows Products Management card in edit mode', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       // Check for the Products card title by looking for the card description
       expect(
@@ -182,14 +166,14 @@ describe('CollectionForm Integration', () => {
     })
 
     it('displays existing products in edit mode', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       expect(screen.getByText('Product One')).toBeInTheDocument()
       expect(screen.getByText('/product-1')).toBeInTheDocument()
     })
 
     it('shows Publish/Unpublish button based on publishedAt', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       // Published collection should show Unpublish
       expect(
@@ -199,9 +183,7 @@ describe('CollectionForm Integration', () => {
 
     it('shows Publish button for unpublished collection', () => {
       const unpublishedCollection = { ...mockCollection, publishedAt: null }
-      renderWithProviders(
-        <CollectionForm collection={unpublishedCollection} isEdit />,
-      )
+      render(<CollectionForm collection={unpublishedCollection} isEdit />)
 
       expect(
         screen.getByRole('button', { name: /Publish/i }),
@@ -209,7 +191,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('populates form fields with existing data', () => {
-      renderWithProviders(<CollectionForm collection={mockCollection} isEdit />)
+      render(<CollectionForm collection={mockCollection} isEdit />)
 
       expect(
         screen.getByDisplayValue('Existing Collection'),
@@ -223,13 +205,13 @@ describe('CollectionForm Integration', () => {
 
   describe('SEO Preview', () => {
     it('shows default SEO preview text when empty', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(screen.getByText('Collection Title')).toBeInTheDocument()
     })
 
     it('shows character count for meta fields', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(screen.getByText(/0 \/ 70 characters/)).toBeInTheDocument()
       expect(screen.getByText(/0 \/ 160 characters/)).toBeInTheDocument()
@@ -238,13 +220,13 @@ describe('CollectionForm Integration', () => {
 
   describe('Status Card', () => {
     it('shows Draft badge in create mode', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(screen.getByText('Not visible')).toBeInTheDocument()
     })
 
     it('shows "Not visible" text for unpublished collection', () => {
-      renderWithProviders(<CollectionForm />)
+      render(<CollectionForm />)
 
       expect(screen.getByText('Not visible')).toBeInTheDocument()
     })
@@ -257,9 +239,7 @@ describe('CollectionForm Integration', () => {
         publishedAt: new Date(),
         createdAt: new Date(),
       }
-      renderWithProviders(
-        <CollectionForm collection={publishedCollection} isEdit />,
-      )
+      render(<CollectionForm collection={publishedCollection} isEdit />)
 
       expect(screen.getByText('Visible on storefront')).toBeInTheDocument()
     })
@@ -276,7 +256,7 @@ describe('CollectionForm Integration', () => {
     }
 
     it('opens product picker dialog when clicking Add Products', async () => {
-      const { user } = renderWithProviders(
+      const { user } = render(
         <CollectionForm collection={mockCollectionWithProducts} isEdit />,
       )
 

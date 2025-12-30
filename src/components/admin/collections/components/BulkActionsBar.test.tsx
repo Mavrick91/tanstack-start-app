@@ -32,14 +32,10 @@ vi.mock('sonner', () => ({
 }))
 
 describe('BulkActionsBar', () => {
-  let queryClient: QueryClient
   const mockOnClearSelection = vi.fn()
 
   beforeEach(() => {
     vi.resetAllMocks()
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
     vi.mocked(bulkDeleteCollectionsFn).mockResolvedValue({
       success: true,
       count: 3,
@@ -58,11 +54,7 @@ describe('BulkActionsBar', () => {
       selectedIds: new Set(['id-1', 'id-2', 'id-3']),
       onClearSelection: mockOnClearSelection,
     }
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <BulkActionsBar {...defaultProps} {...props} />
-      </QueryClientProvider>,
-    )
+    return render(<BulkActionsBar {...defaultProps} {...props} />)
   }
 
   describe('Rendering', () => {
@@ -242,8 +234,23 @@ describe('BulkActionsBar', () => {
 
   describe('Query invalidation', () => {
     it('invalidates collections query on success', async () => {
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-      const { user } = renderComponent()
+      // Create a custom queryClient for this test to spy on
+      const testQueryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      })
+      const invalidateSpy = vi.spyOn(testQueryClient, 'invalidateQueries')
+
+      const defaultProps = {
+        selectedCount: 3,
+        selectedIds: new Set(['id-1', 'id-2', 'id-3']),
+        onClearSelection: mockOnClearSelection,
+      }
+
+      const { user } = render(
+        <QueryClientProvider client={testQueryClient}>
+          <BulkActionsBar {...defaultProps} />
+        </QueryClientProvider>,
+      )
 
       await user.click(screen.getByRole('button', { name: /^Publish$/ }))
 
