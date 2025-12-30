@@ -432,10 +432,23 @@ export const getAdminProductsFn = createServerFn().handler(async () => {
         .where(eq(productVariants.productId, product.id))
         .orderBy(asc(productVariants.position))
 
+      // Calculate price range
+      const prices = variants
+        .map((v) => parseFloat(v.price))
+        .filter((p) => !isNaN(p))
+      const minPrice = prices.length > 0 ? Math.min(...prices) : null
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+
+      // TODO: Add inventory tracking
+      const totalInventory = 0
+
       return {
         ...product,
         imageUrl: images[0]?.url,
-        variants,
+        variantCount: variants.length,
+        minPrice,
+        maxPrice,
+        totalInventory,
         price: variants[0]?.price ?? '0',
       }
     }),

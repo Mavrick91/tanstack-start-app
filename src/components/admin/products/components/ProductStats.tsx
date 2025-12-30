@@ -12,7 +12,7 @@ export function ProductStats({ stats }: ProductStatsProps) {
   const total = stats.totalProducts
   const active = stats.activeCount
   const draft = stats.draftCount
-  const lowStock = stats.lowStockCount
+  const lowStock = stats.lowStockCount ?? 0
 
   const statCards = [
     {

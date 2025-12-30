@@ -5,10 +5,15 @@ import { useProductStats } from './useProductStats'
 
 import type { ReactNode } from 'react'
 
+import { getProductStatsFn } from '@/server/products'
 import { renderHook, waitFor } from '@/test/test-utils'
 
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+// Mock server function
+vi.mock('@/server/products', () => ({
+  getProductStatsFn: vi.fn(),
+}))
+
+const mockGetProductStats = vi.mocked(getProductStatsFn)
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -25,23 +30,18 @@ function createWrapper() {
 
 describe('useProductStats', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    mockGetProductStats.mockReset()
   })
 
   it('should fetch and return product stats', async () => {
     const mockStats = {
-      success: true,
       totalProducts: 100,
       activeCount: 60,
       draftCount: 30,
       archivedCount: 10,
-      lowStockCount: 5,
     }
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockStats),
-    })
+    mockGetProductStats.mockResolvedValue(mockStats)
 
     const { result } = renderHook(() => useProductStats(), {
       wrapper: createWrapper(),
@@ -54,22 +54,15 @@ describe('useProductStats', () => {
       activeCount: 60,
       draftCount: 30,
       archivedCount: 10,
-      lowStockCount: 5,
     })
   })
 
-  it('should call /api/products/stats endpoint', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          totalProducts: 0,
-          activeCount: 0,
-          draftCount: 0,
-          archivedCount: 0,
-          lowStockCount: 0,
-        }),
+  it('should call getProductStatsFn server function', async () => {
+    mockGetProductStats.mockResolvedValue({
+      totalProducts: 0,
+      activeCount: 0,
+      draftCount: 0,
+      archivedCount: 0,
     })
 
     const { result } = renderHook(() => useProductStats(), {
@@ -78,73 +71,26 @@ describe('useProductStats', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/products/stats', {
-      credentials: 'include',
-    })
+    expect(mockGetProductStats).toHaveBeenCalled()
   })
 
-  it('should handle HTTP errors', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 401,
-    })
+  it('should handle errors from server function', async () => {
+    mockGetProductStats.mockRejectedValue(new Error('Unauthorized'))
 
     const { result } = renderHook(() => useProductStats(), {
       wrapper: createWrapper(),
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(result.current.error?.message).toBe('HTTP error 401')
-  })
-
-  it('should handle API errors', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
-    })
-
-    const { result } = renderHook(() => useProductStats(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(result.current.error?.message).toBe('Database connection failed')
-  })
-
-  it('should handle invalid response shape', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          // Missing required fields
-        }),
-    })
-
-    const { result } = renderHook(() => useProductStats(), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(result.current.error?.message).toContain('Invalid stats response')
+    expect(result.current.error?.message).toBe('Unauthorized')
   })
 
   it('should use correct query key for caching', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          totalProducts: 10,
-          activeCount: 5,
-          draftCount: 3,
-          archivedCount: 2,
-          lowStockCount: 1,
-        }),
+    mockGetProductStats.mockResolvedValue({
+      totalProducts: 10,
+      activeCount: 5,
+      draftCount: 3,
+      archivedCount: 2,
     })
 
     // First render
@@ -155,6 +101,6 @@ describe('useProductStats', () => {
     await waitFor(() => expect(result1.current.isSuccess).toBe(true))
 
     // Stats should be cached and not refetch on same query key
-    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockGetProductStats).toHaveBeenCalledTimes(1)
   })
 })

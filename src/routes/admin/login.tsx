@@ -70,7 +70,10 @@ function LoginPage() {
     if (result.success) {
       router.navigate({ to: '/admin' })
     } else {
-      formRef.current?.setFieldError('email', result.error || 'Invalid email or password')
+      formRef.current?.setFieldError(
+        'email',
+        result.error || 'Invalid email or password',
+      )
     }
   }
 

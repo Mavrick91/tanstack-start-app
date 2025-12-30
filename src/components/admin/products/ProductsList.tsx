@@ -3,6 +3,9 @@ import { MoreHorizontal, Package, Plus } from 'lucide-react'
 
 import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
+import { getAdminProductsFn } from '../../../server/products'
+
+type AdminProduct = Awaited<ReturnType<typeof getAdminProductsFn>>[number]
 
 export type Product = {
   id: string
@@ -24,12 +27,7 @@ export type Product = {
 export function ProductsListContent() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
-    queryFn: async () => {
-      const res = await fetch('/api/products', { credentials: 'include' })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.products as Product[]
-    },
+    queryFn: () => getAdminProductsFn(),
   })
 
   if (isLoading) {
@@ -52,7 +50,7 @@ export function ProductsListContent() {
     )
   }
 
-  const products = data || []
+  const products = (data as AdminProduct[]) || []
 
   return (
     <div className="space-y-6">

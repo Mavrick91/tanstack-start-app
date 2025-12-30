@@ -2,27 +2,55 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductsListContent } from './ProductsList'
 
+import { getAdminProductsFn } from '@/server/products'
 import { render, screen, waitFor } from '@/test/test-utils'
 
-// Mock fetch
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+// Mock server function
+vi.mock('@/server/products', () => ({
+  getAdminProductsFn: vi.fn(),
+}))
+
+const mockGetAdminProducts = vi.mocked(getAdminProductsFn)
+
+type MockProduct = Awaited<ReturnType<typeof getAdminProductsFn>>[number]
+
+// Helper to create complete mock products
+const createMockProduct = (overrides: Partial<MockProduct> = {}): MockProduct =>
+  ({
+    id: '1',
+    handle: 'test-product',
+    name: { en: 'Test Product' },
+    description: null,
+    status: 'active' as const,
+    vendor: null,
+    productType: null,
+    tags: [],
+    metaTitle: null,
+    metaDescription: null,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+    imageUrl: undefined,
+    variantCount: 1,
+    minPrice: 10,
+    maxPrice: 10,
+    totalInventory: 0,
+    price: '10.00',
+    ...overrides,
+  }) as MockProduct
 
 describe('Products List Page', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    mockGetAdminProducts.mockReset()
   })
 
   it('should show loading state initially', () => {
-    mockFetch.mockImplementation(() => new Promise(() => {}))
+    mockGetAdminProducts.mockImplementation(() => new Promise(() => {}))
     render(<ProductsListContent />)
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('should show empty state when no products', async () => {
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, products: [] }),
-    })
+    mockGetAdminProducts.mockResolvedValue([])
 
     render(<ProductsListContent />)
 
@@ -33,37 +61,31 @@ describe('Products List Page', () => {
 
   it('should display products in table', async () => {
     const mockProducts = [
-      {
+      createMockProduct({
         id: '1',
         handle: 'red-polish',
         name: { en: 'Red Polish', fr: 'Vernis Rouge' },
-        status: 'active',
+        status: 'active' as const,
         vendor: 'Finenail',
         productType: 'Nail Polish',
         variantCount: 2,
         minPrice: 12.99,
         maxPrice: 15.99,
         totalInventory: 100,
-        createdAt: '2024-01-01T00:00:00Z',
-      },
-      {
+      }),
+      createMockProduct({
         id: '2',
         handle: 'blue-gel',
         name: { en: 'Blue Gel' },
-        status: 'draft',
-        vendor: null,
-        productType: null,
+        status: 'draft' as const,
         variantCount: 1,
         minPrice: 19.99,
         maxPrice: 19.99,
         totalInventory: 0,
-        createdAt: '2024-01-02T00:00:00Z',
-      },
+      }),
     ]
 
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, products: mockProducts }),
-    })
+    mockGetAdminProducts.mockResolvedValue(mockProducts)
 
     render(<ProductsListContent />)
 
@@ -86,9 +108,7 @@ describe('Products List Page', () => {
   })
 
   it('should show error state on fetch failure', async () => {
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: false, error: 'Server error' }),
-    })
+    mockGetAdminProducts.mockRejectedValue(new Error('Server error'))
 
     render(<ProductsListContent />)
 
@@ -98,9 +118,7 @@ describe('Products List Page', () => {
   })
 
   it('should have Add Product button linking to new page', async () => {
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, products: [] }),
-    })
+    mockGetAdminProducts.mockResolvedValue([])
 
     render(<ProductsListContent />)
 
@@ -116,24 +134,18 @@ describe('Products List Page', () => {
 
   it('should display price ranges correctly', async () => {
     const mockProducts = [
-      {
+      createMockProduct({
         id: '1',
         handle: 'range-product',
         name: { en: 'Range Product' },
-        status: 'active',
-        vendor: null,
-        productType: null,
         variantCount: 2,
         minPrice: 10.0,
         maxPrice: 20.0,
         totalInventory: 50,
-        createdAt: '2024-01-01T00:00:00Z',
-      },
+      }),
     ]
 
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, products: mockProducts }),
-    })
+    mockGetAdminProducts.mockResolvedValue(mockProducts)
 
     render(<ProductsListContent />)
 
@@ -144,24 +156,18 @@ describe('Products List Page', () => {
 
   it('should show vendor when available', async () => {
     const mockProducts = [
-      {
+      createMockProduct({
         id: '1',
         handle: 'vendor-product',
         name: { en: 'Vendor Product' },
-        status: 'active',
         vendor: 'TestVendor',
-        productType: null,
-        variantCount: 1,
         minPrice: 15.0,
         maxPrice: 15.0,
         totalInventory: 10,
-        createdAt: '2024-01-01T00:00:00Z',
-      },
+      }),
     ]
 
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, products: mockProducts }),
-    })
+    mockGetAdminProducts.mockResolvedValue(mockProducts)
 
     render(<ProductsListContent />)
 
