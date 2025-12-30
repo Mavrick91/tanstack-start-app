@@ -1,16 +1,15 @@
 import { create } from 'zustand'
 
-type User = {
-  id: string
-  email: string
-  role: string
-}
+import { loginFn, logoutFn, getMeFn, type AuthUser } from '../server/auth'
 
 type AuthState = {
   isAuthenticated: boolean
-  user: User | null
+  user: AuthUser | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<boolean>
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   checkSession: () => Promise<void>
 }
@@ -22,35 +21,25 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   login: async (email, password) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include', // Important for cookies
-      })
+      const result = await loginFn({ data: { email, password } })
 
-      const result = await response.json()
-
-      if (result.success && result.user) {
+      if (result.success) {
         set({
           isAuthenticated: true,
           user: result.user,
         })
-        return true
+        return { success: true }
       }
-      return false
+      return { success: false, error: result.error }
     } catch (error) {
       console.error('Login failed:', error)
-      return false
+      return { success: false, error: 'Login failed' }
     }
   },
 
   logout: async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      await logoutFn()
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -61,16 +50,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
   checkSession: async () => {
     try {
       set({ isLoading: true })
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include',
-      })
+      const user = await getMeFn()
 
-      const result = await response.json()
-
-      if (result.success && result.user) {
+      if (user) {
         set({
           isAuthenticated: true,
-          user: result.user,
+          user,
           isLoading: false,
         })
       } else {

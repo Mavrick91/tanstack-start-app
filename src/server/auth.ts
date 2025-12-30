@@ -104,7 +104,7 @@ export const getMeFn = createServerFn().handler(async () => {
   const session = await useAppSession()
   const data = await session.data
 
-  if (!data?.userId) {
+  if (!data?.userId || !data.email || !data.role) {
     return null
   }
 

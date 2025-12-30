@@ -1,16 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock server functions
+vi.mock('../server/auth', () => ({
+  loginFn: vi.fn(),
+  logoutFn: vi.fn(),
+  getMeFn: vi.fn(),
+}))
+
 import { useAuthStore } from './useAuth'
+import { loginFn, logoutFn } from '../server/auth'
 
 import { act } from '@/test/test-utils'
 
-// Mock fetch for API calls
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
 describe('Auth Guard Logic', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -30,36 +34,34 @@ describe('Auth Guard Logic', () => {
   })
 
   it('should return isAuthenticated true after login', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: true,
-          user: {
-            id: '1',
-            email: 'admin@finenail.com',
-            role: 'admin',
-          },
-        }),
+    const mockUser = {
+      id: '1',
+      email: 'admin@finenail.com',
+      role: 'admin',
+    }
+
+    vi.mocked(loginFn).mockResolvedValue({
+      success: true,
+      user: mockUser,
     })
 
     const state = useAuthStore.getState()
-    const success = await state.login('admin@finenail.com', 'admin123')
+    const result = await state.login('admin@finenail.com', 'admin123')
 
-    expect(success).toBe(true)
+    expect(result.success).toBe(true)
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })
 
   it('should provide user info after login', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: true,
-          user: {
-            id: '1',
-            email: 'admin@finenail.com',
-            role: 'admin',
-          },
-        }),
+    const mockUser = {
+      id: '1',
+      email: 'admin@finenail.com',
+      role: 'admin',
+    }
+
+    vi.mocked(loginFn).mockResolvedValue({
+      success: true,
+      user: mockUser,
     })
 
     const state = useAuthStore.getState()
@@ -73,16 +75,15 @@ describe('Auth Guard Logic', () => {
 
   it('should clear user info after logout', async () => {
     // Setup: login first
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          success: true,
-          user: {
-            id: '1',
-            email: 'admin@finenail.com',
-            role: 'admin',
-          },
-        }),
+    const mockUser = {
+      id: '1',
+      email: 'admin@finenail.com',
+      role: 'admin',
+    }
+
+    vi.mocked(loginFn).mockResolvedValue({
+      success: true,
+      user: mockUser,
     })
 
     const state = useAuthStore.getState()
@@ -90,8 +91,8 @@ describe('Auth Guard Logic', () => {
     expect(useAuthStore.getState().user).not.toBeNull()
 
     // Mock logout response
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true }),
+    vi.mocked(logoutFn).mockResolvedValue({
+      success: true,
     })
 
     // Logout

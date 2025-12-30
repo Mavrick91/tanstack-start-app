@@ -1,126 +1,115 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Mock server functions
+vi.mock('../server/auth', () => ({
+  loginFn: vi.fn(),
+  logoutFn: vi.fn(),
+  getMeFn: vi.fn(),
+}))
 
 import { useAuthStore } from './useAuth'
+import { loginFn, logoutFn, getMeFn } from '../server/auth'
 
-import { act, renderHook } from '@/test/test-utils'
-
-// Mock fetch for API calls
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
-describe('useAuth Store', () => {
+describe('useAuthStore', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
-  })
-
-  afterEach(() => {
-    act(() => {
-      useAuthStore.setState({
-        isAuthenticated: false,
-        user: null,
-        isLoading: true,
-      })
-    })
-    localStorage.clear()
-  })
-
-  it('should initialize with unauthenticated state', () => {
-    const { result } = renderHook(() => useAuthStore())
-
-    expect(result.current.isAuthenticated).toBe(false)
-    expect(result.current.user).toBeNull()
-  })
-
-  it('should login with correct credentials', async () => {
-    const mockUser = {
-      id: 'test-id',
-      email: 'test@example.com',
-      role: 'admin',
-    }
-
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, user: mockUser }),
-    })
-
-    const { result } = renderHook(() => useAuthStore())
-
-    let success
-    await act(async () => {
-      success = await result.current.login('test@example.com', 'password')
-    })
-
-    expect(success).toBe(true)
-    expect(result.current.isAuthenticated).toBe(true)
-    expect(result.current.user).toEqual(mockUser)
-    expect(mockFetch).toHaveBeenCalledWith('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test@example.com', password: 'password' }),
-      credentials: 'include',
-    })
-  })
-
-  it('should fail login with incorrect credentials', async () => {
-    mockFetch.mockResolvedValue({
-      json: () =>
-        Promise.resolve({ success: false, error: 'Invalid email or password' }),
-    })
-
-    const { result } = renderHook(() => useAuthStore())
-
-    let success
-    await act(async () => {
-      success = await result.current.login('wrong@example.com', 'wrong')
-    })
-
-    expect(success).toBe(false)
-    expect(result.current.isAuthenticated).toBe(false)
-    expect(result.current.user).toBeNull()
-  })
-
-  it('should logout and clear user state', async () => {
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true }),
-    })
-
+    vi.clearAllMocks()
+    // Reset store state
     useAuthStore.setState({
-      isAuthenticated: true,
-      user: {
-        id: '1',
-        email: 'test@example.com',
-        role: 'user',
-      },
+      isAuthenticated: false,
+      user: null,
+      isLoading: true,
     })
-
-    const { result } = renderHook(() => useAuthStore())
-
-    await act(async () => {
-      await result.current.logout()
-    })
-
-    expect(result.current.isAuthenticated).toBe(false)
-    expect(result.current.user).toBeNull()
   })
 
-  it('should check session and update state', async () => {
-    const mockUser = {
-      id: 'test-id',
-      email: 'test@example.com',
-      role: 'admin',
-    }
+  describe('login', () => {
+    it('should set user on successful login', async () => {
+      const mockUser = { id: '1', email: 'test@example.com', role: 'admin' }
+      vi.mocked(loginFn).mockResolvedValueOnce({
+        success: true,
+        user: mockUser,
+      })
 
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true, user: mockUser }),
+      const { result } = renderHook(() => useAuthStore())
+
+      await act(async () => {
+        const response = await result.current.login(
+          'test@example.com',
+          'password',
+        )
+        expect(response.success).toBe(true)
+      })
+
+      expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.user).toEqual(mockUser)
     })
 
-    const { result } = renderHook(() => useAuthStore())
+    it('should return error on failed login', async () => {
+      vi.mocked(loginFn).mockResolvedValueOnce({
+        success: false,
+        error: 'Invalid email or password',
+      })
 
-    await act(async () => {
-      await result.current.checkSession()
+      const { result } = renderHook(() => useAuthStore())
+
+      await act(async () => {
+        const response = await result.current.login('test@example.com', 'wrong')
+        expect(response.success).toBe(false)
+        expect(response.error).toBe('Invalid email or password')
+      })
+
+      expect(result.current.isAuthenticated).toBe(false)
+    })
+  })
+
+  describe('logout', () => {
+    it('should clear user on logout', async () => {
+      vi.mocked(logoutFn).mockResolvedValueOnce({ success: true })
+
+      useAuthStore.setState({
+        isAuthenticated: true,
+        user: { id: '1', email: 'test@example.com', role: 'admin' },
+      })
+
+      const { result } = renderHook(() => useAuthStore())
+
+      await act(async () => {
+        await result.current.logout()
+      })
+
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.user).toBeNull()
+    })
+  })
+
+  describe('checkSession', () => {
+    it('should set user if session exists', async () => {
+      const mockUser = { id: '1', email: 'test@example.com', role: 'admin' }
+      vi.mocked(getMeFn).mockResolvedValueOnce(mockUser)
+
+      const { result } = renderHook(() => useAuthStore())
+
+      await act(async () => {
+        await result.current.checkSession()
+      })
+
+      expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.user).toEqual(mockUser)
+      expect(result.current.isLoading).toBe(false)
     })
 
-    expect(result.current.isAuthenticated).toBe(true)
-    expect(result.current.user).toEqual(mockUser)
-    expect(result.current.isLoading).toBe(false)
+    it('should clear user if no session', async () => {
+      vi.mocked(getMeFn).mockResolvedValueOnce(null)
+
+      const { result } = renderHook(() => useAuthStore())
+
+      await act(async () => {
+        await result.current.checkSession()
+      })
+
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.user).toBeNull()
+      expect(result.current.isLoading).toBe(false)
+    })
   })
 })
