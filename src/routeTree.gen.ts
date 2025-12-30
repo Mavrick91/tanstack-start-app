@@ -16,6 +16,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
 import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
 import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
@@ -111,6 +112,10 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuthedRoute = AdminAuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => AdminRoute,
 } as any)
 const ApiProductsIndexRoute = ApiProductsIndexRouteImport.update({
@@ -437,7 +442,7 @@ const ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
-  '/admin': typeof AdminRouteWithChildren
+  '/admin': typeof AdminAuthedRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
@@ -506,10 +511,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminIndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang': typeof LangIndexRoute
-  '/admin': typeof AdminIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
@@ -577,6 +582,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/admin/_authed': typeof AdminAuthedRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
@@ -717,10 +723,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/admin/login'
     | '/api/upload'
     | '/$lang'
-    | '/admin'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
     | '/$lang/checkout/confirmation'
@@ -787,6 +793,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$lang'
     | '/admin'
+    | '/admin/_authed'
     | '/admin/login'
     | '/api/upload'
     | '/$lang/'
@@ -939,6 +946,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/_authed': {
+      id: '/admin/_authed'
+      path: ''
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAuthedRouteImport
       parentRoute: typeof AdminRoute
     }
     '/api/products/': {
@@ -1431,6 +1445,7 @@ const LangRouteChildren: LangRouteChildren = {
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAuthedRoute: typeof AdminAuthedRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCollectionsCollectionIdRoute: typeof AdminCollectionsCollectionIdRoute
@@ -1444,6 +1459,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuthedRoute: AdminAuthedRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminCollectionsCollectionIdRoute: AdminCollectionsCollectionIdRoute,
