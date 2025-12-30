@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { CollectionThumbnail } from './CollectionThumbnail'
+
+import { render } from '@/test/test-utils'
 
 describe('CollectionThumbnail', () => {
   describe('Empty state', () => {

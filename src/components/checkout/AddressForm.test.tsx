@@ -1,10 +1,10 @@
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { AddressForm } from './AddressForm'
 
 import type { AddressFormData } from '../../lib/checkout-schemas'
+
+import { act, fireEvent, render, screen, waitFor } from '@/test/test-utils'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -35,10 +35,6 @@ vi.mock('./AddressAutocomplete', () => ({
 
 describe('AddressForm', () => {
   const mockOnSubmit = vi.fn()
-
-  beforeEach(() => {
-    mockOnSubmit.mockClear()
-  })
 
   describe('Form Rendering', () => {
     it('should render all form fields', () => {
@@ -353,8 +349,7 @@ describe('AddressForm', () => {
 
   describe('User Interaction', () => {
     it('should update firstName when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const firstNameInput = screen.getByLabelText(/First name/)
       await user.type(firstNameInput, 'John')
@@ -363,8 +358,7 @@ describe('AddressForm', () => {
     })
 
     it('should update lastName when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const lastNameInput = screen.getByLabelText(/Last name/)
       await user.type(lastNameInput, 'Doe')
@@ -373,8 +367,7 @@ describe('AddressForm', () => {
     })
 
     it('should update city when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const cityInput = screen.getByLabelText(/City/)
       await user.type(cityInput, 'New York')
@@ -383,8 +376,7 @@ describe('AddressForm', () => {
     })
 
     it('should update zip when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const zipInput = screen.getByLabelText(/ZIP code/)
       await user.type(zipInput, '10001')
@@ -393,8 +385,7 @@ describe('AddressForm', () => {
     })
 
     it('should update company (optional field) when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const companyInput = screen.getByLabelText(/Company/)
       await user.type(companyInput, 'Acme Inc')
@@ -403,8 +394,7 @@ describe('AddressForm', () => {
     })
 
     it('should update apartment (optional field) when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const apartmentInput = screen.getByLabelText(/Apartment/)
       await user.type(apartmentInput, 'Suite 100')
@@ -413,8 +403,7 @@ describe('AddressForm', () => {
     })
 
     it('should update state/province when user types', async () => {
-      const user = userEvent.setup()
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
 
       const stateInput = screen.getByLabelText(/State/)
       await user.type(stateInput, 'California')

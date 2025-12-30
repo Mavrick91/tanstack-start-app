@@ -1,19 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { OrderBulkActionsBar } from './OrderBulkActionsBar'
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-  return Wrapper
-}
+import { render, screen } from '@/test/test-utils'
 
 describe('OrderBulkActionsBar', () => {
   const defaultProps = {
@@ -36,24 +25,19 @@ describe('OrderBulkActionsBar', () => {
         selectedCount={0}
         selectedIds={new Set()}
       />,
-      { wrapper: createWrapper() },
     )
 
     expect(screen.queryByText(/selected/)).not.toBeInTheDocument()
   })
 
   it('should render when items are selected', () => {
-    render(<OrderBulkActionsBar {...defaultProps} />, {
-      wrapper: createWrapper(),
-    })
+    render(<OrderBulkActionsBar {...defaultProps} />)
 
     expect(screen.getByText('5 selected')).toBeInTheDocument()
   })
 
   it('should show bulk action buttons', () => {
-    render(<OrderBulkActionsBar {...defaultProps} />, {
-      wrapper: createWrapper(),
-    })
+    render(<OrderBulkActionsBar {...defaultProps} />)
 
     expect(screen.getByText('Processing')).toBeInTheDocument()
     expect(screen.getByText('Shipped')).toBeInTheDocument()
@@ -61,11 +45,9 @@ describe('OrderBulkActionsBar', () => {
   })
 
   it('should call onBulkAction when Processing button is clicked', async () => {
-    const user = userEvent.setup()
     const onBulkAction = vi.fn()
-    render(
+    const { user } = render(
       <OrderBulkActionsBar {...defaultProps} onBulkAction={onBulkAction} />,
-      { wrapper: createWrapper() },
     )
 
     await user.click(screen.getByText('Processing'))
@@ -74,11 +56,9 @@ describe('OrderBulkActionsBar', () => {
   })
 
   it('should call onBulkAction when Shipped button is clicked', async () => {
-    const user = userEvent.setup()
     const onBulkAction = vi.fn()
-    render(
+    const { user } = render(
       <OrderBulkActionsBar {...defaultProps} onBulkAction={onBulkAction} />,
-      { wrapper: createWrapper() },
     )
 
     await user.click(screen.getByText('Shipped'))
@@ -87,11 +67,9 @@ describe('OrderBulkActionsBar', () => {
   })
 
   it('should call onBulkAction when Fulfilled button is clicked', async () => {
-    const user = userEvent.setup()
     const onBulkAction = vi.fn()
-    render(
+    const { user } = render(
       <OrderBulkActionsBar {...defaultProps} onBulkAction={onBulkAction} />,
-      { wrapper: createWrapper() },
     )
 
     await user.click(screen.getByText('Fulfilled'))
@@ -100,14 +78,12 @@ describe('OrderBulkActionsBar', () => {
   })
 
   it('should call onClearSelection when X button is clicked', async () => {
-    const user = userEvent.setup()
     const onClearSelection = vi.fn()
-    render(
+    const { user } = render(
       <OrderBulkActionsBar
         {...defaultProps}
         onClearSelection={onClearSelection}
       />,
-      { wrapper: createWrapper() },
     )
 
     // Find the X button by its aria-label
@@ -118,9 +94,7 @@ describe('OrderBulkActionsBar', () => {
   })
 
   it('should disable buttons when isLoading is true', () => {
-    render(<OrderBulkActionsBar {...defaultProps} isLoading={true} />, {
-      wrapper: createWrapper(),
-    })
+    render(<OrderBulkActionsBar {...defaultProps} isLoading={true} />)
 
     expect(screen.getByText('Processing').closest('button')).toBeDisabled()
     expect(screen.getByText('Shipped').closest('button')).toBeDisabled()

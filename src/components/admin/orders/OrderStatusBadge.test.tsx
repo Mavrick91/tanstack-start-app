@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { OrderStatusBadge } from './OrderStatusBadge'
+
+import { render, screen } from '@/test/test-utils'
 
 describe('OrderStatusBadge Component', () => {
   describe('Order Status Rendering', () => {

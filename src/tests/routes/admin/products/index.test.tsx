@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NoResults } from '@/routes/admin/products/index'
+import { fireEvent, render, screen } from '@/test/test-utils'
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({

@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { OrderHistory, type OrderHistoryEntry } from './OrderHistory'
+
+import { render, screen } from '@/test/test-utils'
 
 describe('OrderHistory', () => {
   const mockEntries: OrderHistoryEntry[] = [

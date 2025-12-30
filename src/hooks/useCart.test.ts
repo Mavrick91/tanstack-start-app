@@ -1,7 +1,8 @@
-import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Product } from '../types/store'
+
+import { act, renderHook } from '@/test/test-utils'
 
 // Use importActual to ensure we get the UNMOCKED version for this test
 const { useCart, useCartStore } = await vi.importActual<{

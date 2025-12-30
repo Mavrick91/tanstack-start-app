@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CollectionForm } from './CollectionForm'
+
+import { render, screen, waitFor } from '@/test/test-utils'
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -74,10 +74,6 @@ const renderWithProviders = (ui: React.ReactElement) => {
 }
 
 describe('CollectionForm Integration', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   describe('Create Mode', () => {
     it('renders the form in create mode', () => {
       renderWithProviders(<CollectionForm />)
@@ -100,8 +96,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('updates name input when typing', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<CollectionForm />)
+      const { user } = renderWithProviders(<CollectionForm />)
 
       const nameInput = screen.getByPlaceholderText('Enter collection name...')
       await user.type(nameInput, 'Best Sellers')
@@ -114,8 +109,7 @@ describe('CollectionForm Integration', () => {
     })
 
     it('updates SEO preview when name changes', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(<CollectionForm />)
+      const { user } = renderWithProviders(<CollectionForm />)
 
       const nameInput = screen.getByPlaceholderText('Enter collection name...')
       await user.type(nameInput, 'Summer')
@@ -282,8 +276,7 @@ describe('CollectionForm Integration', () => {
     }
 
     it('opens product picker dialog when clicking Add Products', async () => {
-      const user = userEvent.setup()
-      renderWithProviders(
+      const { user } = renderWithProviders(
         <CollectionForm collection={mockCollectionWithProducts} isEdit />,
       )
 

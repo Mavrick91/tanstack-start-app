@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useProductStats } from './useProductStats'
 
 import type { ReactNode } from 'react'
+
+import { renderHook, waitFor } from '@/test/test-utils'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)

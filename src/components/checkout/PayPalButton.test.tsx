@@ -1,5 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+// Component import must come after vi.mock for proper mocking
+/* eslint-disable import/order */
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock PayPal hooks before importing component
 let mockIsPending = false

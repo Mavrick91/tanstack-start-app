@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CollectionTable, CollectionTableSkeleton } from './CollectionTable'
 
 import type { CollectionListItem } from '../types'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -183,8 +183,7 @@ describe('CollectionTable', () => {
     })
 
     it('calls onToggleSelect when clicking collection checkbox', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       const checkboxes = screen.getAllByRole('checkbox')
       await user.click(checkboxes[1]) // First collection checkbox
@@ -193,8 +192,7 @@ describe('CollectionTable', () => {
     })
 
     it('calls onToggleSelectAll when clicking header checkbox', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       const checkboxes = screen.getAllByRole('checkbox')
       await user.click(checkboxes[0]) // Header checkbox
@@ -234,8 +232,7 @@ describe('CollectionTable', () => {
     })
 
     it('calls onSort when clicking Collection header', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByText('Collection'))
 
@@ -243,8 +240,7 @@ describe('CollectionTable', () => {
     })
 
     it('calls onSort when clicking Products header', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByText('Products'))
 
@@ -252,8 +248,7 @@ describe('CollectionTable', () => {
     })
 
     it('calls onSort when clicking Created header', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByText('Created'))
 

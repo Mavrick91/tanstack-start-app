@@ -1,6 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -9,6 +7,8 @@ import {
   bulkDeleteCollectionsFn,
   bulkUpdateCollectionsStatusFn,
 } from '../../../../server/collections'
+
+import { render, screen, waitFor } from '@/test/test-utils'
 
 vi.mock('../../../../server/collections', () => ({
   bulkDeleteCollectionsFn: vi.fn(),
@@ -106,8 +106,7 @@ describe('BulkActionsBar', () => {
 
   describe('Publish action', () => {
     it('calls bulkUpdateCollectionsStatusFn with publish action', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /^Publish$/ }))
 
@@ -123,8 +122,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast for publish', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /^Publish$/ }))
 
@@ -137,8 +135,7 @@ describe('BulkActionsBar', () => {
 
   describe('Unpublish action', () => {
     it('calls bulkUpdateCollectionsStatusFn with unpublish action', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Unpublish/i }))
 
@@ -154,8 +151,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast for unpublish', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Unpublish/i }))
 
@@ -167,8 +163,7 @@ describe('BulkActionsBar', () => {
 
   describe('Delete action', () => {
     it('calls bulkDeleteCollectionsFn', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -180,8 +175,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast for delete', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -196,8 +190,7 @@ describe('BulkActionsBar', () => {
       vi.mocked(bulkDeleteCollectionsFn).mockRejectedValueOnce(
         new Error('Failed'),
       )
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -210,8 +203,7 @@ describe('BulkActionsBar', () => {
       vi.mocked(bulkUpdateCollectionsStatusFn).mockRejectedValueOnce(
         new Error('Failed'),
       )
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /^Publish$/ }))
 
@@ -224,8 +216,7 @@ describe('BulkActionsBar', () => {
       vi.mocked(bulkDeleteCollectionsFn).mockRejectedValueOnce(
         new Error('Failed'),
       )
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -238,8 +229,7 @@ describe('BulkActionsBar', () => {
 
   describe('Clear selection', () => {
     it('calls onClearSelection when close button is clicked', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       const buttons = screen.getAllByRole('button')
       const closeButton = buttons[buttons.length - 1]
@@ -253,8 +243,7 @@ describe('BulkActionsBar', () => {
   describe('Query invalidation', () => {
     it('invalidates collections query on success', async () => {
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /^Publish$/ }))
 

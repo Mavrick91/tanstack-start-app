@@ -1,5 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor, act } from '@testing-library/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -14,6 +13,8 @@ import {
   useCreateStripePaymentIntent,
   useCompleteCheckout,
 } from './useCheckoutQueries'
+
+import { renderHook, waitFor, act } from '@/test/test-utils'
 
 // Mock fetch globally
 const mockFetch = vi.fn()

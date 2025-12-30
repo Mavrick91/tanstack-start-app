@@ -1,7 +1,8 @@
-import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from './useAuth'
+
+import { act, renderHook } from '@/test/test-utils'
 
 // Mock fetch for API calls
 const mockFetch = vi.fn()

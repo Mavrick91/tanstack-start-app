@@ -1,5 +1,8 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+// Component import must come after vi.mock for proper mocking
+/* eslint-disable import/order */
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { act, fireEvent, render, screen, waitFor } from '@/test/test-utils'
 
 // Mock Stripe hooks before importing component
 const mockStripe = {

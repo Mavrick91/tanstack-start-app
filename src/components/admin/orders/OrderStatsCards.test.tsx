@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { OrderStatsCards } from './OrderStatsCards'
+
+import { render, screen } from '@/test/test-utils'
 
 describe('OrderStatsCards', () => {
   const defaultStats = {

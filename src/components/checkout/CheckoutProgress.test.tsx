@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CheckoutProgress } from './CheckoutProgress'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

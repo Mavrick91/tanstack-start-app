@@ -1,11 +1,11 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import {
   ProductVariantsTable,
   type ProductVariant,
 } from './ProductVariantsTable'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -16,10 +16,6 @@ vi.mock('react-i18next', () => ({
 
 describe('ProductVariantsTable', () => {
   const mockOnChange = vi.fn()
-
-  beforeEach(() => {
-    mockOnChange.mockClear()
-  })
 
   describe('Empty State', () => {
     it('renders empty state message when no variants', () => {
@@ -91,8 +87,7 @@ describe('ProductVariantsTable', () => {
     })
 
     it('toggles availability when switch is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductVariantsTable variants={variants} onChange={mockOnChange} />,
       )
 
@@ -140,8 +135,7 @@ describe('ProductVariantsTable', () => {
     })
 
     it('applies price to all variants when Enter is pressed', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductVariantsTable variants={variants} onChange={mockOnChange} />,
       )
 
@@ -170,8 +164,7 @@ describe('ProductVariantsTable', () => {
     ]
 
     it('enters edit mode when Edit button is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductVariantsTable variants={variants} onChange={mockOnChange} />,
       )
 
@@ -183,8 +176,7 @@ describe('ProductVariantsTable', () => {
     })
 
     it('saves changes when check button is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductVariantsTable variants={variants} onChange={mockOnChange} />,
       )
 
@@ -207,8 +199,7 @@ describe('ProductVariantsTable', () => {
     })
 
     it('cancels editing when X button is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductVariantsTable variants={variants} onChange={mockOnChange} />,
       )
 

@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { OrderSummary } from './OrderSummary'
 
 import type { CheckoutCartItem } from '../../types/checkout'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock i18next
 vi.mock('react-i18next', () => ({

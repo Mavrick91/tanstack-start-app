@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { OrderRowActions } from './OrderRowActions'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({
@@ -27,8 +27,7 @@ describe('OrderRowActions', () => {
   })
 
   it('should show dropdown menu when clicked', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} />)
+    const { user } = render(<OrderRowActions {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -36,8 +35,7 @@ describe('OrderRowActions', () => {
   })
 
   it('should show View Details option', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} />)
+    const { user } = render(<OrderRowActions {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -45,8 +43,7 @@ describe('OrderRowActions', () => {
   })
 
   it('should show status change options', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} />)
+    const { user } = render(<OrderRowActions {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -55,9 +52,8 @@ describe('OrderRowActions', () => {
   })
 
   it('should call onStatusChange when status option is clicked', async () => {
-    const user = userEvent.setup()
     const onStatusChange = vi.fn()
-    render(
+    const { user } = render(
       <OrderRowActions {...defaultProps} onStatusChange={onStatusChange} />,
     )
 
@@ -70,8 +66,7 @@ describe('OrderRowActions', () => {
   })
 
   it('should show fulfillment options', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} />)
+    const { user } = render(<OrderRowActions {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -79,9 +74,8 @@ describe('OrderRowActions', () => {
   })
 
   it('should call onStatusChange for fulfillment change', async () => {
-    const user = userEvent.setup()
     const onStatusChange = vi.fn()
-    render(
+    const { user } = render(
       <OrderRowActions {...defaultProps} onStatusChange={onStatusChange} />,
     )
 
@@ -94,8 +88,9 @@ describe('OrderRowActions', () => {
   })
 
   it('should not show current status as an option', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} currentStatus="processing" />)
+    const { user } = render(
+      <OrderRowActions {...defaultProps} currentStatus="processing" />,
+    )
 
     await user.click(screen.getByRole('button'))
 
@@ -104,8 +99,7 @@ describe('OrderRowActions', () => {
   })
 
   it('should show Cancel Order option', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} />)
+    const { user } = render(<OrderRowActions {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -113,8 +107,9 @@ describe('OrderRowActions', () => {
   })
 
   it('should disable actions when isLoading is true', async () => {
-    const user = userEvent.setup()
-    render(<OrderRowActions {...defaultProps} isLoading={true} />)
+    const { user } = render(
+      <OrderRowActions {...defaultProps} isLoading={true} />,
+    )
 
     await user.click(screen.getByRole('button'))
 

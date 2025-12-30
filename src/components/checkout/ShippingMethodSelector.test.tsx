@@ -1,9 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ShippingMethodSelector } from './ShippingMethodSelector'
 
 import type { ShippingRate } from '../../types/checkout'
+
+import { render, screen, fireEvent } from '@/test/test-utils'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

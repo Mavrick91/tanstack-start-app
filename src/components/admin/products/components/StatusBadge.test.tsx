@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { StatusBadge } from './StatusBadge'
+
+import { render, screen } from '@/test/test-utils'
 
 describe('StatusBadge', () => {
   describe('Active status', () => {

@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductGallery } from './ProductGallery'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('@fancyapps/ui', () => ({
   Fancybox: {

@@ -1,9 +1,9 @@
-import { render, screen, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { ReactNode } from 'react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Navbar } from './Navbar'
+
+import { render, screen, act } from '@/test/test-utils'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -63,7 +63,6 @@ vi.mock('react-i18next', () => ({
 
 describe('Navbar Component', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockCartItems = []
   })
 
@@ -93,9 +92,8 @@ describe('Navbar Component', () => {
 
   describe('Cart Drawer Interaction', () => {
     it('should open cart drawer when cart button clicked', async () => {
-      const user = userEvent.setup()
-      await act(async () => {
-        render(<Navbar />)
+      const { user } = await act(async () => {
+        return render(<Navbar />)
       })
 
       const cartButton = screen.getByRole('button', { name: /cart/i })

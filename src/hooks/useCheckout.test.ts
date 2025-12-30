@@ -1,4 +1,3 @@
-import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -15,6 +14,8 @@ import {
 } from './useCheckout'
 
 import type { Checkout, ShippingRate } from '../types/checkout'
+
+import { act, renderHook } from '@/test/test-utils'
 
 // Mock fetch globally
 const mockFetch = vi.fn()

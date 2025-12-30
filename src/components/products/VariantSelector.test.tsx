@@ -1,17 +1,13 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { VariantSelector } from './VariantSelector'
 
 import type { ProductOption, ProductVariant } from '../../types/store'
 
+import { render, screen } from '@/test/test-utils'
+
 describe('VariantSelector', () => {
   const mockOnVariantChange = vi.fn()
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
 
   const createOptions = (): ProductOption[] => [
     { name: 'Shape', values: ['Coffin', 'Almond'] },
@@ -119,8 +115,7 @@ describe('VariantSelector', () => {
     })
 
     it('changes variant when option is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <VariantSelector
           options={createOptions()}
           variants={createVariants()}
@@ -137,8 +132,7 @@ describe('VariantSelector', () => {
     })
 
     it('changes shape and finds matching variant', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <VariantSelector
           options={createOptions()}
           variants={createVariants()}
@@ -157,8 +151,7 @@ describe('VariantSelector', () => {
 
   describe('Availability', () => {
     it('disables unavailable option combinations', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <VariantSelector
           options={createOptions()}
           variants={createVariants()}

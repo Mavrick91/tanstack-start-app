@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { MediaLibrary, type MediaItem } from './MediaLibrary'
+
+import { fireEvent, render, screen, waitFor } from '@/test/test-utils'
 
 // Mock fetch
 const mockFetch = vi.fn()

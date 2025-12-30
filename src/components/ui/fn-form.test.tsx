@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { FNForm, type FormDefinition, type FNFormRef } from './fn-form'
+
+import { render, screen, waitFor } from '@/test/test-utils'
 
 describe('FNForm', () => {
   describe('text input', () => {
@@ -38,12 +38,13 @@ describe('FNForm', () => {
     })
 
     it('should update value when user types', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [{ name: 'username', type: 'text', label: 'Username' }],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={vi.fn()} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={vi.fn()} />,
+      )
 
       const input = screen.getByLabelText('Username')
       await user.type(input, 'john_doe')
@@ -103,12 +104,13 @@ describe('FNForm', () => {
     })
 
     it('should update textarea value when user types', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [{ name: 'bio', type: 'textarea', label: 'Bio' }],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={vi.fn()} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={vi.fn()} />,
+      )
 
       const textarea = screen.getByLabelText('Bio')
       await user.type(textarea, 'Hello world')
@@ -141,7 +143,6 @@ describe('FNForm', () => {
     })
 
     it('should allow selecting an option', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [
           {
@@ -157,7 +158,9 @@ describe('FNForm', () => {
         ],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={vi.fn()} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={vi.fn()} />,
+      )
 
       const trigger = screen.getByRole('combobox')
       await user.click(trigger)
@@ -186,12 +189,13 @@ describe('FNForm', () => {
     })
 
     it('should toggle checkbox when clicked', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [{ name: 'agree', type: 'checkbox', label: 'I agree' }],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={vi.fn()} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={vi.fn()} />,
+      )
 
       const checkbox = screen.getByRole('checkbox')
       expect(checkbox).not.toBeChecked()
@@ -223,12 +227,13 @@ describe('FNForm', () => {
     })
 
     it('should toggle switch when clicked', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [{ name: 'notifications', type: 'switch', label: 'Enable' }],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={vi.fn()} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={vi.fn()} />,
+      )
 
       const switchEl = screen.getByRole('switch')
       expect(switchEl).toHaveAttribute('data-state', 'unchecked')
@@ -258,7 +263,6 @@ describe('FNForm', () => {
 
   describe('form submission', () => {
     it('should call onSubmit with form values when submitted', async () => {
-      const user = userEvent.setup()
       const mockOnSubmit = vi.fn()
       const definition: FormDefinition = {
         fields: [
@@ -267,7 +271,9 @@ describe('FNForm', () => {
         ],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={mockOnSubmit} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={mockOnSubmit} />,
+      )
 
       await user.type(screen.getByLabelText('Username'), 'john_doe')
       await user.type(screen.getByLabelText('Email'), 'john@example.com')
@@ -358,7 +364,6 @@ describe('FNForm', () => {
     })
 
     it('should show error message for invalid required field on submit', async () => {
-      const user = userEvent.setup()
       const mockOnSubmit = vi.fn()
       const definition: FormDefinition = {
         fields: [
@@ -366,7 +371,9 @@ describe('FNForm', () => {
         ],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={mockOnSubmit} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={mockOnSubmit} />,
+      )
 
       const submitButton = screen.getByRole('button', { name: /submit/i })
       await user.click(submitButton)
@@ -378,7 +385,6 @@ describe('FNForm', () => {
     })
 
     it('should validate custom validation function', async () => {
-      const user = userEvent.setup()
       const mockOnSubmit = vi.fn()
       const definition: FormDefinition = {
         fields: [
@@ -395,7 +401,9 @@ describe('FNForm', () => {
         ],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={mockOnSubmit} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={mockOnSubmit} />,
+      )
 
       await user.type(screen.getByLabelText('Age'), '15')
 
@@ -513,8 +521,7 @@ describe('FNForm', () => {
         )
       }
 
-      const user = userEvent.setup()
-      render(<TestComponent />)
+      const { user } = render(<TestComponent />)
 
       await user.click(screen.getByRole('button', { name: 'External Submit' }))
 
@@ -549,8 +556,7 @@ describe('FNForm', () => {
         )
       }
 
-      const user = userEvent.setup()
-      render(<TestComponent />)
+      const { user } = render(<TestComponent />)
 
       await user.click(screen.getByRole('button', { name: 'Set Value' }))
 
@@ -596,13 +602,12 @@ describe('FNForm', () => {
 
   describe('onFieldChange callback', () => {
     it('should call onFieldChange when a field value changes', async () => {
-      const user = userEvent.setup()
       const mockOnFieldChange = vi.fn()
       const definition: FormDefinition = {
         fields: [{ name: 'username', type: 'text', label: 'Username' }],
       }
 
-      render(
+      const { user } = render(
         <FNForm
           formDefinition={definition}
           onSubmit={vi.fn()}
@@ -620,7 +625,6 @@ describe('FNForm', () => {
     })
 
     it('should allow setting other field values from onFieldChange', async () => {
-      const user = userEvent.setup()
       const definition: FormDefinition = {
         fields: [
           {
@@ -641,7 +645,7 @@ describe('FNForm', () => {
         CA: 'Canada',
       }
 
-      render(
+      const { user } = render(
         <FNForm
           formDefinition={definition}
           onSubmit={vi.fn()}
@@ -694,7 +698,6 @@ describe('FNForm', () => {
     })
 
     it('should update custom field value', async () => {
-      const user = userEvent.setup()
       const mockOnSubmit = vi.fn()
       const definition: FormDefinition = {
         fields: [
@@ -714,7 +717,9 @@ describe('FNForm', () => {
         ],
       }
 
-      render(<FNForm formDefinition={definition} onSubmit={mockOnSubmit} />)
+      const { user } = render(
+        <FNForm formDefinition={definition} onSubmit={mockOnSubmit} />,
+      )
 
       await user.type(screen.getByTestId('custom-input'), 'custom value')
       await user.click(screen.getByRole('button', { name: /submit/i }))
@@ -741,7 +746,6 @@ describe('FNForm', () => {
     })
 
     it('should include hidden field values in submission', async () => {
-      const user = userEvent.setup()
       const mockOnSubmit = vi.fn()
       const definition: FormDefinition = {
         fields: [
@@ -750,7 +754,7 @@ describe('FNForm', () => {
         ],
       }
 
-      render(
+      const { user } = render(
         <FNForm
           formDefinition={definition}
           onSubmit={mockOnSubmit}

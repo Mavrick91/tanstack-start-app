@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { OrdersTable } from './OrdersTable'
 
 import type { OrderListItem } from '../../../types/order'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({

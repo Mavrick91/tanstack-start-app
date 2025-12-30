@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ImageUploader, type ImageItem } from './ImageUploader'
+
+import { render, screen } from '@/test/test-utils'
 
 global.URL.revokeObjectURL = vi.fn()
 
@@ -86,7 +86,6 @@ describe('ImageUploader', () => {
   ]
 
   beforeEach(() => {
-    mockOnChange.mockClear()
     capturedOnDragEnd = null
   })
 
@@ -113,8 +112,9 @@ describe('ImageUploader', () => {
   })
 
   it('should call onChange when alt text is updated', async () => {
-    const user = userEvent.setup()
-    render(<ImageUploader images={sampleImages} onChange={mockOnChange} />)
+    const { user } = render(
+      <ImageUploader images={sampleImages} onChange={mockOnChange} />,
+    )
 
     const altTextInputs = screen.getAllByPlaceholderText(/alt text/i)
     // Type a single character to append
@@ -132,8 +132,9 @@ describe('ImageUploader', () => {
   })
 
   it('should call onChange when image is removed', async () => {
-    const user = userEvent.setup()
-    render(<ImageUploader images={sampleImages} onChange={mockOnChange} />)
+    const { user } = render(
+      <ImageUploader images={sampleImages} onChange={mockOnChange} />,
+    )
 
     // Remove buttons are the only buttons with Trash2 icon
     const removeButtons = screen
@@ -181,7 +182,6 @@ describe('ImageUploader', () => {
   })
 
   it('should preserve remaining images after removing one', async () => {
-    const user = userEvent.setup()
     const fiveImages: ImageItem[] = [
       { id: '1', url: 'https://example.com/1.jpg', altText: { en: 'One' } },
       { id: '2', url: 'https://example.com/2.jpg', altText: { en: 'Two' } },
@@ -190,7 +190,9 @@ describe('ImageUploader', () => {
       { id: '5', url: 'https://example.com/5.jpg', altText: { en: 'Five' } },
     ]
 
-    render(<ImageUploader images={fiveImages} onChange={mockOnChange} />)
+    const { user } = render(
+      <ImageUploader images={fiveImages} onChange={mockOnChange} />,
+    )
 
     expect(screen.getAllByRole('img')).toHaveLength(5)
 
@@ -208,7 +210,6 @@ describe('ImageUploader', () => {
   })
 
   it('should correctly pass the remaining 4 images after deletion', async () => {
-    const user = userEvent.setup()
     const fiveImages: ImageItem[] = [
       { id: 'a', url: 'blob:local/a', altText: { en: 'A' } },
       { id: 'b', url: 'blob:local/b', altText: { en: 'B' } },
@@ -217,7 +218,9 @@ describe('ImageUploader', () => {
       { id: 'e', url: 'blob:local/e', altText: { en: 'E' } },
     ]
 
-    render(<ImageUploader images={fiveImages} onChange={mockOnChange} />)
+    const { user } = render(
+      <ImageUploader images={fiveImages} onChange={mockOnChange} />,
+    )
 
     const removeButtons = screen
       .getAllByRole('button')

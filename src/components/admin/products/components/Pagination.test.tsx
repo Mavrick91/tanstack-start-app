@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Pagination } from './Pagination'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -20,10 +20,6 @@ vi.mock('react-i18next', () => ({
 
 describe('Pagination', () => {
   const mockOnPageChange = vi.fn()
-
-  beforeEach(() => {
-    vi.resetAllMocks()
-  })
 
   const renderComponent = (
     props: Partial<React.ComponentProps<typeof Pagination>> = {},
@@ -135,8 +131,7 @@ describe('Pagination', () => {
 
   describe('Click interactions', () => {
     it('calls onPageChange with previous page when clicking previous button', async () => {
-      const user = userEvent.setup()
-      renderComponent({ currentPage: 3, totalPages: 5 })
+      const { user } = renderComponent({ currentPage: 3, totalPages: 5 })
 
       const buttons = screen.getAllByRole('button')
       const prevButton = buttons[0]
@@ -146,8 +141,7 @@ describe('Pagination', () => {
     })
 
     it('calls onPageChange with next page when clicking next button', async () => {
-      const user = userEvent.setup()
-      renderComponent({ currentPage: 3, totalPages: 5 })
+      const { user } = renderComponent({ currentPage: 3, totalPages: 5 })
 
       const buttons = screen.getAllByRole('button')
       const nextButton = buttons[buttons.length - 1]
@@ -157,8 +151,7 @@ describe('Pagination', () => {
     })
 
     it('calls onPageChange with page number when clicking page button', async () => {
-      const user = userEvent.setup()
-      renderComponent({ currentPage: 1, totalPages: 5 })
+      const { user } = renderComponent({ currentPage: 1, totalPages: 5 })
 
       await user.click(screen.getByRole('button', { name: '2' }))
 
@@ -166,8 +159,7 @@ describe('Pagination', () => {
     })
 
     it('calls onPageChange when clicking first page button', async () => {
-      const user = userEvent.setup()
-      renderComponent({ currentPage: 5, totalPages: 10 })
+      const { user } = renderComponent({ currentPage: 5, totalPages: 10 })
 
       await user.click(screen.getByRole('button', { name: '1' }))
 
@@ -175,8 +167,7 @@ describe('Pagination', () => {
     })
 
     it('calls onPageChange when clicking last page button', async () => {
-      const user = userEvent.setup()
-      renderComponent({ currentPage: 1, totalPages: 10 })
+      const { user } = renderComponent({ currentPage: 1, totalPages: 10 })
 
       await user.click(screen.getByRole('button', { name: '10' }))
 

@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
 import { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ProductCard } from './ProductCard'
 
 import type { Product } from '../../types/store'
+
+import { render, screen } from '@/test/test-utils'
 
 const MOCK_PRODUCT: Product = {
   id: '1',

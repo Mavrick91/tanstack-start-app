@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { OrderDetail } from './OrderDetail'
 
 import type { Order } from '../../../types/order'
+
+import { render, screen } from '@/test/test-utils'
 
 const MOCK_ORDER: Order = {
   id: 'order-1',

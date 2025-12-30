@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock dependencies
 vi.mock('@tanstack/react-router', () => ({

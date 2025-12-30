@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ProductTable, ProductTableSkeleton } from './ProductTable'
 
 import type { Product } from '../types'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -76,17 +76,12 @@ const mockProducts: Product[] = [
 ]
 
 describe('ProductTable', () => {
-  let queryClient: QueryClient
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   const mockOnToggleSelect = vi.fn()
   const mockOnToggleSelectAll = vi.fn()
   const mockOnSort = vi.fn()
-
-  beforeEach(() => {
-    vi.resetAllMocks()
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
-  })
 
   const renderComponent = (
     props: Partial<React.ComponentProps<typeof ProductTable>> = {},
@@ -210,8 +205,7 @@ describe('ProductTable', () => {
     })
 
     it('calls onToggleSelect when clicking product checkbox', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       const checkboxes = screen.getAllByRole('checkbox')
       await user.click(checkboxes[1]) // First product checkbox
@@ -220,8 +214,7 @@ describe('ProductTable', () => {
     })
 
     it('calls onToggleSelectAll when clicking header checkbox', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       const checkboxes = screen.getAllByRole('checkbox')
       await user.click(checkboxes[0]) // Header checkbox
@@ -261,8 +254,7 @@ describe('ProductTable', () => {
     })
 
     it('calls onSort when clicking sortable header', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByText('Status'))
 
@@ -270,8 +262,7 @@ describe('ProductTable', () => {
     })
 
     it('calls onSort with price key', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByText('Price'))
 

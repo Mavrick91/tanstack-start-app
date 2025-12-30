@@ -1,17 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CollectionListActions } from './CollectionListActions'
+
 import {
   deleteCollectionFn,
   duplicateCollectionFn,
   publishCollectionFn,
   unpublishCollectionFn,
-} from '../../../../server/collections'
+} from '@/server/collections'
+import { render, screen } from '@/test/test-utils'
 
-vi.mock('../../../../server/collections', () => ({
+vi.mock('@/server/collections', () => ({
   deleteCollectionFn: vi.fn(),
   duplicateCollectionFn: vi.fn(),
   publishCollectionFn: vi.fn(),
@@ -58,9 +58,8 @@ describe('CollectionListActions', () => {
 
   it('calls deleteCollectionFn on delete confirmation', async () => {
     vi.mocked(deleteCollectionFn).mockResolvedValue({ success: true })
-    const user = userEvent.setup()
 
-    renderComponent()
+    const { user } = renderComponent()
 
     // Open menu
     await user.click(screen.getByRole('button'))
@@ -79,9 +78,8 @@ describe('CollectionListActions', () => {
       success: true,
       data: { id: 'col-new' },
     } as Awaited<ReturnType<typeof duplicateCollectionFn>>)
-    const user = userEvent.setup()
 
-    renderComponent()
+    const { user } = renderComponent()
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Duplicate'))
@@ -96,9 +94,8 @@ describe('CollectionListActions', () => {
       success: true,
       data: { id: 'col-123', publishedAt: null },
     } as Awaited<ReturnType<typeof unpublishCollectionFn>>)
-    const user = userEvent.setup()
 
-    renderComponent({ status: 'active' })
+    const { user } = renderComponent({ status: 'active' })
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Archive'))
@@ -113,9 +110,8 @@ describe('CollectionListActions', () => {
       success: true,
       data: { id: 'col-123', publishedAt: new Date() },
     } as Awaited<ReturnType<typeof publishCollectionFn>>)
-    const user = userEvent.setup()
 
-    renderComponent({ status: 'archived' })
+    const { user } = renderComponent({ status: 'archived' })
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Activate'))

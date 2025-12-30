@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DataListDropdown } from './DataListDropdown'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -42,8 +42,7 @@ describe('DataListDropdown', () => {
   })
 
   it('opens dropdown menu on click', async () => {
-    render(<DataListDropdown {...defaultProps} />)
-    const user = userEvent.setup()
+    const { user } = render(<DataListDropdown {...defaultProps} />)
 
     await user.click(screen.getByRole('button'))
 
@@ -52,13 +51,12 @@ describe('DataListDropdown', () => {
   })
 
   it('renders storefront link when provided', async () => {
-    render(
+    const { user } = render(
       <DataListDropdown
         {...defaultProps}
         storefrontUrl="/en/storefront/item"
       />,
     )
-    const user = userEvent.setup()
 
     await user.click(screen.getByRole('button'))
 
@@ -71,8 +69,9 @@ describe('DataListDropdown', () => {
 
   it('calls onDuplicate when clicked', async () => {
     const onDuplicate = vi.fn()
-    render(<DataListDropdown {...defaultProps} onDuplicate={onDuplicate} />)
-    const user = userEvent.setup()
+    const { user } = render(
+      <DataListDropdown {...defaultProps} onDuplicate={onDuplicate} />,
+    )
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Duplicate'))
@@ -82,14 +81,13 @@ describe('DataListDropdown', () => {
 
   it('calls onStatusChange with "archived" when active', async () => {
     const onStatusChange = vi.fn()
-    render(
+    const { user } = render(
       <DataListDropdown
         {...defaultProps}
         status="active"
         onStatusChange={onStatusChange}
       />,
     )
-    const user = userEvent.setup()
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Archive'))
@@ -99,14 +97,13 @@ describe('DataListDropdown', () => {
 
   it('calls onStatusChange with "active" when archived', async () => {
     const onStatusChange = vi.fn()
-    render(
+    const { user } = render(
       <DataListDropdown
         {...defaultProps}
         status="archived"
         onStatusChange={onStatusChange}
       />,
     )
-    const user = userEvent.setup()
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Activate'))
@@ -116,8 +113,9 @@ describe('DataListDropdown', () => {
 
   it('opens delete dialog and confirms deletion', async () => {
     const onDelete = vi.fn()
-    render(<DataListDropdown {...defaultProps} onDelete={onDelete} />)
-    const user = userEvent.setup()
+    const { user } = render(
+      <DataListDropdown {...defaultProps} onDelete={onDelete} />,
+    )
 
     // Open dropdown
     await user.click(screen.getByRole('button'))

@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductsListContent } from './ProductsList'
+
+import { render, screen, waitFor } from '@/test/test-utils'
 
 // Mock fetch
 const mockFetch = vi.fn()

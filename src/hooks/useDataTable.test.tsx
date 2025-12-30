@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useDataTable } from './useDataTable'
+
+import { act, renderHook, waitFor } from '@/test/test-utils'
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),

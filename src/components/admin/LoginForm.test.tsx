@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Button } from '../../components/ui/button'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => ({

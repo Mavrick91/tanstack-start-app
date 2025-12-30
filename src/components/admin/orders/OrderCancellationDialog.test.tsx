@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { OrderCancellationDialog } from './OrderCancellationDialog'
+
+import { render, screen } from '@/test/test-utils'
 
 describe('OrderCancellationDialog', () => {
   const defaultProps = {
@@ -42,9 +42,10 @@ describe('OrderCancellationDialog', () => {
   })
 
   it('should require a reason before confirming', async () => {
-    const user = userEvent.setup()
     const onConfirm = vi.fn()
-    render(<OrderCancellationDialog {...defaultProps} onConfirm={onConfirm} />)
+    const { user } = render(
+      <OrderCancellationDialog {...defaultProps} onConfirm={onConfirm} />,
+    )
 
     const confirmButton = screen.getByRole('button', {
       name: /cancel order/i,
@@ -62,9 +63,10 @@ describe('OrderCancellationDialog', () => {
   })
 
   it('should call onConfirm with reason when confirmed', async () => {
-    const user = userEvent.setup()
     const onConfirm = vi.fn()
-    render(<OrderCancellationDialog {...defaultProps} onConfirm={onConfirm} />)
+    const { user } = render(
+      <OrderCancellationDialog {...defaultProps} onConfirm={onConfirm} />,
+    )
 
     const reasonInput = screen.getByPlaceholderText(/reason for cancellation/i)
     await user.type(reasonInput, 'Customer requested cancellation')
@@ -84,9 +86,8 @@ describe('OrderCancellationDialog', () => {
   })
 
   it('should call onOpenChange when cancel button is clicked', async () => {
-    const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    render(
+    const { user } = render(
       <OrderCancellationDialog {...defaultProps} onOpenChange={onOpenChange} />,
     )
 

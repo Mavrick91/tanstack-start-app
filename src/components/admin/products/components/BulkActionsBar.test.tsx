@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BulkActionsBar } from './BulkActionsBar'
+
+import { render, screen, waitFor } from '@/test/test-utils'
 
 // Mock fetch globally
 const mockFetch = vi.fn()
@@ -97,8 +97,7 @@ describe('BulkActionsBar', () => {
 
   describe('Activate action', () => {
     it('calls the bulk API with activate action', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -116,8 +115,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast and clears selection on success', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -130,8 +128,7 @@ describe('BulkActionsBar', () => {
 
   describe('Archive action', () => {
     it('calls the bulk API with archive action', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Archive/i }))
 
@@ -149,8 +146,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast for archive', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Archive/i }))
 
@@ -162,8 +158,7 @@ describe('BulkActionsBar', () => {
 
   describe('Delete action', () => {
     it('calls the bulk API with delete action', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -181,8 +176,7 @@ describe('BulkActionsBar', () => {
     })
 
     it('shows success toast for delete', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
@@ -197,8 +191,7 @@ describe('BulkActionsBar', () => {
       mockFetch.mockResolvedValueOnce({
         json: () => Promise.resolve({ success: false, error: 'Server error' }),
       })
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -209,8 +202,7 @@ describe('BulkActionsBar', () => {
 
     it('shows error toast when fetch fails', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -223,8 +215,7 @@ describe('BulkActionsBar', () => {
       mockFetch.mockResolvedValueOnce({
         json: () => Promise.resolve({ success: false, error: 'Server error' }),
       })
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -237,8 +228,7 @@ describe('BulkActionsBar', () => {
 
   describe('Clear selection', () => {
     it('calls onClearSelection when close button is clicked', async () => {
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       // The close button is the last button (after Activate, Archive, Delete)
       const buttons = screen.getAllByRole('button')
@@ -256,8 +246,7 @@ describe('BulkActionsBar', () => {
       mockFetch.mockImplementationOnce(
         () => new Promise(() => {}), // Never resolves
       )
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
@@ -273,8 +262,7 @@ describe('BulkActionsBar', () => {
   describe('Query invalidation', () => {
     it('invalidates products query on success', async () => {
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-      const user = userEvent.setup()
-      renderComponent()
+      const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 

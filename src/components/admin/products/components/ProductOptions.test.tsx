@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ProductOptions, type ProductOption } from './ProductOptions'
+
+import { render, screen } from '@/test/test-utils'
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -13,10 +13,6 @@ vi.mock('react-i18next', () => ({
 
 describe('ProductOptions', () => {
   const mockOnChange = vi.fn()
-
-  beforeEach(() => {
-    mockOnChange.mockClear()
-  })
 
   describe('Empty State', () => {
     it('renders empty state with preset and custom option buttons', () => {
@@ -36,8 +32,9 @@ describe('ProductOptions', () => {
     })
 
     it('applies nail presets when Use Nail Presets clicked', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={[]} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={[]} onChange={mockOnChange} />,
+      )
 
       await user.click(
         screen.getByRole('button', { name: /Use Nail Presets/i }),
@@ -53,8 +50,9 @@ describe('ProductOptions', () => {
     })
 
     it('calls onChange with new empty option when Add Custom Option clicked', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={[]} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={[]} onChange={mockOnChange} />,
+      )
 
       await user.click(
         screen.getByRole('button', { name: /Add Custom Option/i }),
@@ -101,8 +99,7 @@ describe('ProductOptions', () => {
     })
 
     it('updates option name when input changes', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductOptions options={existingOptions} onChange={mockOnChange} />,
       )
 
@@ -117,8 +114,7 @@ describe('ProductOptions', () => {
     })
 
     it('removes option when delete button is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductOptions options={existingOptions} onChange={mockOnChange} />,
       )
 
@@ -133,8 +129,7 @@ describe('ProductOptions', () => {
     })
 
     it('adds another option when Add Another Option is clicked', async () => {
-      const user = userEvent.setup()
-      render(
+      const { user } = render(
         <ProductOptions options={existingOptions} onChange={mockOnChange} />,
       )
 
@@ -155,8 +150,9 @@ describe('ProductOptions', () => {
     ]
 
     it('adds value when Enter is pressed in value input', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={singleOption} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={singleOption} onChange={mockOnChange} />,
+      )
 
       const valueInput = screen.getByPlaceholderText(
         'Add value and press Enter',
@@ -169,8 +165,9 @@ describe('ProductOptions', () => {
     })
 
     it('adds value when plus button is clicked', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={singleOption} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={singleOption} onChange={mockOnChange} />,
+      )
 
       const valueInput = screen.getByPlaceholderText(
         'Add value and press Enter',
@@ -187,8 +184,9 @@ describe('ProductOptions', () => {
     })
 
     it('does not add duplicate values', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={singleOption} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={singleOption} onChange={mockOnChange} />,
+      )
 
       const valueInput = screen.getByPlaceholderText(
         'Add value and press Enter',
@@ -203,8 +201,9 @@ describe('ProductOptions', () => {
     })
 
     it('does not add empty values', async () => {
-      const user = userEvent.setup()
-      render(<ProductOptions options={singleOption} onChange={mockOnChange} />)
+      const { user } = render(
+        <ProductOptions options={singleOption} onChange={mockOnChange} />,
+      )
 
       const valueInput = screen.getByPlaceholderText(
         'Add value and press Enter',
@@ -219,11 +218,10 @@ describe('ProductOptions', () => {
     })
 
     it('removes value when × button is clicked', async () => {
-      const user = userEvent.setup()
       const optionWithValues: ProductOption[] = [
         { name: 'Shape', values: ['Coffin', 'Almond', 'Stiletto'] },
       ]
-      render(
+      const { user } = render(
         <ProductOptions options={optionWithValues} onChange={mockOnChange} />,
       )
 

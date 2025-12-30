@@ -1,6 +1,4 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductListActions } from './ProductListActions'
@@ -9,6 +7,8 @@ import {
   duplicateProductFn,
   updateProductStatusFn,
 } from '../../../../server/products'
+
+import { render, screen } from '@/test/test-utils'
 
 vi.mock('../../../../server/products', () => ({
   deleteProductFn: vi.fn(),
@@ -56,9 +56,8 @@ describe('ProductListActions', () => {
 
   it('calls deleteProductFn on delete confirmation', async () => {
     vi.mocked(deleteProductFn).mockResolvedValue({ success: true })
-    const user = userEvent.setup()
 
-    renderComponent()
+    const { user } = renderComponent()
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Delete'))
@@ -74,9 +73,8 @@ describe('ProductListActions', () => {
       success: true,
       data: { id: 'prod-new' },
     } as Awaited<ReturnType<typeof duplicateProductFn>>)
-    const user = userEvent.setup()
 
-    renderComponent()
+    const { user } = renderComponent()
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Duplicate'))
@@ -88,9 +86,8 @@ describe('ProductListActions', () => {
 
   it('calls updateProductStatusFn with archived when archiving', async () => {
     vi.mocked(updateProductStatusFn).mockResolvedValue({ success: true })
-    const user = userEvent.setup()
 
-    renderComponent({ status: 'active' })
+    const { user } = renderComponent({ status: 'active' })
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Archive'))
@@ -102,9 +99,8 @@ describe('ProductListActions', () => {
 
   it('calls updateProductStatusFn with active when activating', async () => {
     vi.mocked(updateProductStatusFn).mockResolvedValue({ success: true })
-    const user = userEvent.setup()
 
-    renderComponent({ status: 'archived' })
+    const { user } = renderComponent({ status: 'archived' })
 
     await user.click(screen.getByRole('button'))
     await user.click(screen.getByText('Activate'))
