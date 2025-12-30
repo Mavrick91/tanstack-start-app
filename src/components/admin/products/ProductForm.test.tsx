@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProductForm } from './ProductForm'
@@ -16,11 +15,6 @@ vi.mock('@fancyapps/ui', () => ({
 }))
 
 vi.mock('@fancyapps/ui/dist/fancybox/fancybox.css', () => ({}))
-
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  useRouter: () => ({ navigate: vi.fn() }),
-}))
 
 // Mock Radix UI Select components since they can be tricky in JSDOM
 vi.mock('../../ui/select', () => ({
@@ -60,13 +54,8 @@ vi.mock('../../ui/select', () => ({
 }))
 
 describe('ProductForm', () => {
-  let queryClient: QueryClient
-
   beforeEach(() => {
     vi.clearAllMocks()
-    queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
     // Suppress Tiptap duplicate extension warnings (multiple editors render in tests)
     vi.spyOn(console, 'warn').mockImplementation((msg) => {
       if (typeof msg === 'string' && msg.includes('Duplicate extension')) return
@@ -91,11 +80,7 @@ describe('ProductForm', () => {
 
   describe('Create Mode', () => {
     it('should render with "Create Product" title in header', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // The title shows 'Create Product' in create mode (in the h1)
       expect(
@@ -104,11 +89,7 @@ describe('ProductForm', () => {
     })
 
     it('should render "Create Product" submit button', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // Find the submit button with 'Create Product' text
       const buttons = screen.getAllByRole('button')
@@ -119,11 +100,7 @@ describe('ProductForm', () => {
     })
 
     it('should have empty form fields by default', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       expect(
         screen.getByPlaceholderText(/Product name in English/i),
@@ -132,21 +109,13 @@ describe('ProductForm', () => {
 
     it('should show Cancel button when onBack is provided', () => {
       const handleBack = vi.fn()
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm onBack={handleBack} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm onBack={handleBack} />)
 
       expect(screen.getByText('Cancel')).toBeInTheDocument()
     })
 
     it('should always show Cancel button even without onBack', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // Cancel button is always rendered
       expect(screen.getByText('Cancel')).toBeInTheDocument()
@@ -155,11 +124,7 @@ describe('ProductForm', () => {
 
   describe('Edit Mode', () => {
     it('should render with "Edit Product" title', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={mockProduct()} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={mockProduct()} />)
 
       // In edit mode, the product name is shown as the title with an 'Editing' badge
       expect(screen.getByText('Test Product')).toBeInTheDocument()
@@ -167,21 +132,13 @@ describe('ProductForm', () => {
     })
 
     it('should render "Save Changes" button', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={mockProduct()} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={mockProduct()} />)
 
       expect(screen.getByText('Save Changes')).toBeInTheDocument()
     })
 
     it('should populate form fields with product data', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={mockProduct()} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={mockProduct()} />)
 
       expect(
         screen.getByPlaceholderText(/Product name in English/i),
@@ -191,11 +148,7 @@ describe('ProductForm', () => {
 
   describe('Status Initialization', () => {
     it('should initialize with "draft" status in create mode', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // The Draft button should have active styling (bg-slate-100)
       const draftButton = screen.getByRole('button', { name: /draft/i })
@@ -204,11 +157,7 @@ describe('ProductForm', () => {
     })
 
     it('should initialize with product status in edit mode', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={mockProduct({ status: 'active' })} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={mockProduct({ status: 'active' })} />)
 
       // The Active button should have active styling (bg-emerald)
       const activeButton = screen.getByRole('button', { name: /active/i })
@@ -217,11 +166,7 @@ describe('ProductForm', () => {
     })
 
     it('should initialize with "archived" status correctly', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={mockProduct({ status: 'archived' })} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={mockProduct({ status: 'archived' })} />)
 
       // The Archived button should have active styling (bg-amber)
       const archivedButton = screen.getByRole('button', { name: /archived/i })
@@ -232,11 +177,7 @@ describe('ProductForm', () => {
 
   describe('Form Fields', () => {
     it('should render localized name fields with tabs', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       expect(screen.getAllByText('EN').length).toBeGreaterThan(0)
       expect(screen.getAllByText('FR').length).toBeGreaterThan(0)
@@ -244,21 +185,13 @@ describe('ProductForm', () => {
     })
 
     it('should render options section', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       expect(screen.getByText('Options')).toBeInTheDocument()
     })
 
     it('should render variants section', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       expect(screen.getByText('Variants')).toBeInTheDocument()
       // Default variant should be shown
@@ -266,11 +199,7 @@ describe('ProductForm', () => {
     })
 
     it('should render SEO section', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       expect(screen.getByText('Search engine listing')).toBeInTheDocument()
       expect(screen.getByText('Meta Title')).toBeInTheDocument()
@@ -280,22 +209,14 @@ describe('ProductForm', () => {
 
   describe('Rich Text Editor Integration', () => {
     it('should render description field with RichTextEditor styling', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // RichTextEditor renders within the Description section
       expect(screen.getByText('Description')).toBeInTheDocument()
     })
 
     it('should render description with localized tabs (EN, FR, ID)', () => {
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm />)
 
       // Multiple tabs should exist for description localization
       const enTabs = screen.getAllByText('EN')
@@ -316,11 +237,7 @@ describe('ProductForm', () => {
         },
       })
 
-      render(
-        <QueryClientProvider client={queryClient}>
-          <ProductForm product={product} />
-        </QueryClientProvider>,
-      )
+      render(<ProductForm product={product} />)
 
       // The form should be populated (RichTextEditor will render the HTML)
       expect(screen.getByText('Description')).toBeInTheDocument()
