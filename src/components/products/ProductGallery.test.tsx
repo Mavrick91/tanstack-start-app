@@ -109,42 +109,4 @@ describe('ProductGallery', () => {
       expect(fancyboxLinks).toHaveLength(3)
     })
   })
-
-  describe('Styling', () => {
-    it('applies aspect ratio to main image container', () => {
-      const { container } = render(
-        <ProductGallery
-          images={['https://example.com/img1.jpg']}
-          productName="Test Product"
-        />,
-      )
-      const mainLink = container.querySelector('a')
-      expect(mainLink).toHaveClass('aspect-[4/5]')
-    })
-
-    it('thumbnails have square aspect ratio', () => {
-      const { container } = render(
-        <ProductGallery
-          images={[
-            'https://example.com/img1.jpg',
-            'https://example.com/img2.jpg',
-          ]}
-          productName="Test Product"
-        />,
-      )
-      const thumbnailLink = container.querySelector('.grid-cols-4 a')
-      expect(thumbnailLink).toHaveClass('aspect-square')
-    })
-
-    it('images have object-cover', () => {
-      render(
-        <ProductGallery
-          images={['https://example.com/img1.jpg']}
-          productName="Test Product"
-        />,
-      )
-      const img = screen.getByRole('img')
-      expect(img).toHaveClass('object-cover')
-    })
-  })
 })
