@@ -28,6 +28,8 @@ describe('Environment Validation', () => {
       process.env.CLOUDINARY_API_KEY = 'xxx'
       process.env.CLOUDINARY_API_SECRET = 'xxx'
       process.env.CHECKOUT_SECRET = 'test-secret'
+      process.env.SESSION_SECRET =
+        '3d56f86884dcd0b165170c8a8a3a453e7e5ec6328016879c4dd44dcc0ef9017a'
 
       const { validateEnv } = await import('./env')
       expect(() => validateEnv()).not.toThrow()
@@ -72,10 +74,33 @@ describe('Environment Validation', () => {
       process.env.CLOUDINARY_API_KEY = 'xxx'
       process.env.CLOUDINARY_API_SECRET = 'xxx'
       process.env.CHECKOUT_SECRET = 'test-secret'
+      process.env.SESSION_SECRET =
+        '3d56f86884dcd0b165170c8a8a3a453e7e5ec6328016879c4dd44dcc0ef9017a'
       // Intentionally not setting optional vars like SENDGRID_API_KEY
 
       const { validateEnv } = await import('./env')
       expect(() => validateEnv()).not.toThrow()
+    })
+
+    it('should throw when SESSION_SECRET is too short', async () => {
+      process.env.DATABASE_URL = 'postgres://test'
+      process.env.STRIPE_SECRET_KEY = 'sk_test_xxx'
+      process.env.STRIPE_PUBLISHABLE_KEY = 'pk_test_xxx'
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_xxx'
+      process.env.PAYPAL_CLIENT_ID = 'xxx'
+      process.env.PAYPAL_CLIENT_SECRET = 'xxx'
+      process.env.PAYPAL_WEBHOOK_ID = 'xxx'
+      process.env.PAYPAL_MODE = 'sandbox'
+      process.env.CLOUDINARY_CLOUD_NAME = 'xxx'
+      process.env.CLOUDINARY_API_KEY = 'xxx'
+      process.env.CLOUDINARY_API_SECRET = 'xxx'
+      process.env.CHECKOUT_SECRET = 'test-secret'
+      process.env.SESSION_SECRET = 'too-short'
+
+      const { validateEnv } = await import('./env')
+      expect(() => validateEnv()).toThrow(
+        'SESSION_SECRET must be at least 32 characters long',
+      )
     })
   })
 

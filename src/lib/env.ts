@@ -11,6 +11,7 @@ const requiredEnvVars = [
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
   'CHECKOUT_SECRET',
+  'SESSION_SECRET',
 ] as const
 
 const optionalEnvVars = [
@@ -38,6 +39,14 @@ export function validateEnv(): void {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables:\n${missing.map((v) => `  - ${v}`).join('\n')}`,
+    )
+  }
+
+  // Validate SESSION_SECRET length (must be at least 32 characters)
+  const sessionSecret = process.env.SESSION_SECRET
+  if (sessionSecret && sessionSecret.length < 32) {
+    throw new Error(
+      "SESSION_SECRET must be at least 32 characters long. Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
     )
   }
 
