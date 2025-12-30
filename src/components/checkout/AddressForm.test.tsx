@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -136,7 +136,9 @@ describe('AddressForm', () => {
       render(<AddressForm onSubmit={mockOnSubmit} formRef={formRef} />)
 
       // Submit empty form
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         // Should not call onSubmit when validation fails
@@ -166,7 +168,9 @@ describe('AddressForm', () => {
       )
 
       // Submit using the ref
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled()
@@ -193,7 +197,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -220,7 +226,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -247,7 +255,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -274,7 +284,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -300,7 +312,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -327,7 +341,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -503,7 +519,9 @@ describe('AddressForm', () => {
         />,
       )
 
-      formRef.current?.submit()
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled()

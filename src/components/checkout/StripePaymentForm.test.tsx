@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 // Mock Stripe hooks before importing component
@@ -202,9 +202,11 @@ describe('StripePaymentForm Component', () => {
         expect(screen.getByText(/Processing/i)).toBeInTheDocument()
       })
 
-      // Resolve the payment
-      resolvePayment!({
-        paymentIntent: { id: 'pi_123', status: 'succeeded' },
+      // Resolve the payment and wait for state update
+      await act(async () => {
+        resolvePayment!({
+          paymentIntent: { id: 'pi_123', status: 'succeeded' },
+        })
       })
     })
 
@@ -232,9 +234,11 @@ describe('StripePaymentForm Component', () => {
         expect(submitButton).toBeDisabled()
       })
 
-      // Resolve the payment
-      resolvePayment!({
-        paymentIntent: { id: 'pi_123', status: 'succeeded' },
+      // Resolve the payment and wait for state update
+      await act(async () => {
+        resolvePayment!({
+          paymentIntent: { id: 'pi_123', status: 'succeeded' },
+        })
       })
     })
   })
