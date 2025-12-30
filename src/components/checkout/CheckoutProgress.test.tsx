@@ -1,14 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { CheckoutProgress } from './CheckoutProgress'
 
 import { render, screen } from '@/test/test-utils'
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
 
 describe('CheckoutProgress Component', () => {
   describe('Step Rendering', () => {

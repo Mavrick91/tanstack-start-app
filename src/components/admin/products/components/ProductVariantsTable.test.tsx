@@ -7,13 +7,6 @@ import {
 
 import { render, screen } from '@/test/test-utils'
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 describe('ProductVariantsTable', () => {
   const mockOnChange = vi.fn()
 

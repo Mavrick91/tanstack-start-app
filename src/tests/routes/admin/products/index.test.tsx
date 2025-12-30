@@ -4,13 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NoResults } from '@/routes/admin/products/index'
 import { fireEvent, render, screen } from '@/test/test-utils'
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
-
 describe('NoResults component', () => {
   let queryClient: QueryClient
 

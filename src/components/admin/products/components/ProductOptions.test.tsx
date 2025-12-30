@@ -4,13 +4,6 @@ import { ProductOptions, type ProductOption } from './ProductOptions'
 
 import { render, screen } from '@/test/test-utils'
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 describe('ProductOptions', () => {
   const mockOnChange = vi.fn()
 

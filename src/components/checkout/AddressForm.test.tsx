@@ -6,12 +6,6 @@ import type { AddressFormData } from '../../lib/checkout-schemas'
 
 import { act, fireEvent, render, screen, waitFor } from '@/test/test-utils'
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 // Mock the AddressAutocomplete component
 vi.mock('./AddressAutocomplete', () => ({
   AddressAutocomplete: ({

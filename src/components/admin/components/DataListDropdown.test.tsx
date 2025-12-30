@@ -4,30 +4,6 @@ import { DataListDropdown } from './DataListDropdown'
 
 import { render, screen } from '@/test/test-utils'
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
-
-// Mock Link from @tanstack/react-router
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    children,
-    className,
-  }: {
-    to: string
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <a href={to} className={className}>
-      {children}
-    </a>
-  ),
-}))
-
 describe('DataListDropdown', () => {
   const defaultProps = {
     itemId: '123',
@@ -124,16 +100,10 @@ describe('DataListDropdown', () => {
 
     // Check dialog content
     expect(screen.getByText('Are you sure?')).toBeInTheDocument()
-    // Using a simpler regex or partial match due to potential interpolation differences
-    // or just checking for the name being present if the mock passes params.
-    // Since our mock returns `str` as is, the interpolation might not happen in the mock.
-    // However, the component calls t('key', {name}), so our mock returns 'key'.
-    // Let's verify the key used in component:
-    // t('This will permanently delete "{{name}}". This action cannot be undone.', { name: itemName })
-    // With our mock, it will just return the long string.
+    // Global mock now handles interpolation, so {{name}} should be replaced with "Test Item"
     expect(
       screen.getByText(
-        'This will permanently delete "{{name}}". This action cannot be undone.',
+        'This will permanently delete "Test Item". This action cannot be undone.',
       ),
     ).toBeInTheDocument()
 

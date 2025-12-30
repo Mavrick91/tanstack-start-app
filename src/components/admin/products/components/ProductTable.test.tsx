@@ -6,26 +6,6 @@ import type { Product } from '../types'
 
 import { render, screen } from '@/test/test-utils'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    children,
-    params,
-  }: {
-    to: string
-    children: React.ReactNode
-    params?: Record<string, string>
-  }) => (
-    <a href={to.replace('$productId', params?.productId || '')}>{children}</a>
-  ),
-}))
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
-
 vi.mock('../../../../server/products', () => ({
   deleteProductFn: vi.fn(),
   duplicateProductFn: vi.fn(),

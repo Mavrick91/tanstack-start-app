@@ -15,14 +15,6 @@ vi.mock('../../../../server/collections', () => ({
   bulkUpdateCollectionsStatusFn: vi.fn(),
 }))
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string, opts?: { count?: number }) =>
-      opts?.count !== undefined
-        ? str.replace('{{count}}', String(opts.count))
-        : str,
-  }),
-}))
 
 vi.mock('sonner', () => ({
   toast: {

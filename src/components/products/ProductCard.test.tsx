@@ -1,4 +1,3 @@
-import { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ProductCard } from './ProductCard'
@@ -17,23 +16,6 @@ const MOCK_PRODUCT: Product = {
   category: 'Watches',
   images: ['https://example.com/image.jpg'],
 }
-
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    to,
-    className,
-  }: {
-    children: ReactNode
-    to: string | object
-    className?: string
-  }) => (
-    <a href={typeof to === 'string' ? to : '#'} className={className}>
-      {children}
-    </a>
-  ),
-  useParams: () => ({ lang: 'en' }),
-}))
 
 const addItemMock = vi.fn()
 vi.mock('../../hooks/useCart', () => ({

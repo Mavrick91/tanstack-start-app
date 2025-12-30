@@ -4,20 +4,6 @@ import { Pagination } from './Pagination'
 
 import { render, screen } from '@/test/test-utils'
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string, opts?: Record<string, number>) => {
-      if (opts) {
-        return str
-          .replace('{{start}}', String(opts.start))
-          .replace('{{end}}', String(opts.end))
-          .replace('{{total}}', String(opts.total))
-      }
-      return str
-    },
-  }),
-}))
-
 describe('Pagination', () => {
   const mockOnPageChange = vi.fn()
 

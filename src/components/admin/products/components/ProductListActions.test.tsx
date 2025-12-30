@@ -16,18 +16,6 @@ vi.mock('../../../../server/products', () => ({
   updateProductStatusFn: vi.fn(),
 }))
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
-    <a href={to}>{children}</a>
-  ),
-}))
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
-
 describe('ProductListActions', () => {
   let queryClient: QueryClient
 

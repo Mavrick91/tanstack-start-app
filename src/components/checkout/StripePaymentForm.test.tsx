@@ -19,12 +19,6 @@ vi.mock('@stripe/react-stripe-js', () => ({
   useElements: () => mockElements,
 }))
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 import { StripePaymentForm } from './StripePaymentForm'
 
 describe('StripePaymentForm Component', () => {

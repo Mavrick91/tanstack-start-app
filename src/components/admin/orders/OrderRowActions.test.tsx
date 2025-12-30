@@ -4,13 +4,6 @@ import { OrderRowActions } from './OrderRowActions'
 
 import { render, screen } from '@/test/test-utils'
 
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-}))
-
 describe('OrderRowActions', () => {
   const defaultProps = {
     orderId: 'order-123',

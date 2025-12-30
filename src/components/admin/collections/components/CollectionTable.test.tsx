@@ -6,28 +6,6 @@ import type { CollectionListItem } from '../types'
 
 import { render, screen } from '@/test/test-utils'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    children,
-    params,
-  }: {
-    to: string
-    children: React.ReactNode
-    params?: Record<string, string>
-  }) => (
-    <a href={to.replace('$collectionId', params?.collectionId || '')}>
-      {children}
-    </a>
-  ),
-}))
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
-
 vi.mock('../../../../server/collections', () => ({
   deleteCollectionFn: vi.fn(),
   duplicateCollectionFn: vi.fn(),

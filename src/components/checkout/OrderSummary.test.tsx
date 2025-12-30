@@ -1,17 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { OrderSummary } from './OrderSummary'
 
 import type { CheckoutCartItem } from '../../types/checkout'
 
 import { render, screen } from '@/test/test-utils'
-
-// Mock i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
 
 const MOCK_ITEMS: CheckoutCartItem[] = [
   {

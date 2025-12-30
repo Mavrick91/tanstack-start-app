@@ -24,7 +24,13 @@ vi.mock('@tanstack/react-router', () => ({
     params?: Record<string, string>
     className?: string
   }) => {
-    const href = params?.lang ? to.replace('$lang', params.lang) : to
+    let href = to
+    // Replace all $param placeholders with their values
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
     return React.createElement('a', { href, className }, children)
   },
   useNavigate: () => vi.fn(),

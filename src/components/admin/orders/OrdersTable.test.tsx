@@ -1,25 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { OrdersTable } from './OrdersTable'
 
 import type { OrderListItem } from '../../../types/order'
 
 import { render, screen } from '@/test/test-utils'
-
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    to,
-    params,
-  }: {
-    children: React.ReactNode
-    to: string
-    params?: Record<string, string>
-  }) => (
-    <a href={`${to.replace('$orderId', params?.orderId || '')}`}>{children}</a>
-  ),
-}))
 
 const MOCK_ORDERS: OrderListItem[] = [
   {

@@ -10,14 +10,6 @@ import { render, screen, waitFor } from '@/test/test-utils'
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string, opts?: { count?: number }) =>
-      opts?.count !== undefined
-        ? str.replace('{{count}}', String(opts.count))
-        : str,
-  }),
-}))
 
 vi.mock('sonner', () => ({
   toast: {

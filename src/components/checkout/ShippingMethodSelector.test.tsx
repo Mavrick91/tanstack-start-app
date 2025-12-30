@@ -6,12 +6,6 @@ import type { ShippingRate } from '../../types/checkout'
 
 import { render, screen, fireEvent } from '@/test/test-utils'
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 const MOCK_RATES: ShippingRate[] = [
   {
     id: 'standard',

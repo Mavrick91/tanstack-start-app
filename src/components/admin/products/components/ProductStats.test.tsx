@@ -1,16 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { ProductStats } from './ProductStats'
 
 import type { ProductStats as ProductStatsData } from '../../../../hooks/useProductStats'
 
 import { render, screen } from '@/test/test-utils'
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (str: string) => str,
-  }),
-}))
 
 const createMockStats = (
   overrides: Partial<ProductStatsData> = {},

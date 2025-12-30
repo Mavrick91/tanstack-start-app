@@ -32,12 +32,6 @@ vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ lang: 'en' }),
 }))
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-}))
 
 // UI component mocks (specific to this component's dependencies)
 vi.mock('../ui/sheet', () => ({

@@ -4,24 +4,9 @@ import { CollectionForm } from './CollectionForm'
 
 import { render, screen, waitFor } from '@/test/test-utils'
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 // Mock sonner
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
-}))
-
-// Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => vi.fn(),
 }))
 
 // Mock server functions
