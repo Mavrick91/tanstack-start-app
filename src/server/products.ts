@@ -1,7 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { asc, desc, eq } from 'drizzle-orm'
+import { asc, count, desc, eq, inArray } from 'drizzle-orm'
+import { z } from 'zod'
 
+import { getMeFn } from './auth'
 import { db } from '../db'
 import {
   products,
@@ -395,4 +397,92 @@ export const updateProductStatusFn = createServerFn({ method: 'POST' })
       .where(eq(products.id, data.productId))
 
     return { success: true }
+  })
+
+// Helper to require admin auth
+async function requireAdmin() {
+  const user = await getMeFn()
+  if (!user || user.role !== 'admin') {
+    throw new Error('Unauthorized')
+  }
+  return user
+}
+
+// Get all products for admin list
+export const getAdminProductsFn = createServerFn().handler(async () => {
+  await requireAdmin()
+
+  const allProducts = await db
+    .select()
+    .from(products)
+    .orderBy(desc(products.createdAt))
+
+  const productsWithData = await Promise.all(
+    allProducts.map(async (product) => {
+      const images = await db
+        .select({ url: productImages.url })
+        .from(productImages)
+        .where(eq(productImages.productId, product.id))
+        .orderBy(asc(productImages.position))
+        .limit(1)
+
+      const variants = await db
+        .select()
+        .from(productVariants)
+        .where(eq(productVariants.productId, product.id))
+        .orderBy(asc(productVariants.position))
+
+      return {
+        ...product,
+        imageUrl: images[0]?.url,
+        variants,
+        price: variants[0]?.price ?? '0',
+      }
+    }),
+  )
+
+  return productsWithData
+})
+
+// Get product stats
+export const getProductStatsFn = createServerFn().handler(async () => {
+  await requireAdmin()
+
+  const [totalProductsResult] = await db
+    .select({ count: count() })
+    .from(products)
+
+  const [activeCountResult] = await db
+    .select({ count: count() })
+    .from(products)
+    .where(eq(products.status, 'active'))
+
+  const [draftCountResult] = await db
+    .select({ count: count() })
+    .from(products)
+    .where(eq(products.status, 'draft'))
+
+  const [archivedCountResult] = await db
+    .select({ count: count() })
+    .from(products)
+    .where(eq(products.status, 'archived'))
+
+  return {
+    totalProducts: totalProductsResult.count,
+    activeCount: activeCountResult.count,
+    draftCount: draftCountResult.count,
+    archivedCount: archivedCountResult.count,
+  }
+})
+
+// Bulk delete products
+export const deleteProductsBulkFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: unknown) =>
+    z.object({ ids: z.array(z.string().uuid()) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    await db.delete(products).where(inArray(products.id, data.ids))
+    return { success: true, deletedCount: data.ids.length }
   })
