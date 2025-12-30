@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000,
 
+  globalSetup: './e2e/global-setup.ts',
+
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',

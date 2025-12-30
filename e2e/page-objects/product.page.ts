@@ -28,9 +28,7 @@ export class ProductPage {
   }
 
   async setQuantity(quantity: number) {
-    const currentQty = parseInt(
-      (await this.quantityDisplay.textContent()) || '1',
-    )
+    const currentQty = parseInt((await this.quantityDisplay.textContent()) || '1')
     const diff = quantity - currentQty
 
     if (diff > 0) {

@@ -18,7 +18,7 @@ export class CartHelper {
 
         const existingItem = state.state.items.find(
           (i: { productId: string; variantId?: string }) =>
-            i.productId === productId && i.variantId === variantId,
+            i.productId === productId && i.variantId === variantId
         )
 
         if (existingItem) {
@@ -29,7 +29,7 @@ export class CartHelper {
 
         localStorage.setItem('cart-storage', JSON.stringify(state))
       },
-      { productId, variantId },
+      { productId, variantId }
     )
   }
 
@@ -40,7 +40,7 @@ export class CartHelper {
       const state = JSON.parse(storage)
       return state.state.items.reduce(
         (sum: number, item: { quantity: number }) => sum + item.quantity,
-        0,
+        0
       )
     })
   }

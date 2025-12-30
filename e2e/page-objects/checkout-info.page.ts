@@ -25,9 +25,7 @@ export class CheckoutInfoPage {
     this.provinceInput = page.getByRole('textbox', { name: /state|province/i })
     this.zipInput = page.getByRole('textbox', { name: /zip|postal/i })
     this.phoneInput = page.getByRole('textbox', { name: /phone/i })
-    this.continueButton = page.getByRole('button', {
-      name: /continue to shipping/i,
-    })
+    this.continueButton = page.getByRole('button', { name: /continue to shipping/i })
   }
 
   async waitForCheckoutReady() {
@@ -43,9 +41,7 @@ export class CheckoutInfoPage {
 
   async selectCountry(countryCode: string) {
     await this.countrySelect.click()
-    await this.page
-      .getByRole('option', { name: new RegExp(countryCode, 'i') })
-      .click()
+    await this.page.getByRole('option', { name: new RegExp(countryCode, 'i') }).click()
   }
 
   async fillShippingAddress(address: typeof TEST_DATA.shippingAddress) {
