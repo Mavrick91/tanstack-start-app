@@ -35,6 +35,23 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 // =============================================================================
+// Global Mocks - i18n
+// =============================================================================
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, params?: Record<string, unknown>) => {
+      if (!params) return key
+      // Simple interpolation for test mocks
+      return key.replace(/\{\{(\w+)\}\}/g, (_, param) => String(params[param]))
+    },
+    i18n: { language: 'en', changeLanguage: vi.fn() },
+  }),
+  Trans: ({ children }: { children: React.ReactNode }) => children,
+  initReactI18next: { type: '3rdParty', init: () => {} },
+}))
+
+// =============================================================================
 // Standardized cleanup after EVERY test
 // =============================================================================
 afterEach(() => {
