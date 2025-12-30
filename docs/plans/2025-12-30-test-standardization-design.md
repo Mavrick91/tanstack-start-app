@@ -11,6 +11,7 @@
 Standardize the test suite by building proper infrastructure first, documenting standards, then systematically migrating existing tests.
 
 **Approach:** Infrastructure First
+
 1. Enhance `src/test/` utilities with global mocks and more factories
 2. Write the testing standards guide
 3. Migrate files systematically using the guide as reference
@@ -65,6 +66,7 @@ vi.mock('@tanstack/react-router', () => ({
 ### Extend `src/test/factories/data.ts`
 
 Current factories (keep):
+
 - `createProduct()`
 - `createCartItem()`
 - `createUser()`
@@ -72,6 +74,7 @@ Current factories (keep):
 - `createAddress()`
 
 Add missing:
+
 - `createCollection()` - For collection tests
 - `createCheckout()` - For checkout flow tests
 - `createShippingRate()` - For shipping tests
@@ -89,7 +92,9 @@ Add missing:
 ### Example Factory Structure
 
 ```typescript
-export function createCollection(overrides: Partial<Collection> = {}): Collection {
+export function createCollection(
+  overrides: Partial<Collection> = {},
+): Collection {
   const id = `collection-${nextId('collection')}`
   return {
     id,
@@ -117,29 +122,35 @@ Create `docs/testing-standards.md` with these sections:
 # Testing Standards Guide
 
 ## Quick Start
+
 - Import pattern (one-liner)
 - Basic test structure template
 
 ## Global Mocks (automatic)
+
 - What's mocked by default (router, i18n)
 - How to override when needed
 
 ## Data Factories
+
 - Available factories with examples
 - When to use factories vs inline data
 
 ## Component Testing Patterns
+
 - Rendering with QueryClient (automatic)
 - userEvent setup
 - Async patterns (waitFor, findBy)
 
 ## Common Scenarios
+
 - Testing forms (FNForm)
 - Testing modals/dialogs
 - Testing with cart state
 - Testing with auth state
 
 ## Anti-patterns
+
 - Don't wrap render in act()
 - Don't create your own QueryClient
 - Don't use fireEvent for user actions
@@ -147,12 +158,12 @@ Create `docs/testing-standards.md` with these sections:
 
 ### Key Standards
 
-| Topic | Standard |
-|-------|----------|
-| Describe naming | `describe('ComponentName', () => {})` - no "Component" suffix |
-| Nesting depth | Max 2 levels: describe → it (or describe → describe → it for variants) |
-| Test naming | `it('does X when Y')` - behavior focused |
-| Assertions | Prefer `getByRole` over `getByTestId` |
+| Topic           | Standard                                                               |
+| --------------- | ---------------------------------------------------------------------- |
+| Describe naming | `describe('ComponentName', () => {})` - no "Component" suffix          |
+| Nesting depth   | Max 2 levels: describe → it (or describe → describe → it for variants) |
+| Test naming     | `it('does X when Y')` - behavior focused                               |
+| Assertions      | Prefer `getByRole` over `getByTestId`                                  |
 
 ---
 
@@ -164,6 +175,7 @@ Process files by impact, fixing ALL issues in each file before moving on:
 
 **Batch 1: High-Impact Files (7 files)**
 Files with 3+ issues from the report:
+
 - `Navbar.test.tsx` - act() wrappers, redundant mocks
 - `OrderDetail.test.tsx` - 50+ lines hardcoded data
 - `ProductForm.test.tsx` - redundant QueryClient
@@ -173,6 +185,7 @@ Files with 3+ issues from the report:
 - `BulkActionsBar.test.tsx` (collections) - redundant QueryClient
 
 **Batch 2: QueryClient Cleanup (6 remaining files)**
+
 - `ProductsList.test.tsx`
 - `CollectionTable.test.tsx`
 - `useProductStats.test.tsx`
@@ -181,6 +194,7 @@ Files with 3+ issues from the report:
 
 **Batch 3: Factory Migration (~15 files)**
 Files with hardcoded `MOCK_*` constants:
+
 - `ProductCard.test.tsx`
 - `OrderSummary.test.tsx`
 - `useCheckout.test.ts`
@@ -188,6 +202,7 @@ Files with hardcoded `MOCK_*` constants:
 - And others
 
 **Batch 4: Remaining Cleanup**
+
 - fireEvent → userEvent (6 files)
 - Hook mock standardization
 - Describe block naming consistency
@@ -195,6 +210,7 @@ Files with hardcoded `MOCK_*` constants:
 ### Per-File Checklist
 
 For each file:
+
 1. Remove redundant `vi.mock('@tanstack/react-router')` (now global)
 2. Remove redundant `vi.mock('react-i18next')` (now global)
 3. Remove custom QueryClient wrapper (use automatic one)
@@ -215,6 +231,7 @@ npm run test
 ```
 
 If tests fail:
+
 - Fix immediately before proceeding
 - If global mock causes issues, add override in specific test file
 - Document edge cases in the testing guide
@@ -233,13 +250,13 @@ One commit per batch for easy rollback:
 
 ### Success Criteria
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Files with router mock | 15 | 0 (global) |
-| Files with i18n mock | 21 | 0 (global) |
-| Files with custom QueryClient | 13 | 0 |
-| Files using factories | ~5% | ~95% |
-| All tests passing | ✓ | ✓ |
+| Metric                        | Before | After      |
+| ----------------------------- | ------ | ---------- |
+| Files with router mock        | 15     | 0 (global) |
+| Files with i18n mock          | 21     | 0 (global) |
+| Files with custom QueryClient | 13     | 0          |
+| Files using factories         | ~5%    | ~95%       |
+| All tests passing             | ✓      | ✓          |
 
 ---
 
@@ -247,12 +264,12 @@ One commit per batch for easy rollback:
 
 ### High-Priority Files (from report)
 
-| File | Issues |
-|------|--------|
-| `Navbar.test.tsx` | Unnecessary act(), redundant mocks |
-| `OrderDetail.test.tsx` | 50+ lines hardcoded data |
-| `ProductForm.test.tsx` | Redundant QueryClient |
-| `CollectionForm.test.tsx` | Redundant QueryClient |
-| `ProductTable.test.tsx` | Hardcoded data, redundant QueryClient |
-| `BulkActionsBar.test.tsx` (both) | Redundant QueryClient |
-| `useCheckout.test.ts` | Large hardcoded data blocks |
+| File                             | Issues                                |
+| -------------------------------- | ------------------------------------- |
+| `Navbar.test.tsx`                | Unnecessary act(), redundant mocks    |
+| `OrderDetail.test.tsx`           | 50+ lines hardcoded data              |
+| `ProductForm.test.tsx`           | Redundant QueryClient                 |
+| `CollectionForm.test.tsx`        | Redundant QueryClient                 |
+| `ProductTable.test.tsx`          | Hardcoded data, redundant QueryClient |
+| `BulkActionsBar.test.tsx` (both) | Redundant QueryClient                 |
+| `useCheckout.test.ts`            | Large hardcoded data blocks           |

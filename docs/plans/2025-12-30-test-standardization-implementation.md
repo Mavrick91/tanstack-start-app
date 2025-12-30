@@ -13,6 +13,7 @@
 ## Task 1: Add Global Router Mock
 
 **Files:**
+
 - Modify: `src/test/setup.ts`
 
 **Step 1: Add React import and router mock to setup.ts**
@@ -66,6 +67,7 @@ git commit -m "feat(test): add global router mock to setup.ts"
 ## Task 2: Add Global i18n Mock
 
 **Files:**
+
 - Modify: `src/test/setup.ts`
 
 **Step 1: Add i18n mock after the router mock**
@@ -102,11 +104,12 @@ git commit -m "feat(test): add global i18n mock to setup.ts"
 ## Task 3: Write Testing Standards Guide
 
 **Files:**
+
 - Create: `docs/testing-standards.md`
 
 **Step 1: Write the guide**
 
-```markdown
+````markdown
 # Testing Standards Guide
 
 ## Quick Start
@@ -122,6 +125,7 @@ describe('ComponentName', () => {
   })
 })
 ```
+````
 
 ## Global Mocks (automatic)
 
@@ -184,7 +188,7 @@ const queryClient = new QueryClient()
 render(
   <QueryClientProvider client={queryClient}>
     <MyComponent />
-  </QueryClientProvider>
+  </QueryClientProvider>,
 )
 ```
 
@@ -230,7 +234,7 @@ const queryClient = new QueryClient()
 render(
   <QueryClientProvider client={queryClient}>
     <Component />
-  </QueryClientProvider>
+  </QueryClientProvider>,
 )
 
 // Good
@@ -263,9 +267,11 @@ render(<Component />)
 ### Naming
 
 ```tsx
-describe('ComponentName', () => {           // No "Component" suffix
-  describe('Section', () => {               // Group related tests
-    it('does X when Y', () => {})           // Behavior focused
+describe('ComponentName', () => {
+  // No "Component" suffix
+  describe('Section', () => {
+    // Group related tests
+    it('does X when Y', () => {}) // Behavior focused
   })
 })
 ```
@@ -289,20 +295,22 @@ describe('Cart', () => {
   })
 })
 ```
-```
+
+````
 
 **Step 2: Commit**
 
 ```bash
 git add docs/testing-standards.md
 git commit -m "docs: add testing standards guide"
-```
+````
 
 ---
 
 ## Task 4: Migrate Navbar.test.tsx
 
 **Files:**
+
 - Modify: `src/components/layout/Navbar.test.tsx`
 
 **Step 1: Remove redundant router and i18n mocks**
@@ -325,6 +333,7 @@ vi.mock('react-i18next', () => ({
 **Step 2: Remove all act() wrappers around render**
 
 Replace all instances of:
+
 ```typescript
 await act(async () => {
   render(<Navbar />)
@@ -332,11 +341,13 @@ await act(async () => {
 ```
 
 With:
+
 ```typescript
 render(<Navbar />)
 ```
 
 Also update the cart drawer interaction test:
+
 ```typescript
 // Before:
 const { user } = await act(async () => {
@@ -364,6 +375,7 @@ git commit -m "refactor(test): remove redundant mocks and act() from Navbar.test
 ## Task 5: Migrate ProductForm.test.tsx
 
 **Files:**
+
 - Modify: `src/components/admin/products/ProductForm.test.tsx`
 
 **Step 1: Remove QueryClient wrapper**
@@ -371,6 +383,7 @@ git commit -m "refactor(test): remove redundant mocks and act() from Navbar.test
 Delete the queryClient creation in beforeEach and remove all QueryClientProvider wrappers.
 
 Before:
+
 ```typescript
 let queryClient: QueryClient
 
@@ -391,6 +404,7 @@ render(
 ```
 
 After (keep the console.warn mock):
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks()
@@ -407,6 +421,7 @@ render(<ProductForm />)
 **Step 2: Remove redundant router mock**
 
 Delete (lines 20-23):
+
 ```typescript
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ navigate: vi.fn() }),
@@ -416,6 +431,7 @@ vi.mock('@tanstack/react-router', () => ({
 **Step 3: Remove unused imports**
 
 Remove from line 1:
+
 ```typescript
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 ```
@@ -437,13 +453,19 @@ git commit -m "refactor(test): remove redundant QueryClient and router mock from
 ## Task 6: Migrate OrderDetail.test.tsx to Factories
 
 **Files:**
+
 - Modify: `src/components/admin/orders/OrderDetail.test.tsx`
 
 **Step 1: Import factory**
 
 Add at top:
+
 ```typescript
-import { createOrder, createOrderItem, createAddress } from '@/test/factories/data'
+import {
+  createOrder,
+  createOrderItem,
+  createAddress,
+} from '@/test/factories/data'
 ```
 
 **Step 2: Replace MOCK_ORDER with factory**
@@ -515,6 +537,7 @@ git commit -m "refactor(test): migrate OrderDetail.test to use factories"
 ## Task 7: Batch Migrate QueryClient Files (6 files)
 
 **Files:**
+
 - Modify: `src/components/admin/products/ProductsList.test.tsx`
 - Modify: `src/components/admin/collections/components/CollectionTable.test.tsx`
 - Modify: `src/components/admin/collections/CollectionForm.test.tsx`
@@ -525,6 +548,7 @@ git commit -m "refactor(test): migrate OrderDetail.test to use factories"
 **Step 1: For each file, remove QueryClient wrapper pattern**
 
 In each file, find and remove:
+
 1. `import { QueryClient, QueryClientProvider } from '@tanstack/react-query'`
 2. `const queryClient = new QueryClient(...)` or `let queryClient: QueryClient`
 3. `<QueryClientProvider client={queryClient}>...</QueryClientProvider>` wrappers
@@ -553,6 +577,7 @@ git commit -m "refactor(test): remove redundant QueryClient wrappers from admin 
 ## Task 8: Batch Migrate Hook Tests (2 files)
 
 **Files:**
+
 - Modify: `src/hooks/useProductStats.test.tsx`
 - Modify: `src/hooks/useDataTable.test.tsx`
 
@@ -642,17 +667,17 @@ git commit -m "refactor(test): complete test standardization"
 
 ## Summary
 
-| Task | Files | Description |
-|------|-------|-------------|
-| 1 | 1 | Add global router mock |
-| 2 | 1 | Add global i18n mock |
-| 3 | 1 | Write testing standards guide |
-| 4 | 1 | Migrate Navbar.test.tsx |
-| 5 | 1 | Migrate ProductForm.test.tsx |
-| 6 | 1 | Migrate OrderDetail.test.tsx to factories |
-| 7 | 6 | Batch migrate QueryClient files |
-| 8 | 2 | Batch migrate hook tests |
-| 9 | ~20 | Remove remaining redundant mocks |
-| 10 | - | Final verification |
+| Task | Files | Description                               |
+| ---- | ----- | ----------------------------------------- |
+| 1    | 1     | Add global router mock                    |
+| 2    | 1     | Add global i18n mock                      |
+| 3    | 1     | Write testing standards guide             |
+| 4    | 1     | Migrate Navbar.test.tsx                   |
+| 5    | 1     | Migrate ProductForm.test.tsx              |
+| 6    | 1     | Migrate OrderDetail.test.tsx to factories |
+| 7    | 6     | Batch migrate QueryClient files           |
+| 8    | 2     | Batch migrate hook tests                  |
+| 9    | ~20   | Remove remaining redundant mocks          |
+| 10   | -     | Final verification                        |
 
 **Total: ~35 files modified**
