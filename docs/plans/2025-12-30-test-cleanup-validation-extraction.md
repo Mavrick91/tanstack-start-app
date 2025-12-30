@@ -5,6 +5,7 @@
 Two test files (`checkout-api.test.ts`, `customers.test.ts`) define and test fake inline functions instead of testing real code. This provides zero coverage and wastes 1,463 lines.
 
 Example anti-pattern:
+
 ```typescript
 it('should reject request without items', () => {
   const validateItems = (items: unknown) => {  // Fake function defined in test
@@ -27,10 +28,10 @@ it('should reject request without items', () => {
 
 ### Delete (1,463 lines of fake tests)
 
-| File | Lines | Reason |
-|------|-------|--------|
+| File                                    | Lines | Reason                      |
+| --------------------------------------- | ----- | --------------------------- |
 | `src/tests/server/checkout-api.test.ts` | 1,055 | Tests fake inline functions |
-| `src/tests/server/customers.test.ts` | 408 | Tests fake inline functions |
+| `src/tests/server/customers.test.ts`    | 408   | Tests fake inline functions |
 
 ### Create
 
@@ -40,17 +41,18 @@ it('should reject request without items', () => {
 import type { ValidationResult } from './checkout'
 
 export function validateEmailRequired(
-  email: string | null | undefined
+  email: string | null | undefined,
 ): ValidationResult
 
 export function validateEmailFormat(email: string): ValidationResult
 
 export function validateEmail(
-  email: string | null | undefined
+  email: string | null | undefined,
 ): ValidationResult
 ```
 
 Extracted from:
+
 - `src/routes/api/checkout/$checkoutId/customer.ts:23-30`
 - `src/routes/api/customers/register.ts:47-54`
 
@@ -81,6 +83,7 @@ export function normalizeAddress(address: AddressInput): AddressSnapshot
 ```
 
 Extracted from:
+
 - `src/routes/api/checkout/$checkoutId/shipping-address.ts:42-59`
 
 #### Test Files
@@ -89,6 +92,7 @@ Extracted from:
 - `src/lib/validation/address.test.ts`
 
 Following the pattern established in `src/lib/validation/checkout.test.ts`:
+
 - Import real functions
 - Use factories where applicable
 - Test edge cases (null, undefined, empty, whitespace)
@@ -98,11 +102,11 @@ Following the pattern established in `src/lib/validation/checkout.test.ts`:
 
 #### Routes to refactor
 
-| Route | Change |
-|-------|--------|
-| `src/routes/api/checkout/$checkoutId/customer.ts` | Use `validateEmail()` |
+| Route                                                     | Change                                              |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| `src/routes/api/checkout/$checkoutId/customer.ts`         | Use `validateEmail()`                               |
 | `src/routes/api/checkout/$checkoutId/shipping-address.ts` | Use `validateAddressFields()`, `normalizeAddress()` |
-| `src/routes/api/customers/register.ts` | Use `validateEmail()` |
+| `src/routes/api/customers/register.ts`                    | Use `validateEmail()`                               |
 
 #### Index exports
 

@@ -22,3 +22,15 @@ export type {
   StripePaymentVerification,
   PayPalPaymentVerification,
 } from './payment'
+
+// Email validation
+export {
+  validateEmailRequired,
+  validateEmailFormat,
+  validateEmail,
+  normalizeEmail,
+} from './email'
+
+// Address validation
+export { validateAddressFields, normalizeAddress } from './address'
+export type { AddressInput } from './address'

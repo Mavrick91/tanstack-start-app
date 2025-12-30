@@ -21,6 +21,7 @@ import {
   getRateLimitKey,
   rateLimitResponse,
 } from '../../../lib/rate-limit'
+import { validateEmail, normalizeEmail } from '../../../lib/validation'
 
 export const Route = createFileRoute('/api/customers/register')({
   server: {
@@ -44,13 +45,9 @@ export const Route = createFileRoute('/api/customers/register')({
           } = body
 
           // Validate required fields
-          if (!email?.trim()) {
-            return simpleErrorResponse('Email is required')
-          }
-
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          if (!emailRegex.test(email)) {
-            return simpleErrorResponse('Invalid email format')
+          const emailResult = validateEmail(email)
+          if (!emailResult.valid) {
+            return simpleErrorResponse(emailResult.error)
           }
 
           const passwordValidation = validatePassword(password)
@@ -59,10 +56,11 @@ export const Route = createFileRoute('/api/customers/register')({
           }
 
           // Check if user already exists
+          const normalized = normalizeEmail(email)
           const [existingUser] = await db
             .select()
             .from(users)
-            .where(eq(users.email, email.toLowerCase()))
+            .where(eq(users.email, normalized))
             .limit(1)
 
           if (existingUser) {
@@ -78,7 +76,7 @@ export const Route = createFileRoute('/api/customers/register')({
             const [newUser] = await tx
               .insert(users)
               .values({
-                email: email.toLowerCase(),
+                email: normalized,
                 passwordHash,
                 role: 'user',
               })
@@ -88,7 +86,7 @@ export const Route = createFileRoute('/api/customers/register')({
               .insert(customers)
               .values({
                 userId: newUser.id,
-                email: email.toLowerCase(),
+                email: normalized,
                 firstName: firstName?.trim() || null,
                 lastName: lastName?.trim() || null,
                 phone: phone?.trim() || null,
@@ -112,7 +110,7 @@ export const Route = createFileRoute('/api/customers/register')({
               .from(customers)
               .where(
                 and(
-                  eq(customers.email, email.toLowerCase()),
+                  eq(customers.email, normalized),
                   eq(customers.userId, null as unknown as string),
                 ),
               )

@@ -10,6 +10,7 @@ import {
 } from '../../../../lib/api'
 import { hashPassword } from '../../../../lib/auth'
 import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
+import { validateEmail, normalizeEmail } from '../../../../lib/validation'
 
 export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
   server: {
@@ -20,14 +21,9 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
           const body = await request.clone().json()
           const { email, firstName, lastName, createAccount, password } = body
 
-          if (!email?.trim()) {
-            return simpleErrorResponse('Email is required')
-          }
-
-          // Validate email format
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          if (!emailRegex.test(email)) {
-            return simpleErrorResponse('Invalid email format')
+          const emailResult = validateEmail(email)
+          if (!emailResult.valid) {
+            return simpleErrorResponse(emailResult.error)
           }
 
           const access = await validateCheckoutAccess(checkoutId, request)
@@ -56,10 +52,11 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
             }
 
             // Check if user already exists
+            const normalized = normalizeEmail(email)
             const [existingUser] = await db
               .select()
               .from(users)
-              .where(eq(users.email, email.toLowerCase()))
+              .where(eq(users.email, normalized))
               .limit(1)
 
             if (existingUser) {
@@ -75,7 +72,7 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
               const [newUser] = await tx
                 .insert(users)
                 .values({
-                  email: email.toLowerCase(),
+                  email: normalized,
                   passwordHash,
                   role: 'user',
                 })
@@ -85,7 +82,7 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
                 .insert(customers)
                 .values({
                   userId: newUser.id,
-                  email: email.toLowerCase(),
+                  email: normalized,
                   firstName: firstName?.trim() || null,
                   lastName: lastName?.trim() || null,
                 })
@@ -97,13 +94,13 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
             customerId = result.customer.id
           } else if (!customerId) {
             // Create or find guest customer using upsert pattern
-            const normalizedEmail = email.toLowerCase()
+            const normalized = normalizeEmail(email)
 
             // Check for existing customer first
             const [existingCustomer] = await db
               .select()
               .from(customers)
-              .where(eq(customers.email, normalizedEmail))
+              .where(eq(customers.email, normalized))
               .limit(1)
 
             if (existingCustomer) {
@@ -130,7 +127,7 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
               const [newCustomer] = await db
                 .insert(customers)
                 .values({
-                  email: normalizedEmail,
+                  email: normalized,
                   firstName: firstName?.trim() || null,
                   lastName: lastName?.trim() || null,
                 })
@@ -145,7 +142,7 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
             .update(checkouts)
             .set({
               customerId,
-              email: email.toLowerCase(),
+              email: normalizeEmail(email),
               updatedAt: new Date(),
             })
             .where(eq(checkouts.id, checkoutId))

@@ -10,8 +10,10 @@ import {
 } from '../../../../lib/api'
 import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
 import { calculateTax, formatTaxAmount } from '../../../../lib/tax'
-
-import type { AddressSnapshot } from '../../../../db/schema'
+import {
+  validateAddressFields,
+  normalizeAddress,
+} from '../../../../lib/validation'
 
 export const Route = createFileRoute(
   '/api/checkout/$checkoutId/shipping-address',
@@ -22,40 +24,12 @@ export const Route = createFileRoute(
         try {
           const { checkoutId } = params
           const body = await request.clone().json()
-          const {
-            firstName,
-            lastName,
-            company,
-            address1,
-            address2,
-            city,
-            province,
-            provinceCode,
-            country,
-            countryCode,
-            zip,
-            phone,
-            saveAddress,
-          } = body
+          const { saveAddress } = body
 
           // Validate required fields
-          if (!firstName?.trim()) {
-            return simpleErrorResponse('First name is required')
-          }
-          if (!lastName?.trim()) {
-            return simpleErrorResponse('Last name is required')
-          }
-          if (!address1?.trim()) {
-            return simpleErrorResponse('Address is required')
-          }
-          if (!city?.trim()) {
-            return simpleErrorResponse('City is required')
-          }
-          if (!country?.trim() || !countryCode?.trim()) {
-            return simpleErrorResponse('Country is required')
-          }
-          if (!zip?.trim()) {
-            return simpleErrorResponse('ZIP/Postal code is required')
+          const validationResult = validateAddressFields(body)
+          if (!validationResult.valid) {
+            return simpleErrorResponse(validationResult.error)
           }
 
           const access = await validateCheckoutAccess(checkoutId, request)
@@ -74,20 +48,7 @@ export const Route = createFileRoute(
 
           const checkout = access.checkout!
 
-          const shippingAddress: AddressSnapshot = {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            company: company?.trim() || undefined,
-            address1: address1.trim(),
-            address2: address2?.trim() || undefined,
-            city: city.trim(),
-            province: province?.trim() || undefined,
-            provinceCode: provinceCode?.trim() || undefined,
-            country: country.trim(),
-            countryCode: countryCode.trim(),
-            zip: zip.trim(),
-            phone: phone?.trim() || undefined,
-          }
+          const shippingAddress = normalizeAddress(body)
 
           // Check if customer has a linked user account
           let hasUserAccount = false
