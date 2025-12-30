@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { ProductPage } from '../../page-objects/product.page'
-import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
-import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
-import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
-import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
+
+import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
 import {
   seedProduct,
@@ -11,7 +8,11 @@ import {
   TEST_PREFIX,
 } from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
-import { TEST_DATA } from '../../fixtures/test-data'
+import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
+import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
+import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
+import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
+import { ProductPage } from '../../page-objects/product.page'
 
 test.describe('Checkout Happy Paths', () => {
   let productPage: ProductPage
@@ -136,9 +137,8 @@ test.describe('Checkout Happy Paths', () => {
       'PayPal sandbox credentials not configured',
     )
 
-    const { clickPayPalButton, completePayPalSandboxFlow } = await import(
-      '../../helpers/paypal.helper'
-    )
+    const { clickPayPalButton, completePayPalSandboxFlow } =
+      await import('../../helpers/paypal.helper')
 
     const product = await seedProduct({ price: 29.99 })
     const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`

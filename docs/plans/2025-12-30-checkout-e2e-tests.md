@@ -15,6 +15,7 @@
 ### Task 1: Extend Test Data Fixtures
 
 **Files:**
+
 - Modify: `e2e/fixtures/test-data.ts`
 
 **Step 1: Add expanded test data**
@@ -106,6 +107,7 @@ git commit -m "test: expand test data fixtures for checkout e2e suite"
 ### Task 2: Create Database Helper
 
 **Files:**
+
 - Create: `e2e/helpers/db.helper.ts`
 
 **Step 1: Create the database helper**
@@ -116,7 +118,8 @@ import postgres from 'postgres'
 import { eq, like, sql } from 'drizzle-orm'
 import * as schema from '../../src/db/schema'
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://localhost:5432/tanstack_start'
+const connectionString =
+  process.env.DATABASE_URL || 'postgresql://localhost:5432/tanstack_start'
 const client = postgres(connectionString)
 const db = drizzle(client, { schema })
 
@@ -252,10 +255,14 @@ export async function cleanupTestData(): Promise<void> {
       SELECT id FROM orders WHERE email LIKE ${`${TEST_PREFIX}%`}
     )
   `)
-  await db.delete(schema.orders).where(like(schema.orders.email, `${TEST_PREFIX}%`))
+  await db
+    .delete(schema.orders)
+    .where(like(schema.orders.email, `${TEST_PREFIX}%`))
 
   // Delete test checkouts
-  await db.delete(schema.checkouts).where(like(schema.checkouts.email, `${TEST_PREFIX}%`))
+  await db
+    .delete(schema.checkouts)
+    .where(like(schema.checkouts.email, `${TEST_PREFIX}%`))
 
   // Delete test customers and their addresses
   await db.execute(sql`
@@ -263,7 +270,9 @@ export async function cleanupTestData(): Promise<void> {
       SELECT id FROM customers WHERE email LIKE ${`${TEST_PREFIX}%`}
     )
   `)
-  await db.delete(schema.customers).where(like(schema.customers.email, `${TEST_PREFIX}%`))
+  await db
+    .delete(schema.customers)
+    .where(like(schema.customers.email, `${TEST_PREFIX}%`))
 
   // Delete test product images
   await db.execute(sql`
@@ -280,7 +289,9 @@ export async function cleanupTestData(): Promise<void> {
   `)
 
   // Delete test products
-  await db.delete(schema.products).where(like(schema.products.handle, `${TEST_PREFIX}%`))
+  await db
+    .delete(schema.products)
+    .where(like(schema.products.handle, `${TEST_PREFIX}%`))
 }
 
 export async function closeConnection(): Promise<void> {
@@ -300,6 +311,7 @@ git commit -m "test: add database helper for e2e test data seeding"
 ### Task 3: Create Stripe Helper
 
 **Files:**
+
 - Create: `e2e/helpers/stripe.helper.ts`
 
 **Step 1: Create the Stripe helper**
@@ -339,7 +351,7 @@ export async function fillStripeCard(
     cardNumber?: string
     expiry?: string
     cvc?: string
-  } = {}
+  } = {},
 ): Promise<void> {
   const {
     cardNumber = STRIPE_TEST_CARDS.valid,
@@ -369,16 +381,25 @@ export async function fillStripeCard(
 /**
  * Handle 3D Secure authentication popup
  */
-export async function handle3DSecure(page: Page, action: 'complete' | 'fail'): Promise<void> {
+export async function handle3DSecure(
+  page: Page,
+  action: 'complete' | 'fail',
+): Promise<void> {
   // Wait for 3DS iframe to appear
-  const threeDsFrame = page.frameLocator('iframe[name*="stripe-challenge"]').first()
+  const threeDsFrame = page
+    .frameLocator('iframe[name*="stripe-challenge"]')
+    .first()
 
   try {
-    await threeDsFrame.locator('body').waitFor({ state: 'visible', timeout: 10000 })
+    await threeDsFrame
+      .locator('body')
+      .waitFor({ state: 'visible', timeout: 10000 })
 
     if (action === 'complete') {
       // Click "Complete" or "Authorize" button in 3DS frame
-      const completeButton = threeDsFrame.locator('button:has-text("Complete"), button:has-text("Authorize")')
+      const completeButton = threeDsFrame.locator(
+        'button:has-text("Complete"), button:has-text("Authorize")',
+      )
       await completeButton.click()
     } else {
       // Click "Fail" button in 3DS frame
@@ -396,7 +417,9 @@ export async function handle3DSecure(page: Page, action: 'complete' | 'fail'): P
  */
 export async function waitForStripeReady(page: Page): Promise<void> {
   const stripeFrame = getStripeFrame(page)
-  await stripeFrame.locator('[name="number"]').waitFor({ state: 'visible', timeout: 15000 })
+  await stripeFrame
+    .locator('[name="number"]')
+    .waitFor({ state: 'visible', timeout: 15000 })
 }
 ```
 
@@ -412,6 +435,7 @@ git commit -m "test: add Stripe helper for payment element interactions"
 ### Task 4: Create PayPal Helper
 
 **Files:**
+
 - Create: `e2e/helpers/paypal.helper.ts`
 
 **Step 1: Create the PayPal helper**
@@ -432,7 +456,9 @@ export const PAYPAL_SANDBOX = {
 export async function clickPayPalButton(page: Page): Promise<Page> {
   // Wait for PayPal button to load
   const paypalFrame = page.frameLocator('iframe[title*="PayPal"]').first()
-  await paypalFrame.locator('.paypal-button').waitFor({ state: 'visible', timeout: 15000 })
+  await paypalFrame
+    .locator('.paypal-button')
+    .waitFor({ state: 'visible', timeout: 15000 })
 
   // Set up popup listener before clicking
   const popupPromise = page.waitForEvent('popup', { timeout: 30000 })
@@ -452,7 +478,9 @@ export async function clickPayPalButton(page: Page): Promise<Page> {
  */
 export async function completePayPalSandboxFlow(popup: Page): Promise<void> {
   if (!PAYPAL_SANDBOX.buyerEmail || !PAYPAL_SANDBOX.buyerPassword) {
-    throw new Error('PayPal sandbox credentials not configured. Set PAYPAL_SANDBOX_BUYER_EMAIL and PAYPAL_SANDBOX_BUYER_PASSWORD environment variables.')
+    throw new Error(
+      'PayPal sandbox credentials not configured. Set PAYPAL_SANDBOX_BUYER_EMAIL and PAYPAL_SANDBOX_BUYER_PASSWORD environment variables.',
+    )
   }
 
   try {
@@ -476,7 +504,9 @@ export async function completePayPalSandboxFlow(popup: Page): Promise<void> {
     await popup.waitForLoadState('networkidle')
 
     // Click "Pay Now" or "Continue" button
-    const payButton = popup.locator('#payment-submit-btn, button:has-text("Pay Now"), button:has-text("Continue")')
+    const payButton = popup.locator(
+      '#payment-submit-btn, button:has-text("Pay Now"), button:has-text("Continue")',
+    )
     await payButton.waitFor({ state: 'visible', timeout: 30000 })
     await payButton.click()
 
@@ -499,7 +529,9 @@ export async function cancelPayPalPayment(popup: Page): Promise<void> {
  */
 export async function waitForPayPalReady(page: Page): Promise<void> {
   const paypalFrame = page.frameLocator('iframe[title*="PayPal"]').first()
-  await paypalFrame.locator('.paypal-button').waitFor({ state: 'visible', timeout: 20000 })
+  await paypalFrame
+    .locator('.paypal-button')
+    .waitFor({ state: 'visible', timeout: 20000 })
 }
 ```
 
@@ -515,6 +547,7 @@ git commit -m "test: add PayPal helper for sandbox flow automation"
 ### Task 5: Create Checkout Confirmation Page Object
 
 **Files:**
+
 - Create: `e2e/page-objects/checkout-confirmation.page.ts`
 
 **Step 1: Create the page object**
@@ -533,17 +566,31 @@ export class CheckoutConfirmationPage {
 
   constructor(page: Page) {
     this.page = page
-    this.orderNumber = page.locator('[data-testid="order-number"], .order-number, text=/Order #\\d+/')
-    this.thankYouMessage = page.locator('h1:has-text("Thank you"), h1:has-text("Order confirmed")')
-    this.emailConfirmation = page.locator('text=/confirmation.*email|email.*sent/i')
-    this.orderSummary = page.locator('[data-testid="order-summary"], .order-summary')
-    this.shippingAddress = page.locator('[data-testid="shipping-address"], .shipping-address')
-    this.continueShoppingButton = page.locator('a:has-text("Continue shopping"), button:has-text("Continue shopping")')
+    this.orderNumber = page.locator(
+      '[data-testid="order-number"], .order-number, text=/Order #\\d+/',
+    )
+    this.thankYouMessage = page.locator(
+      'h1:has-text("Thank you"), h1:has-text("Order confirmed")',
+    )
+    this.emailConfirmation = page.locator(
+      'text=/confirmation.*email|email.*sent/i',
+    )
+    this.orderSummary = page.locator(
+      '[data-testid="order-summary"], .order-summary',
+    )
+    this.shippingAddress = page.locator(
+      '[data-testid="shipping-address"], .shipping-address',
+    )
+    this.continueShoppingButton = page.locator(
+      'a:has-text("Continue shopping"), button:has-text("Continue shopping")',
+    )
   }
 
   async waitForPage(): Promise<void> {
     await this.page.waitForURL('**/checkout/confirmation**', { timeout: 30000 })
-    await expect(this.thankYouMessage.or(this.page.locator('text=/order|thank/i'))).toBeVisible({ timeout: 10000 })
+    await expect(
+      this.thankYouMessage.or(this.page.locator('text=/order|thank/i')),
+    ).toBeVisible({ timeout: 10000 })
   }
 
   async getOrderNumber(): Promise<string | null> {
@@ -561,7 +608,9 @@ export class CheckoutConfirmationPage {
     }
     if (options.items) {
       // Verify order summary shows correct number of items
-      const itemCount = await this.orderSummary.locator('.item, [data-testid="order-item"]').count()
+      const itemCount = await this.orderSummary
+        .locator('.item, [data-testid="order-item"]')
+        .count()
       expect(itemCount).toBe(options.items)
     }
   }
@@ -585,6 +634,7 @@ git commit -m "test: add checkout confirmation page object"
 ### Task 6: Add Global Setup for Test Data Cleanup
 
 **Files:**
+
 - Create: `e2e/global-setup.ts`
 - Modify: `playwright.config.ts`
 
@@ -672,6 +722,7 @@ git commit -m "test: add global setup for test data cleanup"
 ### Task 7: Create Happy Paths Test File
 
 **Files:**
+
 - Create: `e2e/tests/checkout/happy-paths.spec.ts`
 
 **Step 1: Create the test file with guest Stripe checkout**
@@ -684,7 +735,12 @@ import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
 import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
 import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
 import { CartHelper } from '../../helpers/cart.helper'
-import { seedProduct, cleanupTestData, getOrderByPaymentId, TEST_PREFIX } from '../../helpers/db.helper'
+import {
+  seedProduct,
+  cleanupTestData,
+  getOrderByPaymentId,
+  TEST_PREFIX,
+} from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
 import { TEST_DATA } from '../../fixtures/test-data'
 
@@ -734,11 +790,19 @@ test.describe('Checkout Happy Paths', () => {
     // Fill shipping address
     await checkoutInfoPage.countrySelect.click()
     await page.getByRole('option', { name: /united states/i }).click()
-    await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-    await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-    await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+    await checkoutInfoPage.firstNameInput.fill(
+      TEST_DATA.shippingAddress.firstName,
+    )
+    await checkoutInfoPage.lastNameInput.fill(
+      TEST_DATA.shippingAddress.lastName,
+    )
+    await checkoutInfoPage.address1Input.fill(
+      TEST_DATA.shippingAddress.address1,
+    )
     await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-    await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+    await checkoutInfoPage.provinceInput.fill(
+      TEST_DATA.shippingAddress.province,
+    )
     await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
     // Continue to shipping
@@ -766,7 +830,7 @@ test.describe('Checkout Happy Paths', () => {
 
   test('guest checkout with free shipping (order >= $75)', async ({ page }) => {
     // Seed expensive product
-    const product = await seedProduct({ price: 80.00 })
+    const product = await seedProduct({ price: 80.0 })
     const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
     // Navigate to product and add to cart
@@ -784,11 +848,19 @@ test.describe('Checkout Happy Paths', () => {
     // Fill shipping address
     await checkoutInfoPage.countrySelect.click()
     await page.getByRole('option', { name: /united states/i }).click()
-    await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-    await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-    await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+    await checkoutInfoPage.firstNameInput.fill(
+      TEST_DATA.shippingAddress.firstName,
+    )
+    await checkoutInfoPage.lastNameInput.fill(
+      TEST_DATA.shippingAddress.lastName,
+    )
+    await checkoutInfoPage.address1Input.fill(
+      TEST_DATA.shippingAddress.address1,
+    )
     await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-    await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+    await checkoutInfoPage.provinceInput.fill(
+      TEST_DATA.shippingAddress.province,
+    )
     await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
     // Continue to shipping
@@ -831,6 +903,7 @@ git commit -m "test: add guest checkout with Stripe happy path tests"
 ### Task 8: Add PayPal Happy Path Test
 
 **Files:**
+
 - Modify: `e2e/tests/checkout/happy-paths.spec.ts`
 
 **Step 1: Add PayPal test to the file**
@@ -838,58 +911,64 @@ git commit -m "test: add guest checkout with Stripe happy path tests"
 Add this test after the Stripe tests:
 
 ```typescript
-  test('guest checkout with PayPal - complete flow', async ({ page }) => {
-    // Skip if PayPal credentials not configured
-    test.skip(!process.env.PAYPAL_SANDBOX_BUYER_EMAIL, 'PayPal sandbox credentials not configured')
+test('guest checkout with PayPal - complete flow', async ({ page }) => {
+  // Skip if PayPal credentials not configured
+  test.skip(
+    !process.env.PAYPAL_SANDBOX_BUYER_EMAIL,
+    'PayPal sandbox credentials not configured',
+  )
 
-    const { clickPayPalButton, completePayPalSandboxFlow } = await import('../../helpers/paypal.helper')
+  const { clickPayPalButton, completePayPalSandboxFlow } =
+    await import('../../helpers/paypal.helper')
 
-    // Seed test product
-    const product = await seedProduct({ price: 29.99 })
-    const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+  // Seed test product
+  const product = await seedProduct({ price: 29.99 })
+  const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
-    // Navigate to product and add to cart
-    await productPage.goto(product.handle)
-    await productPage.addToCart()
+  // Navigate to product and add to cart
+  await productPage.goto(product.handle)
+  await productPage.addToCart()
 
-    // Open cart and checkout
-    await page.getByRole('button', { name: /cart/i }).click()
-    await page.getByRole('button', { name: /^checkout$/i }).click()
-    await checkoutInfoPage.waitForCheckoutReady()
+  // Open cart and checkout
+  await page.getByRole('button', { name: /cart/i }).click()
+  await page.getByRole('button', { name: /^checkout$/i }).click()
+  await checkoutInfoPage.waitForCheckoutReady()
 
-    // Fill contact info and address
-    await checkoutInfoPage.fillContactInfo(testEmail)
-    await checkoutInfoPage.countrySelect.click()
-    await page.getByRole('option', { name: /united states/i }).click()
-    await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-    await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-    await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
-    await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-    await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
-    await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
+  // Fill contact info and address
+  await checkoutInfoPage.fillContactInfo(testEmail)
+  await checkoutInfoPage.countrySelect.click()
+  await page.getByRole('option', { name: /united states/i }).click()
+  await checkoutInfoPage.firstNameInput.fill(
+    TEST_DATA.shippingAddress.firstName,
+  )
+  await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
+  await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+  await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
+  await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+  await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
-    // Continue through shipping
-    await checkoutInfoPage.continueToShipping()
-    await checkoutShippingPage.waitForPage()
-    await checkoutShippingPage.selectFirstShippingOption()
-    await checkoutShippingPage.continueToPayment()
+  // Continue through shipping
+  await checkoutInfoPage.continueToShipping()
+  await checkoutShippingPage.waitForPage()
+  await checkoutShippingPage.selectFirstShippingOption()
+  await checkoutShippingPage.continueToPayment()
 
-    // Wait for payment page
-    await checkoutPaymentPage.waitForPage()
+  // Wait for payment page
+  await checkoutPaymentPage.waitForPage()
 
-    // Select PayPal tab
-    await checkoutPaymentPage.selectPayPalPayment()
+  // Select PayPal tab
+  await checkoutPaymentPage.selectPayPalPayment()
 
-    // Click PayPal button and complete flow
-    const popup = await clickPayPalButton(page)
-    await completePayPalSandboxFlow(popup)
+  // Click PayPal button and complete flow
+  const popup = await clickPayPalButton(page)
+  await completePayPalSandboxFlow(popup)
 
-    // Wait for popup to close and verification
-    await page.waitForTimeout(3000)
+  // Wait for popup to close and verification
+  await page.waitForTimeout(3000)
 
-    // Verify confirmation
-    await checkoutConfirmationPage.waitForPage()
-  })
+  // Verify confirmation
+  await checkoutConfirmationPage.waitForPage()
+})
 ```
 
 **Step 2: Commit**
@@ -906,6 +985,7 @@ git commit -m "test: add PayPal happy path test"
 ### Task 9: Create Validation Tests File
 
 **Files:**
+
 - Create: `e2e/tests/checkout/validation.spec.ts`
 
 **Step 1: Create the validation test file**
@@ -917,7 +997,11 @@ import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
 import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
 import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
 import { CartHelper } from '../../helpers/cart.helper'
-import { seedProduct, cleanupTestData, TEST_PREFIX } from '../../helpers/db.helper'
+import {
+  seedProduct,
+  cleanupTestData,
+  TEST_PREFIX,
+} from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
 import { TEST_DATA } from '../../fixtures/test-data'
 
@@ -967,7 +1051,9 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutInfoPage.continueButton.click()
 
       // Should show email error
-      await expect(page.locator('text=/email.*required|please.*email/i')).toBeVisible({ timeout: 5000 })
+      await expect(
+        page.locator('text=/email.*required|please.*email/i'),
+      ).toBeVisible({ timeout: 5000 })
     })
 
     test('shows error for invalid email format', async ({ page }) => {
@@ -994,7 +1080,9 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutInfoPage.continueButton.click()
 
       // Should show email format error
-      await expect(page.locator('text=/invalid.*email|valid.*email/i')).toBeVisible({ timeout: 5000 })
+      await expect(
+        page.locator('text=/invalid.*email|valid.*email/i'),
+      ).toBeVisible({ timeout: 5000 })
     })
 
     test('shows error for empty required address fields', async ({ page }) => {
@@ -1013,7 +1101,9 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutInfoPage.continueButton.click()
 
       // Should show address required errors
-      await expect(page.locator('text=/required/i').first()).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('text=/required/i').first()).toBeVisible({
+        timeout: 5000,
+      })
     })
   })
 
@@ -1035,11 +1125,19 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutInfoPage.fillContactInfo(testEmail)
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       await checkoutInfoPage.continueToShipping()
@@ -1058,17 +1156,23 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutPaymentPage.submitPayment()
 
       // Should show declined error
-      await expect(page.locator('text=/declined|not accepted/i')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('text=/declined|not accepted/i')).toBeVisible({
+        timeout: 15000,
+      })
     })
 
     test('shows error for insufficient funds', async ({ page }) => {
       const checkoutPaymentPage = await navigateToPayment(page)
 
-      await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.insufficientFunds })
+      await fillStripeCard(page, {
+        cardNumber: STRIPE_TEST_CARDS.insufficientFunds,
+      })
       await checkoutPaymentPage.submitPayment()
 
       // Should show funds error
-      await expect(page.locator('text=/insufficient|funds/i')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('text=/insufficient|funds/i')).toBeVisible({
+        timeout: 15000,
+      })
     })
 
     test('shows error for expired card', async ({ page }) => {
@@ -1078,7 +1182,9 @@ test.describe('Checkout Validation Errors', () => {
       await checkoutPaymentPage.submitPayment()
 
       // Should show expired error
-      await expect(page.locator('text=/expired/i')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('text=/expired/i')).toBeVisible({
+        timeout: 15000,
+      })
     })
 
     test('allows retry after card error', async ({ page }) => {
@@ -1087,28 +1193,35 @@ test.describe('Checkout Validation Errors', () => {
       // First try with declined card
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.declined })
       await checkoutPaymentPage.submitPayment()
-      await expect(page.locator('text=/declined|error/i')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('text=/declined|error/i')).toBeVisible({
+        timeout: 15000,
+      })
 
       // Retry with valid card
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.valid })
       await checkoutPaymentPage.submitPayment()
 
       // Should succeed
-      const { CheckoutConfirmationPage } = await import('../../page-objects/checkout-confirmation.page')
+      const { CheckoutConfirmationPage } =
+        await import('../../page-objects/checkout-confirmation.page')
       const confirmationPage = new CheckoutConfirmationPage(page)
       await confirmationPage.waitForPage()
     })
   })
 
   test.describe('Empty Cart', () => {
-    test('redirects when navigating to checkout with empty cart', async ({ page }) => {
+    test('redirects when navigating to checkout with empty cart', async ({
+      page,
+    }) => {
       await page.goto('/en')
       await page.evaluate(() => localStorage.removeItem('cart-storage'))
 
       await page.goto('/en/checkout/information')
 
       // Should redirect away from checkout
-      await expect(page).not.toHaveURL('**/checkout/information', { timeout: 5000 })
+      await expect(page).not.toHaveURL('**/checkout/information', {
+        timeout: 5000,
+      })
     })
   })
 })
@@ -1134,6 +1247,7 @@ git commit -m "test: add checkout validation error tests"
 ### Task 10: Create Edge Cases Test File
 
 **Files:**
+
 - Create: `e2e/tests/checkout/edge-cases.spec.ts`
 
 **Step 1: Create the edge cases test file**
@@ -1146,7 +1260,11 @@ import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
 import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
 import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
 import { CartHelper } from '../../helpers/cart.helper'
-import { seedProduct, cleanupTestData, TEST_PREFIX } from '../../helpers/db.helper'
+import {
+  seedProduct,
+  cleanupTestData,
+  TEST_PREFIX,
+} from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
 import { TEST_DATA } from '../../fixtures/test-data'
 
@@ -1176,7 +1294,9 @@ test.describe('Checkout Edge Cases', () => {
   })
 
   test.describe('Browser Navigation', () => {
-    test('preserves data when pressing back from shipping to info', async ({ page }) => {
+    test('preserves data when pressing back from shipping to info', async ({
+      page,
+    }) => {
       const product = await seedProduct()
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
@@ -1190,11 +1310,19 @@ test.describe('Checkout Edge Cases', () => {
       await checkoutInfoPage.fillContactInfo(testEmail)
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       // Continue to shipping
@@ -1207,10 +1335,14 @@ test.describe('Checkout Edge Cases', () => {
 
       // Verify data persisted
       await expect(checkoutInfoPage.emailInput).toHaveValue(testEmail)
-      await expect(checkoutInfoPage.firstNameInput).toHaveValue(TEST_DATA.shippingAddress.firstName)
+      await expect(checkoutInfoPage.firstNameInput).toHaveValue(
+        TEST_DATA.shippingAddress.firstName,
+      )
     })
 
-    test('preserves data when pressing back from payment to shipping', async ({ page }) => {
+    test('preserves data when pressing back from payment to shipping', async ({
+      page,
+    }) => {
       const product = await seedProduct()
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
@@ -1224,11 +1356,19 @@ test.describe('Checkout Edge Cases', () => {
       await checkoutInfoPage.fillContactInfo(testEmail)
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       await checkoutInfoPage.continueToShipping()
@@ -1284,7 +1424,9 @@ test.describe('Checkout Edge Cases', () => {
       expect(itemCount).toBeGreaterThan(0)
     })
 
-    test('checkout uses cart snapshot (cart changes do not affect checkout)', async ({ page }) => {
+    test('checkout uses cart snapshot (cart changes do not affect checkout)', async ({
+      page,
+    }) => {
       const product1 = await seedProduct({ price: 29.99 })
       const product2 = await seedProduct({ price: 19.99 })
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
@@ -1309,24 +1451,38 @@ test.describe('Checkout Edge Cases', () => {
       // Continue checkout - should only contain first product
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       await checkoutInfoPage.continueToShipping()
       await checkoutShippingPage.waitForPage()
 
       // Verify only original product in order summary
-      const orderSummary = page.locator('.order-summary, [data-testid="order-summary"]')
-      await expect(orderSummary.locator(`text=${product1.name.en}`)).toBeVisible()
+      const orderSummary = page.locator(
+        '.order-summary, [data-testid="order-summary"]',
+      )
+      await expect(
+        orderSummary.locator(`text=${product1.name.en}`),
+      ).toBeVisible()
     })
   })
 
   test.describe('International Addresses', () => {
-    test('handles international address with special characters', async ({ page }) => {
+    test('handles international address with special characters', async ({
+      page,
+    }) => {
       const product = await seedProduct()
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
@@ -1341,9 +1497,15 @@ test.describe('Checkout Edge Cases', () => {
       // Use international address with special characters
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /france/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.internationalAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.internationalAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.internationalAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.internationalAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.internationalAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.internationalAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.internationalAddress.city)
       await checkoutInfoPage.zipInput.fill(TEST_DATA.internationalAddress.zip)
 
@@ -1354,7 +1516,9 @@ test.describe('Checkout Edge Cases', () => {
   })
 
   test.describe('Payment Recovery', () => {
-    test('can retry after payment failure without re-entering info', async ({ page }) => {
+    test('can retry after payment failure without re-entering info', async ({
+      page,
+    }) => {
       const product = await seedProduct()
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
@@ -1367,11 +1531,19 @@ test.describe('Checkout Edge Cases', () => {
       await checkoutInfoPage.fillContactInfo(testEmail)
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       await checkoutInfoPage.continueToShipping()
@@ -1383,7 +1555,9 @@ test.describe('Checkout Edge Cases', () => {
       // First payment fails
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.declined })
       await checkoutPaymentPage.submitPayment()
-      await expect(page.locator('text=/declined|error/i')).toBeVisible({ timeout: 15000 })
+      await expect(page.locator('text=/declined|error/i')).toBeVisible({
+        timeout: 15000,
+      })
 
       // Retry with valid card - should work without re-entering shipping
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.valid })
@@ -1415,6 +1589,7 @@ git commit -m "test: add checkout edge case tests"
 ### Task 11: Create Payment Tests File
 
 **Files:**
+
 - Create: `e2e/tests/checkout/payments.spec.ts`
 
 **Step 1: Create the payment-specific test file**
@@ -1427,8 +1602,16 @@ import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
 import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
 import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
 import { CartHelper } from '../../helpers/cart.helper'
-import { seedProduct, cleanupTestData, TEST_PREFIX } from '../../helpers/db.helper'
-import { fillStripeCard, STRIPE_TEST_CARDS, handle3DSecure } from '../../helpers/stripe.helper'
+import {
+  seedProduct,
+  cleanupTestData,
+  TEST_PREFIX,
+} from '../../helpers/db.helper'
+import {
+  fillStripeCard,
+  STRIPE_TEST_CARDS,
+  handle3DSecure,
+} from '../../helpers/stripe.helper'
 import { TEST_DATA } from '../../fixtures/test-data'
 
 test.describe('Payment-Specific Scenarios', () => {
@@ -1469,11 +1652,19 @@ test.describe('Payment-Specific Scenarios', () => {
     await checkoutInfoPage.fillContactInfo(testEmail)
     await checkoutInfoPage.countrySelect.click()
     await page.getByRole('option', { name: /united states/i }).click()
-    await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-    await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-    await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+    await checkoutInfoPage.firstNameInput.fill(
+      TEST_DATA.shippingAddress.firstName,
+    )
+    await checkoutInfoPage.lastNameInput.fill(
+      TEST_DATA.shippingAddress.lastName,
+    )
+    await checkoutInfoPage.address1Input.fill(
+      TEST_DATA.shippingAddress.address1,
+    )
     await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-    await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+    await checkoutInfoPage.provinceInput.fill(
+      TEST_DATA.shippingAddress.province,
+    )
     await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
     await checkoutInfoPage.continueToShipping()
@@ -1509,7 +1700,7 @@ test.describe('Payment-Specific Scenarios', () => {
 
       await fillStripeCard(page, {
         cardNumber: STRIPE_TEST_CARDS.amex,
-        cvc: '1234' // Amex uses 4-digit CVC
+        cvc: '1234', // Amex uses 4-digit CVC
       })
       await checkoutPaymentPage.submitPayment()
 
@@ -1540,7 +1731,9 @@ test.describe('Payment-Specific Scenarios', () => {
       await handle3DSecure(page, 'fail')
 
       // Should show error
-      await expect(page.locator('text=/authentication.*failed|3d.*failed|declined/i')).toBeVisible({ timeout: 15000 })
+      await expect(
+        page.locator('text=/authentication.*failed|3d.*failed|declined/i'),
+      ).toBeVisible({ timeout: 15000 })
     })
   })
 
@@ -1556,17 +1749,25 @@ test.describe('Payment-Specific Scenarios', () => {
 
       // Verify PayPal button appears
       const paypalFrame = page.frameLocator('iframe[title*="PayPal"]').first()
-      await expect(paypalFrame.locator('.paypal-button')).toBeVisible({ timeout: 15000 })
+      await expect(paypalFrame.locator('.paypal-button')).toBeVisible({
+        timeout: 15000,
+      })
 
       // Switch back to Stripe
       await checkoutPaymentPage.selectCardPayment()
 
       // Verify Stripe form is back
-      const stripeFrame = page.frameLocator('iframe[title*="Secure payment"]').first()
-      await expect(stripeFrame.locator('[name="number"]')).toBeVisible({ timeout: 10000 })
+      const stripeFrame = page
+        .frameLocator('iframe[title*="Secure payment"]')
+        .first()
+      await expect(stripeFrame.locator('[name="number"]')).toBeVisible({
+        timeout: 10000,
+      })
     })
 
-    test('can complete Stripe payment after switching from PayPal', async ({ page }) => {
+    test('can complete Stripe payment after switching from PayPal', async ({
+      page,
+    }) => {
       await navigateToPayment(page)
 
       // Switch to PayPal first
@@ -1584,9 +1785,13 @@ test.describe('Payment-Specific Scenarios', () => {
 
   test.describe('PayPal Cancellation', () => {
     test('can retry after canceling PayPal', async ({ page }) => {
-      test.skip(!process.env.PAYPAL_SANDBOX_BUYER_EMAIL, 'PayPal sandbox credentials not configured')
+      test.skip(
+        !process.env.PAYPAL_SANDBOX_BUYER_EMAIL,
+        'PayPal sandbox credentials not configured',
+      )
 
-      const { clickPayPalButton, cancelPayPalPayment } = await import('../../helpers/paypal.helper')
+      const { clickPayPalButton, cancelPayPalPayment } =
+        await import('../../helpers/paypal.helper')
 
       await navigateToPayment(page)
 
@@ -1611,7 +1816,7 @@ test.describe('Payment-Specific Scenarios', () => {
 
   test.describe('Amount Verification', () => {
     test('checkout total includes shipping and tax', async ({ page }) => {
-      const product = await seedProduct({ price: 50.00 })
+      const product = await seedProduct({ price: 50.0 })
       const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
 
       await productPage.goto(product.handle)
@@ -1623,11 +1828,19 @@ test.describe('Payment-Specific Scenarios', () => {
       await checkoutInfoPage.fillContactInfo(testEmail)
       await checkoutInfoPage.countrySelect.click()
       await page.getByRole('option', { name: /united states/i }).click()
-      await checkoutInfoPage.firstNameInput.fill(TEST_DATA.shippingAddress.firstName)
-      await checkoutInfoPage.lastNameInput.fill(TEST_DATA.shippingAddress.lastName)
-      await checkoutInfoPage.address1Input.fill(TEST_DATA.shippingAddress.address1)
+      await checkoutInfoPage.firstNameInput.fill(
+        TEST_DATA.shippingAddress.firstName,
+      )
+      await checkoutInfoPage.lastNameInput.fill(
+        TEST_DATA.shippingAddress.lastName,
+      )
+      await checkoutInfoPage.address1Input.fill(
+        TEST_DATA.shippingAddress.address1,
+      )
       await checkoutInfoPage.cityInput.fill(TEST_DATA.shippingAddress.city)
-      await checkoutInfoPage.provinceInput.fill(TEST_DATA.shippingAddress.province)
+      await checkoutInfoPage.provinceInput.fill(
+        TEST_DATA.shippingAddress.province,
+      )
       await checkoutInfoPage.zipInput.fill(TEST_DATA.shippingAddress.zip)
 
       await checkoutInfoPage.continueToShipping()
@@ -1639,7 +1852,11 @@ test.describe('Payment-Specific Scenarios', () => {
       await checkoutPaymentPage.waitForPage()
 
       // Verify total shown (should be > $50 with shipping/tax)
-      const totalText = await page.locator('text=/total/i').locator('..').locator('text=/\\$\\d+/').textContent()
+      const totalText = await page
+        .locator('text=/total/i')
+        .locator('..')
+        .locator('text=/\\$\\d+/')
+        .textContent()
       const total = parseFloat(totalText?.replace('$', '') || '0')
       expect(total).toBeGreaterThan(50)
     })
@@ -1675,6 +1892,7 @@ npx playwright test checkout/ --reporter=list
 **Step 2: Fix any failing tests**
 
 Review output and address failures. Common fixes:
+
 - Adjust selectors if UI differs
 - Increase timeouts for slow operations
 - Handle race conditions with proper waits
@@ -1748,6 +1966,7 @@ Expected: All ~42 tests pass
 ## Summary
 
 **Files Created:**
+
 - `e2e/tests/checkout/happy-paths.spec.ts`
 - `e2e/tests/checkout/validation.spec.ts`
 - `e2e/tests/checkout/edge-cases.spec.ts`
@@ -1759,12 +1978,14 @@ Expected: All ~42 tests pass
 - `e2e/global-setup.ts`
 
 **Files Modified:**
+
 - `e2e/fixtures/test-data.ts`
 - `playwright.config.ts`
 
 **Test Count:** ~42 tests across 4 files
 
 **Execution:**
+
 ```bash
 npx playwright test checkout/              # All tests
 npx playwright test checkout/happy-paths   # Quick smoke

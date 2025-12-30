@@ -79,7 +79,7 @@ describe('validateCheckoutForPayment', () => {
     const checkout = createCheckout({ email: null })
     expect(validateCheckoutForPayment(checkout)).toEqual({
       valid: false,
-      error: 'Customer email is required'
+      error: 'Customer email is required',
     })
   })
 
@@ -104,12 +104,15 @@ describe('completeCheckout', () => {
   it('creates order when Stripe payment succeeds', async () => {
     const checkout = createCheckout({ total: '35.98' })
     const db = createMockDb({ checkouts: [checkout] })
-    const stripe = createMockStripe({ paymentStatus: 'succeeded', amount: 3598 })
+    const stripe = createMockStripe({
+      paymentStatus: 'succeeded',
+      amount: 3598,
+    })
 
     const result = await completeCheckout(
       checkout.id,
       { paymentProvider: 'stripe', paymentId: 'pi_123' },
-      { db, stripeClient: stripe }
+      { db, stripeClient: stripe },
     )
 
     expect(result.order.paymentStatus).toBe('paid')
@@ -118,10 +121,17 @@ describe('completeCheckout', () => {
   it('rejects when payment amount mismatches', async () => {
     const checkout = createCheckout({ total: '35.98' })
     const db = createMockDb({ checkouts: [checkout] })
-    const stripe = createMockStripe({ paymentStatus: 'succeeded', amount: 1000 })
+    const stripe = createMockStripe({
+      paymentStatus: 'succeeded',
+      amount: 1000,
+    })
 
     await expect(
-      completeCheckout(checkout.id, { paymentProvider: 'stripe', paymentId: 'pi_123' }, { db, stripeClient: stripe })
+      completeCheckout(
+        checkout.id,
+        { paymentProvider: 'stripe', paymentId: 'pi_123' },
+        { db, stripeClient: stripe },
+      ),
     ).rejects.toThrow('Payment amount mismatch')
   })
 })
@@ -141,7 +151,9 @@ export function createCheckout(overrides: Partial<Checkout> = {}): Checkout {
   return {
     id: 'checkout-123',
     email: 'test@example.com',
-    cartItems: [{ productId: 'prod-1', quantity: 1, price: 29.99, title: 'Test Product' }],
+    cartItems: [
+      { productId: 'prod-1', quantity: 1, price: 29.99, title: 'Test Product' },
+    ],
     subtotal: '29.99',
     shippingTotal: '5.99',
     total: '35.98',
@@ -159,7 +171,9 @@ export function createCheckout(overrides: Partial<Checkout> = {}): Checkout {
 
 ```typescript
 // src/tests/utils/mocks/stripe.mock.ts
-export function createMockStripe(options: { paymentStatus?: string; amount?: number } = {}) {
+export function createMockStripe(
+  options: { paymentStatus?: string; amount?: number } = {},
+) {
   return {
     paymentIntents: {
       retrieve: vi.fn().mockResolvedValue({
@@ -179,7 +193,7 @@ export function createMockStripe(options: { paymentStatus?: string; amount?: num
 export async function completeCheckout(
   checkoutId: string,
   payment: { paymentProvider: PaymentProvider; paymentId: string },
-  deps = { db, stripeClient: stripe, paypalClient: paypal } // Default to real deps
+  deps = { db, stripeClient: stripe, paypalClient: paypal }, // Default to real deps
 ) {
   // Implementation uses deps.db, deps.stripeClient, etc.
   // Tests can inject mocks
@@ -249,6 +263,7 @@ These test files currently test inline functions, not production code:
 ### Before (complete.ts - 270 lines)
 
 Route handler contains:
+
 - Input parsing
 - Validation logic
 - Checkout access validation
@@ -260,6 +275,7 @@ Route handler contains:
 ### After
 
 **Route handler (30 lines):**
+
 ```typescript
 POST: async ({ params, request }) => {
   const { checkoutId } = params
@@ -278,12 +294,15 @@ POST: async ({ params, request }) => {
 ```
 
 **Validation (tested separately):**
+
 - `validateCheckoutForPayment()` - Pure function
 - `validatePaymentInput()` - Pure function
 
 **Business logic (tested separately):**
+
 - `buildOrderFromCheckout()` - Pure function
 - `buildOrderItems()` - Pure function
 
 **Service (tested with mocks):**
+
 - `completeCheckout()` - Orchestrates validation, payment verification, order creation

@@ -5,7 +5,13 @@ import { vi } from 'vitest'
  */
 export interface MockStripeOptions {
   /** Payment intent status. Default: 'succeeded' */
-  paymentStatus?: 'succeeded' | 'processing' | 'requires_payment_method' | 'requires_confirmation' | 'canceled' | 'requires_action'
+  paymentStatus?:
+    | 'succeeded'
+    | 'processing'
+    | 'requires_payment_method'
+    | 'requires_confirmation'
+    | 'canceled'
+    | 'requires_action'
   /** Payment amount in cents. Default: 3598 ($35.98) */
   amount?: number
   /** Currency. Default: 'usd' */
@@ -58,14 +64,26 @@ export function createMockStripe(options: MockStripeOptions = {}) {
   return {
     paymentIntents: {
       create: options.failCreate
-        ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Payment creation failed'))
+        ? vi
+            .fn()
+            .mockRejectedValue(
+              new Error(options.errorMessage ?? 'Payment creation failed'),
+            )
         : vi.fn().mockResolvedValue(mockPaymentIntent),
       retrieve: options.failRetrieve
-        ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Payment not found'))
+        ? vi
+            .fn()
+            .mockRejectedValue(
+              new Error(options.errorMessage ?? 'Payment not found'),
+            )
         : vi.fn().mockResolvedValue(mockPaymentIntent),
       update: vi.fn().mockResolvedValue(mockPaymentIntent),
-      cancel: vi.fn().mockResolvedValue({ ...mockPaymentIntent, status: 'canceled' }),
-      confirm: vi.fn().mockResolvedValue({ ...mockPaymentIntent, status: 'succeeded' }),
+      cancel: vi
+        .fn()
+        .mockResolvedValue({ ...mockPaymentIntent, status: 'canceled' }),
+      confirm: vi
+        .fn()
+        .mockResolvedValue({ ...mockPaymentIntent, status: 'succeeded' }),
     },
     refunds: {
       create: vi.fn().mockResolvedValue({
@@ -168,7 +186,11 @@ export function mockStripeModule(options: MockStripeOptions = {}) {
       paymentIntentId: mockPaymentIntent.id,
     }),
     retrievePaymentIntent: options.failRetrieve
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Payment not found'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'Payment not found'),
+          )
       : vi.fn().mockResolvedValue(mockPaymentIntent),
     constructWebhookEvent: mockStripe.webhooks.constructEvent,
     dollarsToCents: vi.fn((dollars: number) => Math.round(dollars * 100)),

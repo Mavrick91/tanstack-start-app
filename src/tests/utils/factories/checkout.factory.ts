@@ -2,7 +2,6 @@ import { createAddress } from './address.factory'
 
 import type { Checkout, CheckoutCartItem } from '../../../types/checkout'
 
-
 /**
  * Creates a valid cart item with sensible defaults.
  */
@@ -104,8 +103,17 @@ export const checkoutVariants = {
   multipleItems: () =>
     createCheckout({
       cartItems: [
-        createCartItem({ productId: 'prod-1', title: 'Product 1', price: 29.99 }),
-        createCartItem({ productId: 'prod-2', title: 'Product 2', price: 49.99, quantity: 2 }),
+        createCartItem({
+          productId: 'prod-1',
+          title: 'Product 1',
+          price: 29.99,
+        }),
+        createCartItem({
+          productId: 'prod-2',
+          title: 'Product 2',
+          price: 49.99,
+          quantity: 2,
+        }),
       ],
       subtotal: 129.97,
       total: 135.96,

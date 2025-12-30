@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test'
+
 import { TEST_DATA } from '../fixtures/test-data'
 
 export class CheckoutPaymentPage {
@@ -32,7 +33,9 @@ export class CheckoutPaymentPage {
     await this.page.waitForTimeout(2000)
 
     // Stripe PaymentElement uses a single iframe
-    const stripeFrame = this.page.frameLocator('iframe[title*="Secure payment"]').first()
+    const stripeFrame = this.page
+      .frameLocator('iframe[title*="Secure payment"]')
+      .first()
 
     // Fill card number
     const cardNumberInput = stripeFrame.locator('[name="number"]')
@@ -60,13 +63,13 @@ export class CheckoutPaymentPage {
   async expectConfirmationPage() {
     await this.page.waitForURL('**/checkout/confirmation**', { timeout: 30000 })
     await expect(
-      this.page.locator('text=Thank you').or(this.page.locator('text=Order'))
+      this.page.locator('text=Thank you').or(this.page.locator('text=Order')),
     ).toBeVisible()
   }
 
   async expectPaymentError() {
     await expect(
-      this.page.locator('text=declined').or(this.page.locator('.text-red'))
+      this.page.locator('text=declined').or(this.page.locator('.text-red')),
     ).toBeVisible({ timeout: 10000 })
   }
 }

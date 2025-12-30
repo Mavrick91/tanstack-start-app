@@ -7,13 +7,10 @@ import type {
 } from '../../../types/checkout'
 import type { Order, OrderItem, OrderListItem } from '../../../types/order'
 
-
 /**
  * Creates a valid OrderItem with sensible defaults.
  */
-export function createOrderItem(
-  overrides: Partial<OrderItem> = {},
-): OrderItem {
+export function createOrderItem(overrides: Partial<OrderItem> = {}): OrderItem {
   const price = overrides.price ?? 29.99
   const quantity = overrides.quantity ?? 1
   const total = overrides.total ?? price * quantity

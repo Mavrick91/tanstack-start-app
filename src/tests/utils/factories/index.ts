@@ -34,4 +34,10 @@ export {
 } from './product.factory'
 
 // Re-export types for convenience
-export type { Product, ProductVariant, ProductOption, ProductImage, ProductWithRelations } from './product.factory'
+export type {
+  Product,
+  ProductVariant,
+  ProductOption,
+  ProductImage,
+  ProductWithRelations,
+} from './product.factory'

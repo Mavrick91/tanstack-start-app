@@ -1,9 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { ProductPage } from '../../page-objects/product.page'
-import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
-import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
-import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
-import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
+
+import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
 import {
   seedProduct,
@@ -15,7 +12,11 @@ import {
   STRIPE_TEST_CARDS,
   handle3DSecure,
 } from '../../helpers/stripe.helper'
-import { TEST_DATA } from '../../fixtures/test-data'
+import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
+import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
+import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
+import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
+import { ProductPage } from '../../page-objects/product.page'
 
 test.describe('Payment-Specific Scenarios', () => {
   let productPage: ProductPage
@@ -183,9 +184,8 @@ test.describe('Payment-Specific Scenarios', () => {
         'PayPal sandbox credentials not configured',
       )
 
-      const { clickPayPalButton, cancelPayPalPayment } = await import(
-        '../../helpers/paypal.helper'
-      )
+      const { clickPayPalButton, cancelPayPalPayment } =
+        await import('../../helpers/paypal.helper')
 
       await navigateToPayment(page)
 

@@ -190,10 +190,30 @@ export const productVariants = {
         }),
       ],
       variants: [
-        createProductVariant({ id: 'var-s', title: 'S', selectedOptions: [{ name: 'Size', value: 'S' }], position: 0 }),
-        createProductVariant({ id: 'var-m', title: 'M', selectedOptions: [{ name: 'Size', value: 'M' }], position: 1 }),
-        createProductVariant({ id: 'var-l', title: 'L', selectedOptions: [{ name: 'Size', value: 'L' }], position: 2 }),
-        createProductVariant({ id: 'var-xl', title: 'XL', selectedOptions: [{ name: 'Size', value: 'XL' }], position: 3 }),
+        createProductVariant({
+          id: 'var-s',
+          title: 'S',
+          selectedOptions: [{ name: 'Size', value: 'S' }],
+          position: 0,
+        }),
+        createProductVariant({
+          id: 'var-m',
+          title: 'M',
+          selectedOptions: [{ name: 'Size', value: 'M' }],
+          position: 1,
+        }),
+        createProductVariant({
+          id: 'var-l',
+          title: 'L',
+          selectedOptions: [{ name: 'Size', value: 'L' }],
+          position: 2,
+        }),
+        createProductVariant({
+          id: 'var-xl',
+          title: 'XL',
+          selectedOptions: [{ name: 'Size', value: 'XL' }],
+          position: 3,
+        }),
       ],
     }),
 
@@ -201,14 +221,56 @@ export const productVariants = {
   withMultipleOptions: () =>
     createProductWithRelations({
       options: [
-        createProductOption({ id: 'opt-1', name: 'Size', values: ['S', 'M', 'L'], position: 0 }),
-        createProductOption({ id: 'opt-2', name: 'Color', values: ['Red', 'Blue'], position: 1 }),
+        createProductOption({
+          id: 'opt-1',
+          name: 'Size',
+          values: ['S', 'M', 'L'],
+          position: 0,
+        }),
+        createProductOption({
+          id: 'opt-2',
+          name: 'Color',
+          values: ['Red', 'Blue'],
+          position: 1,
+        }),
       ],
       variants: [
-        createProductVariant({ id: 'var-1', title: 'S / Red', selectedOptions: [{ name: 'Size', value: 'S' }, { name: 'Color', value: 'Red' }], position: 0 }),
-        createProductVariant({ id: 'var-2', title: 'S / Blue', selectedOptions: [{ name: 'Size', value: 'S' }, { name: 'Color', value: 'Blue' }], position: 1 }),
-        createProductVariant({ id: 'var-3', title: 'M / Red', selectedOptions: [{ name: 'Size', value: 'M' }, { name: 'Color', value: 'Red' }], position: 2 }),
-        createProductVariant({ id: 'var-4', title: 'M / Blue', selectedOptions: [{ name: 'Size', value: 'M' }, { name: 'Color', value: 'Blue' }], position: 3 }),
+        createProductVariant({
+          id: 'var-1',
+          title: 'S / Red',
+          selectedOptions: [
+            { name: 'Size', value: 'S' },
+            { name: 'Color', value: 'Red' },
+          ],
+          position: 0,
+        }),
+        createProductVariant({
+          id: 'var-2',
+          title: 'S / Blue',
+          selectedOptions: [
+            { name: 'Size', value: 'S' },
+            { name: 'Color', value: 'Blue' },
+          ],
+          position: 1,
+        }),
+        createProductVariant({
+          id: 'var-3',
+          title: 'M / Red',
+          selectedOptions: [
+            { name: 'Size', value: 'M' },
+            { name: 'Color', value: 'Red' },
+          ],
+          position: 2,
+        }),
+        createProductVariant({
+          id: 'var-4',
+          title: 'M / Blue',
+          selectedOptions: [
+            { name: 'Size', value: 'M' },
+            { name: 'Color', value: 'Blue' },
+          ],
+          position: 3,
+        }),
       ],
     }),
 
@@ -238,8 +300,16 @@ export const productVariants = {
     createProductWithRelations({
       images: [
         createProductImage({ id: 'img-1', position: 0 }),
-        createProductImage({ id: 'img-2', url: 'https://example.com/image2.jpg', position: 1 }),
-        createProductImage({ id: 'img-3', url: 'https://example.com/image3.jpg', position: 2 }),
+        createProductImage({
+          id: 'img-2',
+          url: 'https://example.com/image2.jpg',
+          position: 1,
+        }),
+        createProductImage({
+          id: 'img-3',
+          url: 'https://example.com/image3.jpg',
+          position: 2,
+        }),
       ],
     }),
 

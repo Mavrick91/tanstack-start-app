@@ -5,9 +5,21 @@ import { vi } from 'vitest'
  */
 export interface MockPayPalOptions {
   /** Order status. Default: 'COMPLETED' */
-  orderStatus?: 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED'
+  orderStatus?:
+    | 'CREATED'
+    | 'SAVED'
+    | 'APPROVED'
+    | 'VOIDED'
+    | 'COMPLETED'
+    | 'PAYER_ACTION_REQUIRED'
   /** Capture status. Default: 'COMPLETED' */
-  captureStatus?: 'COMPLETED' | 'DECLINED' | 'PARTIALLY_REFUNDED' | 'PENDING' | 'REFUNDED' | 'FAILED'
+  captureStatus?:
+    | 'COMPLETED'
+    | 'DECLINED'
+    | 'PARTIALLY_REFUNDED'
+    | 'PENDING'
+    | 'REFUNDED'
+    | 'FAILED'
   /** Amount in dollars. Default: '35.98' */
   amount?: string
   /** Currency. Default: 'USD' */
@@ -114,16 +126,32 @@ export function createMockPayPal(options: MockPayPalOptions = {}) {
 
   return {
     createOrder: options.failCreate
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Failed to create PayPal order'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'Failed to create PayPal order'),
+          )
       : vi.fn().mockResolvedValue(mockOrder),
     getOrder: options.failRetrieve
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'PayPal order not found'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'PayPal order not found'),
+          )
       : vi.fn().mockResolvedValue(mockOrder),
     captureOrder: options.failCapture
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Failed to capture payment'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'Failed to capture payment'),
+          )
       : vi.fn().mockResolvedValue({ ...mockOrder, status: 'COMPLETED' }),
     capturePayment: options.failCapture
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'Failed to capture payment'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'Failed to capture payment'),
+          )
       : vi.fn().mockResolvedValue(mockCapture),
     verifyWebhookSignature: options.failWebhook
       ? vi.fn().mockResolvedValue({ verified: false })
@@ -165,13 +193,15 @@ export function createMockPayPalWebhookEvent(
  */
 export const paypalScenarios = {
   /** Successful payment (default) */
-  success: () => createMockPayPal({ orderStatus: 'COMPLETED', captureStatus: 'COMPLETED' }),
+  success: () =>
+    createMockPayPal({ orderStatus: 'COMPLETED', captureStatus: 'COMPLETED' }),
 
   /** Payment approved but not captured */
   approved: () => createMockPayPal({ orderStatus: 'APPROVED' }),
 
   /** Payment pending */
-  pending: () => createMockPayPal({ orderStatus: 'COMPLETED', captureStatus: 'PENDING' }),
+  pending: () =>
+    createMockPayPal({ orderStatus: 'COMPLETED', captureStatus: 'PENDING' }),
 
   /** Payment declined */
   declined: () => createMockPayPal({ captureStatus: 'DECLINED' }),
@@ -226,7 +256,11 @@ export function mockPayPalModule(options: MockPayPalOptions = {}) {
   return {
     createPayPalOrder: mockPayPal.createOrder,
     getPayPalOrder: options.failRetrieve
-      ? vi.fn().mockRejectedValue(new Error(options.errorMessage ?? 'PayPal order not found'))
+      ? vi
+          .fn()
+          .mockRejectedValue(
+            new Error(options.errorMessage ?? 'PayPal order not found'),
+          )
       : vi.fn().mockResolvedValue(mockOrder),
     capturePayPalPayment: mockPayPal.capturePayment,
     verifyWebhookSignature: mockPayPal.verifyWebhookSignature,

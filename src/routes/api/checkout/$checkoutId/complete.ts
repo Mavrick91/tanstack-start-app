@@ -65,7 +65,13 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/complete')({
  */
 async function sendConfirmationEmail(
   checkoutId: string,
-  order: { id: string; orderNumber: number; email: string; total: number; currency: string },
+  order: {
+    id: string
+    orderNumber: number
+    email: string
+    total: number
+    currency: string
+  },
 ) {
   // Fetch checkout for cart items and shipping address
   const [checkout] = await db

@@ -20,9 +20,5 @@ export {
 export type { MockPayPalOptions } from './paypal.mock'
 
 // Database mocks
-export {
-  createMockDb,
-  mockDbModule,
-  dbScenarios,
-} from './db.mock'
+export { createMockDb, mockDbModule, dbScenarios } from './db.mock'
 export type { MockDbOptions } from './db.mock'

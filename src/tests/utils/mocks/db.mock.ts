@@ -98,25 +98,28 @@ export function createMockDb(options: MockDbOptions = {}) {
     let currentData: unknown[] = []
 
     return {
-      from: vi.fn().mockImplementation((table: { _: { name: string } } | string) => {
-        currentTable = typeof table === 'string' ? table : table?._.name ?? 'unknown'
-        currentData = getTableData(currentTable)
+      from: vi
+        .fn()
+        .mockImplementation((table: { _: { name: string } } | string) => {
+          currentTable =
+            typeof table === 'string' ? table : (table?._.name ?? 'unknown')
+          currentData = getTableData(currentTable)
 
-        return {
-          where: vi.fn().mockImplementation(() => ({
-            limit: vi.fn().mockResolvedValue(currentData.slice(0, 1)),
+          return {
+            where: vi.fn().mockImplementation(() => ({
+              limit: vi.fn().mockResolvedValue(currentData.slice(0, 1)),
+              orderBy: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue(currentData),
+                offset: vi.fn().mockResolvedValue(currentData),
+              }),
+            })),
             orderBy: vi.fn().mockReturnValue({
               limit: vi.fn().mockResolvedValue(currentData),
               offset: vi.fn().mockResolvedValue(currentData),
             }),
-          })),
-          orderBy: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue(currentData),
-            offset: vi.fn().mockResolvedValue(currentData),
-          }),
-          limit: vi.fn().mockResolvedValue(currentData),
-        }
-      }),
+          }
+        }),
     }
   }
 
@@ -133,29 +136,34 @@ export function createMockDb(options: MockDbOptions = {}) {
       })
     }
 
-    return vi.fn().mockImplementation((table: { _: { name: string } } | string) => {
-      const tableName = typeof table === 'string' ? table : table?._.name ?? 'unknown'
+    return vi
+      .fn()
+      .mockImplementation((table: { _: { name: string } } | string) => {
+        const tableName =
+          typeof table === 'string' ? table : (table?._.name ?? 'unknown')
 
-      return {
-        values: vi.fn().mockImplementation((values: unknown) => {
-          // Track inserted data
-          if (!insertedData[tableName]) insertedData[tableName] = []
-          const insertedValues = Array.isArray(values) ? values : [values]
-          insertedData[tableName].push(...insertedValues)
+        return {
+          values: vi.fn().mockImplementation((values: unknown) => {
+            // Track inserted data
+            if (!insertedData[tableName]) insertedData[tableName] = []
+            const insertedValues = Array.isArray(values) ? values : [values]
+            insertedData[tableName].push(...insertedValues)
 
-          return {
-            returning: vi.fn().mockResolvedValue(insertedValues.map((v, i) => ({
-              ...(typeof v === 'object' ? v : {}),
-              id: `${tableName}-${Date.now()}-${i}`,
-              orderNumber: tableName === 'orders' ? 1001 : undefined,
-            }))),
-            onConflictDoUpdate: vi.fn().mockReturnValue({
-              returning: vi.fn().mockResolvedValue(insertedValues),
-            }),
-          }
-        }),
-      }
-    })
+            return {
+              returning: vi.fn().mockResolvedValue(
+                insertedValues.map((v, i) => ({
+                  ...(typeof v === 'object' ? v : {}),
+                  id: `${tableName}-${Date.now()}-${i}`,
+                  orderNumber: tableName === 'orders' ? 1001 : undefined,
+                })),
+              ),
+              onConflictDoUpdate: vi.fn().mockReturnValue({
+                returning: vi.fn().mockResolvedValue(insertedValues),
+              }),
+            }
+          }),
+        }
+      })
   }
 
   // Create update chain
@@ -191,16 +199,20 @@ export function createMockDb(options: MockDbOptions = {}) {
 
   // Create transaction mock
   const createTransactionMock = () => {
-    return vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
-      // Create a transaction context that has the same interface
-      const tx = {
-        select: vi.fn().mockReturnValue(createSelectChain()),
-        insert: createInsertChain(),
-        update: createUpdateChain(),
-        delete: createDeleteChain(),
-      }
-      return callback(tx)
-    })
+    return vi
+      .fn()
+      .mockImplementation(
+        async (callback: (tx: unknown) => Promise<unknown>) => {
+          // Create a transaction context that has the same interface
+          const tx = {
+            select: vi.fn().mockReturnValue(createSelectChain()),
+            insert: createInsertChain(),
+            update: createUpdateChain(),
+            delete: createDeleteChain(),
+          }
+          return callback(tx)
+        },
+      )
   }
 
   return {

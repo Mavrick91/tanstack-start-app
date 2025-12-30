@@ -1,8 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { ProductPage } from '../../page-objects/product.page'
-import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
-import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
-import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
+
+import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
 import {
   seedProduct,
@@ -10,7 +8,10 @@ import {
   TEST_PREFIX,
 } from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
-import { TEST_DATA } from '../../fixtures/test-data'
+import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
+import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
+import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
+import { ProductPage } from '../../page-objects/product.page'
 
 test.describe('Checkout Validation Errors', () => {
   let productPage: ProductPage
@@ -193,9 +194,8 @@ test.describe('Checkout Validation Errors', () => {
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.valid })
       await checkoutPaymentPageLocal.submitPayment()
 
-      const { CheckoutConfirmationPage } = await import(
-        '../../page-objects/checkout-confirmation.page'
-      )
+      const { CheckoutConfirmationPage } =
+        await import('../../page-objects/checkout-confirmation.page')
       const confirmationPage = new CheckoutConfirmationPage(page)
       await confirmationPage.waitForPage()
     })
