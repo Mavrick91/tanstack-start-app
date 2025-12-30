@@ -32,7 +32,6 @@ vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ lang: 'en' }),
 }))
 
-
 // UI component mocks (specific to this component's dependencies)
 vi.mock('../ui/sheet', () => ({
   Sheet: ({ children, open }: { children: ReactNode; open: boolean }) =>

@@ -6,10 +6,6 @@ import { useDataTable } from './useDataTable'
 
 import { act, renderHook, waitFor } from '@/test/test-utils'
 
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
-}))
-
 interface TestItem {
   id: string
   name: string

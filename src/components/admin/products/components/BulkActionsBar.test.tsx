@@ -10,7 +10,6 @@ import { render, screen, waitFor } from '@/test/test-utils'
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
-
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),

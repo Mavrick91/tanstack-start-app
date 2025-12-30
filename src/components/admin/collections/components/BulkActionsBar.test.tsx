@@ -15,7 +15,6 @@ vi.mock('../../../../server/collections', () => ({
   bulkUpdateCollectionsStatusFn: vi.fn(),
 }))
 
-
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),

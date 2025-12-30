@@ -2,13 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { render, screen } from '@/test/test-utils'
 
-// Mock dependencies
-vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => ({
-    component: undefined,
-  }),
-}))
-
 vi.mock('../../hooks/useAuth', () => ({
   useAuthStore: (selector: (state: { user: { name: string } }) => unknown) =>
     selector({ user: { name: 'Test Admin' } }),

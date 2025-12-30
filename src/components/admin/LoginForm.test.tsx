@@ -4,17 +4,6 @@ import { Button } from '../../components/ui/button'
 
 import { render, screen } from '@/test/test-utils'
 
-vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => ({
-    component: undefined,
-    beforeLoad: undefined,
-  }),
-  useRouter: () => ({
-    navigate: vi.fn(),
-  }),
-  redirect: vi.fn(),
-}))
-
 vi.mock('@tanstack/react-form', () => ({
   useForm: () => ({
     Field: ({

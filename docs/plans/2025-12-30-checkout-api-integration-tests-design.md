@@ -36,6 +36,7 @@ await withTestTransaction(async (tx) => {
 ### API Handler Testing
 
 Test route handlers directly (not via HTTP) by:
+
 1. Creating a mock `Request` object
 2. Calling the handler function
 3. Asserting on the `Response`
@@ -71,53 +72,53 @@ src/tests/routes/api/checkout/
 
 ### `create.test.ts`
 
-| Test | Description |
-|------|-------------|
+| Test                                   | Description                                      |
+| -------------------------------------- | ------------------------------------------------ |
 | Creates checkout with valid cart items | Happy path - products exist, returns checkout ID |
-| Rejects empty cart | Returns 400 error |
-| Rejects invalid product IDs | Returns 500 with "Product not found" |
-| Calculates totals correctly | Subtotal, tax, shipping match expected |
-| Sets checkout session cookie | Response includes Set-Cookie header |
-| Handles rate limiting | Returns 429 when limit exceeded |
+| Rejects empty cart                     | Returns 400 error                                |
+| Rejects invalid product IDs            | Returns 500 with "Product not found"             |
+| Calculates totals correctly            | Subtotal, tax, shipping match expected           |
+| Sets checkout session cookie           | Response includes Set-Cookie header              |
+| Handles rate limiting                  | Returns 429 when limit exceeded                  |
 
 ### `customer.test.ts`
 
-| Test | Description |
-|------|-------------|
-| Saves customer email | Updates checkout with email |
-| Rejects invalid email format | Returns validation error |
-| Rejects expired checkout | Returns 400 for expired session |
-| Rejects completed checkout | Cannot modify completed checkout |
+| Test                         | Description                      |
+| ---------------------------- | -------------------------------- |
+| Saves customer email         | Updates checkout with email      |
+| Rejects invalid email format | Returns validation error         |
+| Rejects expired checkout     | Returns 400 for expired session  |
+| Rejects completed checkout   | Cannot modify completed checkout |
 
 ### `shipping-address.test.ts`
 
-| Test | Description |
-|------|-------------|
-| Saves valid shipping address | All required fields present |
-| Rejects missing required fields | Returns validation errors |
-| Validates country/state codes | Rejects invalid codes |
-| Updates checkout totals | Recalculates tax based on address |
+| Test                            | Description                       |
+| ------------------------------- | --------------------------------- |
+| Saves valid shipping address    | All required fields present       |
+| Rejects missing required fields | Returns validation errors         |
+| Validates country/state codes   | Rejects invalid codes             |
+| Updates checkout totals         | Recalculates tax based on address |
 
 ### `shipping-method.test.ts`
 
-| Test | Description |
-|------|-------------|
-| Saves valid shipping method | Updates checkout with rate |
-| Rejects invalid shipping rate ID | Returns 400 error |
-| Updates checkout total | Adds shipping cost to total |
-| Requires shipping address first | Returns error if no address |
+| Test                             | Description                 |
+| -------------------------------- | --------------------------- |
+| Saves valid shipping method      | Updates checkout with rate  |
+| Rejects invalid shipping rate ID | Returns 400 error           |
+| Updates checkout total           | Adds shipping cost to total |
+| Requires shipping address first  | Returns error if no address |
 
 ### `complete.test.ts`
 
-| Test | Description |
-|------|-------------|
-| Creates order from checkout | Happy path - all data present |
-| Requires customer email | Returns error if missing |
-| Requires shipping address | Returns error if missing |
-| Requires shipping method | Returns error if missing |
-| Marks checkout as completed | Sets completedAt timestamp |
-| Prevents double completion | Returns error if already completed |
-| Decrements inventory | Product variant quantities updated |
+| Test                        | Description                        |
+| --------------------------- | ---------------------------------- |
+| Creates order from checkout | Happy path - all data present      |
+| Requires customer email     | Returns error if missing           |
+| Requires shipping address   | Returns error if missing           |
+| Requires shipping method    | Returns error if missing           |
+| Marks checkout as completed | Sets completedAt timestamp         |
+| Prevents double completion  | Returns error if already completed |
+| Decrements inventory        | Product variant quantities updated |
 
 ## Implementation Plan
 
