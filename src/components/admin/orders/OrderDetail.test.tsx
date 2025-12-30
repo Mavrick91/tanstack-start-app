@@ -4,62 +4,56 @@ import { OrderDetail } from './OrderDetail'
 
 import type { Order } from '../../../types/order'
 
-import { createOrder, createOrderItem } from '@/test/factories/data'
 import { render, screen } from '@/test/test-utils'
 
-const createTestOrder = (overrides = {}): Order => {
-  const baseOrder = createOrder()
-  return {
-    id: baseOrder.id,
-    orderNumber: 1001,
-    customerId: baseOrder.customerId,
-    email: 'customer@example.com',
-    subtotal: 89.99,
-    shippingTotal: 5.99,
-    taxTotal: 8.25,
-    total: 104.23,
-    currency: 'USD',
-    status: baseOrder.status,
-    paymentStatus: 'paid',
-    fulfillmentStatus: 'unfulfilled',
-    shippingMethod: 'Standard Shipping',
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      company: 'Acme Inc',
-      address1: '123 Main St',
-      address2: 'Suite 100',
-      city: 'New York',
-      province: 'NY',
-      zip: '10001',
-      country: 'United States',
-      countryCode: 'US',
-      phone: '+1-555-1234',
+const MOCK_ORDER: Order = {
+  id: 'order-1',
+  orderNumber: 1001,
+  email: 'customer@example.com',
+  subtotal: 89.99,
+  shippingTotal: 5.99,
+  taxTotal: 8.25,
+  total: 104.23,
+  currency: 'USD',
+  status: 'pending',
+  paymentStatus: 'paid',
+  fulfillmentStatus: 'unfulfilled',
+  shippingMethod: 'Standard Shipping',
+  shippingAddress: {
+    firstName: 'John',
+    lastName: 'Doe',
+    company: 'Acme Inc',
+    address1: '123 Main St',
+    address2: 'Suite 100',
+    city: 'New York',
+    province: 'NY',
+    zip: '10001',
+    country: 'United States',
+    countryCode: 'US',
+    phone: '+1-555-1234',
+  },
+  paymentProvider: 'stripe',
+  paymentId: 'pi_123456789',
+  createdAt: new Date('2024-01-15T10:30:00'),
+  updatedAt: new Date('2024-01-15T10:30:00'),
+  paidAt: new Date('2024-01-15T10:31:00'),
+  items: [
+    {
+      id: 'item-1',
+      orderId: 'order-1',
+      productId: 'prod-1',
+      variantId: 'var-1',
+      title: 'Test Product',
+      variantTitle: 'Size M / Blue',
+      sku: 'SKU-001',
+      price: 44.99,
+      quantity: 2,
+      total: 89.98,
+      imageUrl: 'https://example.com/image.jpg',
+      createdAt: new Date(),
     },
-    paymentProvider: 'stripe',
-    paymentId: 'pi_123456789',
-    createdAt: new Date('2024-01-15T10:30:00'),
-    updatedAt: new Date('2024-01-15T10:30:00'),
-    paidAt: new Date('2024-01-15T10:31:00'),
-    items: [
-      {
-        ...createOrderItem(),
-        variantId: 'var-1',
-        title: 'Test Product',
-        variantTitle: 'Size M / Blue',
-        sku: 'SKU-001',
-        price: 44.99,
-        quantity: 2,
-        total: 89.98,
-        imageUrl: 'https://example.com/image.jpg',
-        createdAt: new Date('2024-01-15T10:30:00'),
-      },
-    ],
-    ...overrides,
-  }
+  ],
 }
-
-const MOCK_ORDER = createTestOrder()
 
 describe('OrderDetail Component', () => {
   const mockOnUpdateStatus = vi.fn()
