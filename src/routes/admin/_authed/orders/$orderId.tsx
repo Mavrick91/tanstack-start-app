@@ -7,6 +7,11 @@ import { toast } from 'sonner'
 import { OrderDetail } from '../../../../components/admin/orders/OrderDetail'
 import { type OrderHistoryEntry } from '../../../../components/admin/orders/OrderHistory'
 import { Button } from '../../../../components/ui/button'
+import {
+  getAdminOrderFn,
+  updateOrderStatusFn,
+  getOrderHistoryFn,
+} from '../../../../server/orders'
 
 import type {
   OrderStatus,
@@ -18,59 +23,6 @@ import type { Order } from '../../../../types/order'
 export const Route = createFileRoute('/admin/_authed/orders/$orderId')({
   component: AdminOrderDetailPage,
 })
-
-async function fetchOrder(orderId: string): Promise<Order> {
-  const response = await fetch(`/api/orders/${orderId}`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch order')
-  }
-
-  const data = await response.json()
-  return data.order
-}
-
-async function updateOrderStatus(
-  orderId: string,
-  updates: {
-    status?: OrderStatus
-    paymentStatus?: PaymentStatus
-    fulfillmentStatus?: FulfillmentStatus
-    reason?: string
-  },
-) {
-  const response = await fetch(`/api/orders/${orderId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(updates),
-  })
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data.error || 'Failed to update order')
-  }
-
-  return await response.json()
-}
-
-async function fetchOrderHistory(
-  orderId: string,
-): Promise<OrderHistoryEntry[]> {
-  const response = await fetch(`/api/orders/${orderId}/history`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    // History might not be available yet, return empty
-    return []
-  }
-
-  const data = await response.json()
-  return data.history || []
-}
 
 function AdminOrderDetailPage() {
   const { t } = useTranslation()
@@ -86,8 +38,8 @@ function AdminOrderDetailPage() {
       setIsLoading(true)
       setError(null)
       try {
-        const data = await fetchOrder(orderId)
-        setOrder(data)
+        const result = await getAdminOrderFn({ data: { orderId } })
+        setOrder(result.order)
       } catch (err) {
         console.error('Failed to fetch order:', err)
         setError(err instanceof Error ? err.message : 'Failed to load order')
@@ -103,8 +55,8 @@ function AdminOrderDetailPage() {
     const loadHistory = async () => {
       setIsLoadingHistory(true)
       try {
-        const history = await fetchOrderHistory(orderId)
-        setHistoryEntries(history)
+        const result = await getOrderHistoryFn({ data: { orderId } })
+        setHistoryEntries(result.history || [])
       } catch (err) {
         console.error('Failed to fetch order history:', err)
       } finally {
@@ -123,7 +75,15 @@ function AdminOrderDetailPage() {
     if (!Object.values(updates).some(Boolean)) return
 
     try {
-      const result = await updateOrderStatus(orderId, updates)
+      const result = await updateOrderStatusFn({
+        data: {
+          orderId,
+          status: updates.status,
+          paymentStatus: updates.paymentStatus,
+          fulfillmentStatus: updates.fulfillmentStatus,
+          reason: updates.reason,
+        },
+      })
 
       // Update local state with new values
       setOrder((prev) =>
@@ -156,8 +116,8 @@ function AdminOrderDetailPage() {
       }
 
       // Refresh history after status change
-      const history = await fetchOrderHistory(orderId)
-      setHistoryEntries(history)
+      const historyResult = await getOrderHistoryFn({ data: { orderId } })
+      setHistoryEntries(historyResult.history || [])
     } catch (err) {
       console.error('Failed to update order:', err)
       toast.error(

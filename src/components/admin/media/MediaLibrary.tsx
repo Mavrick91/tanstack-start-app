@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { getOptimizedImageUrl } from '../../../lib/cloudinary'
 import { cn } from '../../../lib/utils'
+import { getMediaFn, deleteMediaFn } from '../../../server/media'
 import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import {
@@ -23,12 +24,12 @@ type LocalizedString = { en: string; fr?: string; id?: string }
 export type MediaItem = {
   id: string
   url: string
-  publicId?: string
-  filename?: string
-  width?: number
-  height?: number
-  size?: number
-  altText?: LocalizedString
+  publicId?: string | null
+  filename?: string | null
+  width?: number | null
+  height?: number | null
+  size?: number | null
+  altText?: LocalizedString | null
 }
 
 type MediaLibraryProps = {
@@ -53,28 +54,13 @@ export function MediaLibrary({
   // Fetch media items
   const { data, isLoading } = useQuery({
     queryKey: ['media'],
-    queryFn: async () => {
-      const res = await fetch('/api/media', { credentials: 'include' })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.items as MediaItem[]
-    },
+    queryFn: () => getMediaFn(),
     enabled: open,
   })
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const res = await fetch('/api/media', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ ids }),
-      })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json
-    },
+    mutationFn: (ids: string[]) => deleteMediaFn({ data: { ids } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] })
       setSelectedIds(new Set())

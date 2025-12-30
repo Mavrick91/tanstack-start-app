@@ -12,6 +12,12 @@ import {
   type OrderStats,
 } from '../../../../components/admin/orders/OrderStatsCards'
 import { Button } from '../../../../components/ui/button'
+import {
+  getAdminOrdersFn,
+  getOrderStatsFn,
+  updateOrderStatusFn,
+  bulkUpdateOrdersFn,
+} from '../../../../server/orders'
 
 import type { OrderStatus, FulfillmentStatus } from '../../../../types/checkout'
 import type { OrderListItem } from '../../../../types/order'
@@ -38,89 +44,6 @@ export const Route = createFileRoute('/admin/_authed/orders/')({
   component: AdminOrdersPage,
   validateSearch: searchSchema,
 })
-
-async function fetchOrders(params: {
-  search: string
-  page: number
-  limit: number
-  status?: string
-  paymentStatus?: string
-  fulfillmentStatus?: string
-  sort: string
-  order: string
-}) {
-  const searchParams = new URLSearchParams()
-  searchParams.set('page', params.page.toString())
-  searchParams.set('limit', params.limit.toString())
-  searchParams.set('sort', params.sort)
-  searchParams.set('order', params.order)
-
-  if (params.search) searchParams.set('q', params.search)
-  if (params.status && params.status !== 'all')
-    searchParams.set('status', params.status)
-  if (params.paymentStatus && params.paymentStatus !== 'all')
-    searchParams.set('paymentStatus', params.paymentStatus)
-  if (params.fulfillmentStatus && params.fulfillmentStatus !== 'all')
-    searchParams.set('fulfillmentStatus', params.fulfillmentStatus)
-
-  const response = await fetch(`/api/orders?${searchParams.toString()}`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch orders')
-  }
-
-  return await response.json()
-}
-
-async function fetchOrderStats(): Promise<OrderStats> {
-  const response = await fetch('/api/orders/stats', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch order stats')
-  }
-
-  const data = await response.json()
-  return data.stats
-}
-
-async function updateOrderStatus(
-  orderId: string,
-  updates: { status?: OrderStatus; fulfillmentStatus?: FulfillmentStatus },
-) {
-  const response = await fetch(`/api/orders/${orderId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(updates),
-  })
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data.error || 'Failed to update order')
-  }
-
-  return await response.json()
-}
-
-async function bulkUpdateOrders(ids: string[], action: string, value: string) {
-  const response = await fetch('/api/orders/bulk', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ ids, action, value }),
-  })
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data.error || 'Failed to bulk update orders')
-  }
-
-  return await response.json()
-}
 
 type StatusFilter =
   | 'all'
@@ -159,8 +82,8 @@ function AdminOrdersPage() {
     const loadStats = async () => {
       setIsLoadingStats(true)
       try {
-        const statsData = await fetchOrderStats()
-        setStats(statsData)
+        const result = await getOrderStatsFn()
+        setStats(result.stats)
       } catch (err) {
         console.error('Failed to fetch stats:', err)
       } finally {
@@ -175,15 +98,17 @@ function AdminOrdersPage() {
     const loadOrders = async () => {
       setIsLoading(true)
       try {
-        const result = await fetchOrders({
-          search: searchParams.q || '',
-          page,
-          limit,
-          status,
-          paymentStatus,
-          fulfillmentStatus,
-          sort,
-          order,
+        const result = await getAdminOrdersFn({
+          data: {
+            page,
+            limit,
+            search: searchParams.q,
+            status,
+            paymentStatus,
+            fulfillmentStatus,
+            sortKey: sort,
+            sortOrder: order,
+          },
         })
         setOrders(result.orders)
         setTotal(result.total)
@@ -233,17 +158,25 @@ function AdminOrdersPage() {
   ) => {
     setIsUpdating(true)
     try {
-      await updateOrderStatus(orderId, updates)
+      await updateOrderStatusFn({
+        data: {
+          orderId,
+          status: updates.status,
+          fulfillmentStatus: updates.fulfillmentStatus,
+        },
+      })
       // Refresh orders
-      const result = await fetchOrders({
-        search: searchParams.q || '',
-        page,
-        limit,
-        status,
-        paymentStatus,
-        fulfillmentStatus,
-        sort,
-        order,
+      const result = await getAdminOrdersFn({
+        data: {
+          page,
+          limit,
+          search: searchParams.q,
+          status,
+          paymentStatus,
+          fulfillmentStatus,
+          sortKey: sort,
+          sortOrder: order,
+        },
       })
       setOrders(result.orders)
       setTotal(result.total)
@@ -263,17 +196,28 @@ function AdminOrdersPage() {
 
     setIsUpdating(true)
     try {
-      await bulkUpdateOrders(Array.from(selectedIds), actionType, value)
+      await bulkUpdateOrdersFn({
+        data: {
+          ids: Array.from(selectedIds),
+          action: actionType as
+            | 'status'
+            | 'paymentStatus'
+            | 'fulfillmentStatus',
+          value,
+        },
+      })
       // Refresh orders
-      const result = await fetchOrders({
-        search: searchParams.q || '',
-        page,
-        limit,
-        status,
-        paymentStatus,
-        fulfillmentStatus,
-        sort,
-        order,
+      const result = await getAdminOrdersFn({
+        data: {
+          page,
+          limit,
+          search: searchParams.q,
+          status,
+          paymentStatus,
+          fulfillmentStatus,
+          sortKey: sort,
+          sortOrder: order,
+        },
       })
       setOrders(result.orders)
       setTotal(result.total)

@@ -5,7 +5,17 @@ import { MediaLibrary, type MediaItem } from './MediaLibrary'
 
 import { fireEvent, render, screen, waitFor } from '@/test/test-utils'
 
-// Mock fetch
+// Mock server functions
+const mockGetMediaFn = vi.fn()
+const mockDeleteMediaFn = vi.fn()
+
+vi.mock('../../../server/media', () => ({
+  getMediaFn: () => mockGetMediaFn(),
+  deleteMediaFn: ({ data }: { data: { ids: string[] } }) =>
+    mockDeleteMediaFn(data),
+}))
+
+// Mock fetch for upload (still uses fetch)
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
@@ -61,6 +71,8 @@ describe('MediaLibrary', () => {
     mockOnClose.mockClear()
     mockOnSelect.mockClear()
     mockFetch.mockClear()
+    mockGetMediaFn.mockClear()
+    mockDeleteMediaFn.mockClear()
   })
 
   afterEach(() => {
@@ -69,9 +81,7 @@ describe('MediaLibrary', () => {
 
   describe('Modal Rendering', () => {
     it('should render the modal when open is true', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -99,9 +109,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should render Library and Upload tabs', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -119,8 +127,8 @@ describe('MediaLibrary', () => {
 
   describe('Library Tab', () => {
     it('should show loading state while fetching media', () => {
-      // Never resolve the fetch
-      mockFetch.mockImplementation(() => new Promise(() => {}))
+      // Never resolve the promise
+      mockGetMediaFn.mockImplementation(() => new Promise(() => {}))
 
       render(
         <MediaLibrary
@@ -136,9 +144,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should display empty state when no media exists', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -155,9 +161,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should display media items when data is fetched', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -175,9 +179,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should allow selecting a single media item', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -201,9 +203,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should allow selecting multiple media items', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -228,9 +228,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should toggle selection when clicking selected item', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -264,9 +262,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should call onSelect with selected items when Insert is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -298,9 +294,7 @@ describe('MediaLibrary', () => {
 
   describe('Upload Tab', () => {
     it('should render Upload tab trigger', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -317,9 +311,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should render Library tab as active by default', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -337,9 +329,7 @@ describe('MediaLibrary', () => {
 
   describe('Delete Functionality', () => {
     it('should show delete button when items are selected', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -369,15 +359,9 @@ describe('MediaLibrary', () => {
       ).toBeInTheDocument()
     })
 
-    it('should call delete API when delete button is clicked', async () => {
-      mockFetch
-        .mockResolvedValueOnce({
-          json: () =>
-            Promise.resolve({ success: true, items: sampleMediaItems }),
-        })
-        .mockResolvedValueOnce({
-          json: () => Promise.resolve({ success: true, deleted: 1 }),
-        })
+    it('should call delete server function when delete button is clicked', async () => {
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
+      mockDeleteMediaFn.mockResolvedValueOnce({ deleted: 1 })
 
       render(
         <MediaLibrary
@@ -399,11 +383,9 @@ describe('MediaLibrary', () => {
       fireEvent.click(deleteButton)
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          '/api/media',
+        expect(mockDeleteMediaFn).toHaveBeenCalledWith(
           expect.objectContaining({
-            method: 'DELETE',
-            body: expect.stringContaining('media-1'),
+            ids: ['media-1'],
           }),
         )
       })
@@ -412,9 +394,7 @@ describe('MediaLibrary', () => {
 
   describe('Modal Controls', () => {
     it('should call onClose when Cancel button is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: [] }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce([])
 
       render(
         <MediaLibrary
@@ -432,9 +412,7 @@ describe('MediaLibrary', () => {
     })
 
     it('should disable Insert button when no items are selected', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
@@ -456,9 +434,7 @@ describe('MediaLibrary', () => {
 
   describe('Single Selection Mode', () => {
     it('should only allow one selection when multiple is false', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: true, items: sampleMediaItems }),
-      })
+      mockGetMediaFn.mockResolvedValueOnce(sampleMediaItems)
 
       render(
         <MediaLibrary
