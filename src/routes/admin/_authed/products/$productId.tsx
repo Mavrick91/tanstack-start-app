@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import {
   ProductForm,
   type Product,
-} from '../../../components/admin/products/ProductForm'
+} from '../../../../components/admin/products/ProductForm'
 
-export const Route = createFileRoute('/admin/products/$productId')({
+export const Route = createFileRoute('/admin/_authed/products/$productId')({
   component: EditProductPage,
 })
 

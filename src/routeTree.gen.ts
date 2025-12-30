@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
@@ -21,9 +20,7 @@ import { Route as ApiProductsIndexRouteImport } from './routes/api/products/inde
 import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
 import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
-import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
-import { Route as AdminOrdersIndexRouteImport } from './routes/admin/orders/index'
-import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
+import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/index'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
 import { Route as LangCollectionsIndexRouteImport } from './routes/$lang/collections/index'
 import { Route as LangCheckoutIndexRouteImport } from './routes/$lang/checkout/index'
@@ -42,11 +39,6 @@ import { Route as ApiCheckoutCreateRouteImport } from './routes/api/checkout/cre
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
-import { Route as AdminProductsNewRouteImport } from './routes/admin/products/new'
-import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products/$productId'
-import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin/orders/$orderId'
-import { Route as AdminCollectionsNewRouteImport } from './routes/admin/collections/new'
-import { Route as AdminCollectionsCollectionIdRouteImport } from './routes/admin/collections/$collectionId'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangCollectionsHandleRouteImport } from './routes/$lang/collections/$handle'
 import { Route as LangCheckoutShippingRouteImport } from './routes/$lang/checkout/shipping'
@@ -57,6 +49,9 @@ import { Route as LangAccountOrdersRouteImport } from './routes/$lang/account/or
 import { Route as LangAccountAddressesRouteImport } from './routes/$lang/account/addresses'
 import { Route as ApiCustomersMeIndexRouteImport } from './routes/api/customers/me/index'
 import { Route as ApiCheckoutCheckoutIdIndexRouteImport } from './routes/api/checkout/$checkoutId/index'
+import { Route as AdminAuthedProductsIndexRouteImport } from './routes/admin/_authed/products/index'
+import { Route as AdminAuthedOrdersIndexRouteImport } from './routes/admin/_authed/orders/index'
+import { Route as AdminAuthedCollectionsIndexRouteImport } from './routes/admin/_authed/collections/index'
 import { Route as ApiProductsProductIdImagesRouteImport } from './routes/api/products/$productId/images'
 import { Route as ApiOrdersOrderIdRefundRouteImport } from './routes/api/orders/$orderId/refund'
 import { Route as ApiOrdersOrderIdHistoryRouteImport } from './routes/api/orders/$orderId/history'
@@ -67,6 +62,11 @@ import { Route as ApiCheckoutCheckoutIdShippingMethodRouteImport } from './route
 import { Route as ApiCheckoutCheckoutIdShippingAddressRouteImport } from './routes/api/checkout/$checkoutId/shipping-address'
 import { Route as ApiCheckoutCheckoutIdCustomerRouteImport } from './routes/api/checkout/$checkoutId/customer'
 import { Route as ApiCheckoutCheckoutIdCompleteRouteImport } from './routes/api/checkout/$checkoutId/complete'
+import { Route as AdminAuthedProductsNewRouteImport } from './routes/admin/_authed/products/new'
+import { Route as AdminAuthedProductsProductIdRouteImport } from './routes/admin/_authed/products/$productId'
+import { Route as AdminAuthedOrdersOrderIdRouteImport } from './routes/admin/_authed/orders/$orderId'
+import { Route as AdminAuthedCollectionsNewRouteImport } from './routes/admin/_authed/collections/new'
+import { Route as AdminAuthedCollectionsCollectionIdRouteImport } from './routes/admin/_authed/collections/$collectionId'
 import { Route as LangDemoStartServerFuncsRouteImport } from './routes/$lang/demo/start.server-funcs'
 import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo/start.api-request'
 import { Route as LangDemoApiNamesRouteImport } from './routes/$lang/demo/api.names'
@@ -93,11 +93,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
 } as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
@@ -138,20 +133,10 @@ const ApiCollectionsIndexRoute = ApiCollectionsIndexRouteImport.update({
   path: '/api/collections/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
-  id: '/products/',
-  path: '/products/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
-  id: '/orders/',
-  path: '/orders/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
-  id: '/collections/',
-  path: '/collections/',
-  getParentRoute: () => AdminRoute,
+const AdminAuthedIndexRoute = AdminAuthedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminAuthedRoute,
 } as any)
 const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
   id: '/products/',
@@ -243,32 +228,6 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
-  id: '/products/new',
-  path: '/products/new',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
-  id: '/products/$productId',
-  path: '/products/$productId',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminOrdersOrderIdRoute = AdminOrdersOrderIdRouteImport.update({
-  id: '/orders/$orderId',
-  path: '/orders/$orderId',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCollectionsNewRoute = AdminCollectionsNewRouteImport.update({
-  id: '/collections/new',
-  path: '/collections/new',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCollectionsCollectionIdRoute =
-  AdminCollectionsCollectionIdRouteImport.update({
-    id: '/collections/$collectionId',
-    path: '/collections/$collectionId',
-    getParentRoute: () => AdminRoute,
-  } as any)
 const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
   id: '/products/$productId',
   path: '/products/$productId',
@@ -320,6 +279,23 @@ const ApiCheckoutCheckoutIdIndexRoute =
     id: '/api/checkout/$checkoutId/',
     path: '/api/checkout/$checkoutId/',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminAuthedProductsIndexRoute =
+  AdminAuthedProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => AdminAuthedRoute,
+  } as any)
+const AdminAuthedOrdersIndexRoute = AdminAuthedOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => AdminAuthedRoute,
+} as any)
+const AdminAuthedCollectionsIndexRoute =
+  AdminAuthedCollectionsIndexRouteImport.update({
+    id: '/collections/',
+    path: '/collections/',
+    getParentRoute: () => AdminAuthedRoute,
   } as any)
 const ApiProductsProductIdImagesRoute =
   ApiProductsProductIdImagesRouteImport.update({
@@ -376,6 +352,35 @@ const ApiCheckoutCheckoutIdCompleteRoute =
     id: '/api/checkout/$checkoutId/complete',
     path: '/api/checkout/$checkoutId/complete',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminAuthedProductsNewRoute = AdminAuthedProductsNewRouteImport.update({
+  id: '/products/new',
+  path: '/products/new',
+  getParentRoute: () => AdminAuthedRoute,
+} as any)
+const AdminAuthedProductsProductIdRoute =
+  AdminAuthedProductsProductIdRouteImport.update({
+    id: '/products/$productId',
+    path: '/products/$productId',
+    getParentRoute: () => AdminAuthedRoute,
+  } as any)
+const AdminAuthedOrdersOrderIdRoute =
+  AdminAuthedOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AdminAuthedRoute,
+  } as any)
+const AdminAuthedCollectionsNewRoute =
+  AdminAuthedCollectionsNewRouteImport.update({
+    id: '/collections/new',
+    path: '/collections/new',
+    getParentRoute: () => AdminAuthedRoute,
+  } as any)
+const AdminAuthedCollectionsCollectionIdRoute =
+  AdminAuthedCollectionsCollectionIdRouteImport.update({
+    id: '/collections/$collectionId',
+    path: '/collections/$collectionId',
+    getParentRoute: () => AdminAuthedRoute,
   } as any)
 const LangDemoStartServerFuncsRoute =
   LangDemoStartServerFuncsRouteImport.update({
@@ -442,11 +447,10 @@ const ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
-  '/admin': typeof AdminAuthedRoute
+  '/admin': typeof AdminAuthedRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
-  '/admin/': typeof AdminIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
@@ -455,11 +459,6 @@ export interface FileRoutesByFullPath {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
-  '/admin/collections/new': typeof AdminCollectionsNewRoute
-  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
-  '/admin/products/$productId': typeof AdminProductsProductIdRoute
-  '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -478,9 +477,7 @@ export interface FileRoutesByFullPath {
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
-  '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/orders': typeof AdminOrdersIndexRoute
-  '/admin/products': typeof AdminProductsIndexRoute
+  '/admin/': typeof AdminAuthedIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/api/orders': typeof ApiOrdersIndexRoute
@@ -489,6 +486,11 @@ export interface FileRoutesByFullPath {
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/admin/collections/$collectionId': typeof AdminAuthedCollectionsCollectionIdRoute
+  '/admin/collections/new': typeof AdminAuthedCollectionsNewRoute
+  '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
+  '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
+  '/admin/products/new': typeof AdminAuthedProductsNewRoute
   '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
   '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
   '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
@@ -499,6 +501,9 @@ export interface FileRoutesByFullPath {
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
+  '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
+  '/admin/orders': typeof AdminAuthedOrdersIndexRoute
+  '/admin/products': typeof AdminAuthedProductsIndexRoute
   '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
@@ -511,7 +516,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin': typeof AdminAuthedIndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang': typeof LangIndexRoute
@@ -523,11 +528,6 @@ export interface FileRoutesByTo {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
-  '/admin/collections/new': typeof AdminCollectionsNewRoute
-  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
-  '/admin/products/$productId': typeof AdminProductsProductIdRoute
-  '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -546,9 +546,6 @@ export interface FileRoutesByTo {
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
-  '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/orders': typeof AdminOrdersIndexRoute
-  '/admin/products': typeof AdminProductsIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/api/orders': typeof ApiOrdersIndexRoute
@@ -557,6 +554,11 @@ export interface FileRoutesByTo {
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/admin/collections/$collectionId': typeof AdminAuthedCollectionsCollectionIdRoute
+  '/admin/collections/new': typeof AdminAuthedCollectionsNewRoute
+  '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
+  '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
+  '/admin/products/new': typeof AdminAuthedProductsNewRoute
   '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
   '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
   '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
@@ -567,6 +569,9 @@ export interface FileRoutesByTo {
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
+  '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
+  '/admin/orders': typeof AdminAuthedOrdersIndexRoute
+  '/admin/products': typeof AdminAuthedProductsIndexRoute
   '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
@@ -582,11 +587,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/admin/_authed': typeof AdminAuthedRoute
+  '/admin/_authed': typeof AdminAuthedRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
-  '/admin/': typeof AdminIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
@@ -595,11 +599,6 @@ export interface FileRoutesById {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/admin/collections/$collectionId': typeof AdminCollectionsCollectionIdRoute
-  '/admin/collections/new': typeof AdminCollectionsNewRoute
-  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
-  '/admin/products/$productId': typeof AdminProductsProductIdRoute
-  '/admin/products/new': typeof AdminProductsNewRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -618,9 +617,7 @@ export interface FileRoutesById {
   '/$lang/checkout/': typeof LangCheckoutIndexRoute
   '/$lang/collections/': typeof LangCollectionsIndexRoute
   '/$lang/products/': typeof LangProductsIndexRoute
-  '/admin/collections/': typeof AdminCollectionsIndexRoute
-  '/admin/orders/': typeof AdminOrdersIndexRoute
-  '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/_authed/': typeof AdminAuthedIndexRoute
   '/api/collections/': typeof ApiCollectionsIndexRoute
   '/api/media/': typeof ApiMediaIndexRoute
   '/api/orders/': typeof ApiOrdersIndexRoute
@@ -629,6 +626,11 @@ export interface FileRoutesById {
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
   '/$lang/demo/start/server-funcs': typeof LangDemoStartServerFuncsRoute
+  '/admin/_authed/collections/$collectionId': typeof AdminAuthedCollectionsCollectionIdRoute
+  '/admin/_authed/collections/new': typeof AdminAuthedCollectionsNewRoute
+  '/admin/_authed/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
+  '/admin/_authed/products/$productId': typeof AdminAuthedProductsProductIdRoute
+  '/admin/_authed/products/new': typeof AdminAuthedProductsNewRoute
   '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
   '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
   '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
@@ -639,6 +641,9 @@ export interface FileRoutesById {
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
+  '/admin/_authed/collections/': typeof AdminAuthedCollectionsIndexRoute
+  '/admin/_authed/orders/': typeof AdminAuthedOrdersIndexRoute
+  '/admin/_authed/products/': typeof AdminAuthedProductsIndexRoute
   '/api/checkout/$checkoutId/': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me/': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
@@ -658,7 +663,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/upload'
     | '/$lang/'
-    | '/admin/'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
     | '/$lang/checkout/confirmation'
@@ -667,11 +671,6 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/admin/collections/$collectionId'
-    | '/admin/collections/new'
-    | '/admin/orders/$orderId'
-    | '/admin/products/$productId'
-    | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -690,9 +689,7 @@ export interface FileRouteTypes {
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
-    | '/admin/collections'
-    | '/admin/orders'
-    | '/admin/products'
+    | '/admin/'
     | '/api/collections'
     | '/api/media'
     | '/api/orders'
@@ -701,6 +698,11 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/admin/collections/$collectionId'
+    | '/admin/collections/new'
+    | '/admin/orders/$orderId'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
     | '/api/checkout/$checkoutId/complete'
     | '/api/checkout/$checkoutId/customer'
     | '/api/checkout/$checkoutId/shipping-address'
@@ -711,6 +713,9 @@ export interface FileRouteTypes {
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
+    | '/admin/collections'
+    | '/admin/orders'
+    | '/admin/products'
     | '/api/checkout/$checkoutId'
     | '/api/customers/me'
     | '/$lang/demo/start/ssr/data-only'
@@ -735,11 +740,6 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/admin/collections/$collectionId'
-    | '/admin/collections/new'
-    | '/admin/orders/$orderId'
-    | '/admin/products/$productId'
-    | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -758,9 +758,6 @@ export interface FileRouteTypes {
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
-    | '/admin/collections'
-    | '/admin/orders'
-    | '/admin/products'
     | '/api/collections'
     | '/api/media'
     | '/api/orders'
@@ -769,6 +766,11 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/admin/collections/$collectionId'
+    | '/admin/collections/new'
+    | '/admin/orders/$orderId'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
     | '/api/checkout/$checkoutId/complete'
     | '/api/checkout/$checkoutId/customer'
     | '/api/checkout/$checkoutId/shipping-address'
@@ -779,6 +781,9 @@ export interface FileRouteTypes {
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
+    | '/admin/collections'
+    | '/admin/orders'
+    | '/admin/products'
     | '/api/checkout/$checkoutId'
     | '/api/customers/me'
     | '/$lang/demo/start/ssr/data-only'
@@ -797,7 +802,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/upload'
     | '/$lang/'
-    | '/admin/'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
     | '/$lang/checkout/confirmation'
@@ -806,11 +810,6 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/admin/collections/$collectionId'
-    | '/admin/collections/new'
-    | '/admin/orders/$orderId'
-    | '/admin/products/$productId'
-    | '/admin/products/new'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -829,9 +828,7 @@ export interface FileRouteTypes {
     | '/$lang/checkout/'
     | '/$lang/collections/'
     | '/$lang/products/'
-    | '/admin/collections/'
-    | '/admin/orders/'
-    | '/admin/products/'
+    | '/admin/_authed/'
     | '/api/collections/'
     | '/api/media/'
     | '/api/orders/'
@@ -840,6 +837,11 @@ export interface FileRouteTypes {
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
     | '/$lang/demo/start/server-funcs'
+    | '/admin/_authed/collections/$collectionId'
+    | '/admin/_authed/collections/new'
+    | '/admin/_authed/orders/$orderId'
+    | '/admin/_authed/products/$productId'
+    | '/admin/_authed/products/new'
     | '/api/checkout/$checkoutId/complete'
     | '/api/checkout/$checkoutId/customer'
     | '/api/checkout/$checkoutId/shipping-address'
@@ -850,6 +852,9 @@ export interface FileRouteTypes {
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
+    | '/admin/_authed/collections/'
+    | '/admin/_authed/orders/'
+    | '/admin/_authed/products/'
     | '/api/checkout/$checkoutId/'
     | '/api/customers/me/'
     | '/$lang/demo/start/ssr/data-only'
@@ -920,13 +925,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/$lang/': {
       id: '/$lang/'
       path: '/'
@@ -983,26 +981,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCollectionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/products/': {
-      id: '/admin/products/'
-      path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/orders/': {
-      id: '/admin/orders/'
-      path: '/orders'
-      fullPath: '/admin/orders'
-      preLoaderRoute: typeof AdminOrdersIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/collections/': {
-      id: '/admin/collections/'
-      path: '/collections'
-      fullPath: '/admin/collections'
-      preLoaderRoute: typeof AdminCollectionsIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/admin/_authed/': {
+      id: '/admin/_authed/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminAuthedIndexRouteImport
+      parentRoute: typeof AdminAuthedRoute
     }
     '/$lang/products/': {
       id: '/$lang/products/'
@@ -1130,41 +1114,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/products/new': {
-      id: '/admin/products/new'
-      path: '/products/new'
-      fullPath: '/admin/products/new'
-      preLoaderRoute: typeof AdminProductsNewRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/products/$productId': {
-      id: '/admin/products/$productId'
-      path: '/products/$productId'
-      fullPath: '/admin/products/$productId'
-      preLoaderRoute: typeof AdminProductsProductIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/orders/$orderId': {
-      id: '/admin/orders/$orderId'
-      path: '/orders/$orderId'
-      fullPath: '/admin/orders/$orderId'
-      preLoaderRoute: typeof AdminOrdersOrderIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/collections/new': {
-      id: '/admin/collections/new'
-      path: '/collections/new'
-      fullPath: '/admin/collections/new'
-      preLoaderRoute: typeof AdminCollectionsNewRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/collections/$collectionId': {
-      id: '/admin/collections/$collectionId'
-      path: '/collections/$collectionId'
-      fullPath: '/admin/collections/$collectionId'
-      preLoaderRoute: typeof AdminCollectionsCollectionIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/$lang/products/$productId': {
       id: '/$lang/products/$productId'
       path: '/products/$productId'
@@ -1235,6 +1184,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCheckoutCheckoutIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_authed/products/': {
+      id: '/admin/_authed/products/'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminAuthedProductsIndexRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/orders/': {
+      id: '/admin/_authed/orders/'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminAuthedOrdersIndexRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/collections/': {
+      id: '/admin/_authed/collections/'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminAuthedCollectionsIndexRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
     '/api/products/$productId/images': {
       id: '/api/products/$productId/images'
       path: '/images'
@@ -1304,6 +1274,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/checkout/$checkoutId/complete'
       preLoaderRoute: typeof ApiCheckoutCheckoutIdCompleteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/_authed/products/new': {
+      id: '/admin/_authed/products/new'
+      path: '/products/new'
+      fullPath: '/admin/products/new'
+      preLoaderRoute: typeof AdminAuthedProductsNewRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/products/$productId': {
+      id: '/admin/_authed/products/$productId'
+      path: '/products/$productId'
+      fullPath: '/admin/products/$productId'
+      preLoaderRoute: typeof AdminAuthedProductsProductIdRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/orders/$orderId': {
+      id: '/admin/_authed/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/admin/orders/$orderId'
+      preLoaderRoute: typeof AdminAuthedOrdersOrderIdRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/collections/new': {
+      id: '/admin/_authed/collections/new'
+      path: '/collections/new'
+      fullPath: '/admin/collections/new'
+      preLoaderRoute: typeof AdminAuthedCollectionsNewRouteImport
+      parentRoute: typeof AdminAuthedRoute
+    }
+    '/admin/_authed/collections/$collectionId': {
+      id: '/admin/_authed/collections/$collectionId'
+      path: '/collections/$collectionId'
+      fullPath: '/admin/collections/$collectionId'
+      preLoaderRoute: typeof AdminAuthedCollectionsCollectionIdRouteImport
+      parentRoute: typeof AdminAuthedRoute
     }
     '/$lang/demo/start/server-funcs': {
       id: '/$lang/demo/start/server-funcs'
@@ -1444,32 +1449,43 @@ const LangRouteChildren: LangRouteChildren = {
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
+interface AdminAuthedRouteChildren {
+  AdminAuthedIndexRoute: typeof AdminAuthedIndexRoute
+  AdminAuthedCollectionsCollectionIdRoute: typeof AdminAuthedCollectionsCollectionIdRoute
+  AdminAuthedCollectionsNewRoute: typeof AdminAuthedCollectionsNewRoute
+  AdminAuthedOrdersOrderIdRoute: typeof AdminAuthedOrdersOrderIdRoute
+  AdminAuthedProductsProductIdRoute: typeof AdminAuthedProductsProductIdRoute
+  AdminAuthedProductsNewRoute: typeof AdminAuthedProductsNewRoute
+  AdminAuthedCollectionsIndexRoute: typeof AdminAuthedCollectionsIndexRoute
+  AdminAuthedOrdersIndexRoute: typeof AdminAuthedOrdersIndexRoute
+  AdminAuthedProductsIndexRoute: typeof AdminAuthedProductsIndexRoute
+}
+
+const AdminAuthedRouteChildren: AdminAuthedRouteChildren = {
+  AdminAuthedIndexRoute: AdminAuthedIndexRoute,
+  AdminAuthedCollectionsCollectionIdRoute:
+    AdminAuthedCollectionsCollectionIdRoute,
+  AdminAuthedCollectionsNewRoute: AdminAuthedCollectionsNewRoute,
+  AdminAuthedOrdersOrderIdRoute: AdminAuthedOrdersOrderIdRoute,
+  AdminAuthedProductsProductIdRoute: AdminAuthedProductsProductIdRoute,
+  AdminAuthedProductsNewRoute: AdminAuthedProductsNewRoute,
+  AdminAuthedCollectionsIndexRoute: AdminAuthedCollectionsIndexRoute,
+  AdminAuthedOrdersIndexRoute: AdminAuthedOrdersIndexRoute,
+  AdminAuthedProductsIndexRoute: AdminAuthedProductsIndexRoute,
+}
+
+const AdminAuthedRouteWithChildren = AdminAuthedRoute._addFileChildren(
+  AdminAuthedRouteChildren,
+)
+
 interface AdminRouteChildren {
-  AdminAuthedRoute: typeof AdminAuthedRoute
+  AdminAuthedRoute: typeof AdminAuthedRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-  AdminCollectionsCollectionIdRoute: typeof AdminCollectionsCollectionIdRoute
-  AdminCollectionsNewRoute: typeof AdminCollectionsNewRoute
-  AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
-  AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
-  AdminProductsNewRoute: typeof AdminProductsNewRoute
-  AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
-  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
-  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminAuthedRoute: AdminAuthedRoute,
+  AdminAuthedRoute: AdminAuthedRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
-  AdminIndexRoute: AdminIndexRoute,
-  AdminCollectionsCollectionIdRoute: AdminCollectionsCollectionIdRoute,
-  AdminCollectionsNewRoute: AdminCollectionsNewRoute,
-  AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
-  AdminProductsProductIdRoute: AdminProductsProductIdRoute,
-  AdminProductsNewRoute: AdminProductsNewRoute,
-  AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
-  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
-  AdminProductsIndexRoute: AdminProductsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

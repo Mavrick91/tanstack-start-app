@@ -7,14 +7,12 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 
-import { useAuthStore } from '../../hooks/useAuth'
-
-export const Route = createFileRoute('/admin/')({
+export const Route = createFileRoute('/admin/_authed/')({
   component: AdminDashboard,
 })
 
 function AdminDashboard() {
-  const user = useAuthStore((state) => state.user)
+  const { user } = Route.useRouteContext()
 
   const stats = [
     {

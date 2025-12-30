@@ -3,17 +3,17 @@ import { FolderOpen, Plus, Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
-import { BulkActionsBar } from '../../../components/admin/collections/components/BulkActionsBar'
+import { BulkActionsBar } from '../../../../components/admin/collections/components/BulkActionsBar'
 import {
   CollectionTable,
   CollectionTableSkeleton,
-} from '../../../components/admin/collections/components/CollectionTable'
-import { Pagination } from '../../../components/admin/products/components/Pagination'
-import { Button } from '../../../components/ui/button'
-import { useDataTable } from '../../../hooks/useDataTable'
-import { getCollectionsFn } from '../../../server/collections'
+} from '../../../../components/admin/collections/components/CollectionTable'
+import { Pagination } from '../../../../components/admin/products/components/Pagination'
+import { Button } from '../../../../components/ui/button'
+import { useDataTable } from '../../../../hooks/useDataTable'
+import { getCollectionsFn } from '../../../../server/collections'
 
-import type { CollectionListItem } from '../../../components/admin/collections/types'
+import type { CollectionListItem } from '../../../../components/admin/collections/types'
 
 // URL Search Params Schema
 const searchSchema = z.object({
@@ -26,7 +26,7 @@ const searchSchema = z.object({
 
 type SortKey = 'name' | 'productCount' | 'createdAt'
 
-export const Route = createFileRoute('/admin/collections/')({
+export const Route = createFileRoute('/admin/_authed/collections/')({
   component: CollectionsPage,
   validateSearch: searchSchema,
 })

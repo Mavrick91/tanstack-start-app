@@ -4,18 +4,18 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { OrderDetail } from '../../../components/admin/orders/OrderDetail'
-import { type OrderHistoryEntry } from '../../../components/admin/orders/OrderHistory'
-import { Button } from '../../../components/ui/button'
+import { OrderDetail } from '../../../../components/admin/orders/OrderDetail'
+import { type OrderHistoryEntry } from '../../../../components/admin/orders/OrderHistory'
+import { Button } from '../../../../components/ui/button'
 
 import type {
   OrderStatus,
   PaymentStatus,
   FulfillmentStatus,
-} from '../../../types/checkout'
-import type { Order } from '../../../types/order'
+} from '../../../../types/checkout'
+import type { Order } from '../../../../types/order'
 
-export const Route = createFileRoute('/admin/orders/$orderId')({
+export const Route = createFileRoute('/admin/_authed/orders/$orderId')({
   component: AdminOrderDetailPage,
 })
 

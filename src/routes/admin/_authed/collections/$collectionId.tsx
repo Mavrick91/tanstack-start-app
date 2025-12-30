@@ -2,11 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { CollectionForm } from '../../../components/admin/collections/CollectionForm'
-import { Button } from '../../../components/ui/button'
-import { getCollectionFn } from '../../../server/collections'
+import { CollectionForm } from '../../../../components/admin/collections/CollectionForm'
+import { Button } from '../../../../components/ui/button'
+import { getCollectionFn } from '../../../../server/collections'
 
-export const Route = createFileRoute('/admin/collections/$collectionId')({
+export const Route = createFileRoute(
+  '/admin/_authed/collections/$collectionId',
+)({
   component: EditCollectionPage,
 })
 

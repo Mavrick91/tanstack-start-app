@@ -3,22 +3,22 @@ import { Package, Plus, Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
-import { BulkActionsBar } from '../../../components/admin/products/components/BulkActionsBar'
-import { Pagination } from '../../../components/admin/products/components/Pagination'
-import { ProductStats } from '../../../components/admin/products/components/ProductStats'
+import { BulkActionsBar } from '../../../../components/admin/products/components/BulkActionsBar'
+import { Pagination } from '../../../../components/admin/products/components/Pagination'
+import { ProductStats } from '../../../../components/admin/products/components/ProductStats'
 import {
   ProductTable,
   ProductTableSkeleton,
-} from '../../../components/admin/products/components/ProductTable'
-import { Button } from '../../../components/ui/button'
-import { useDataTable } from '../../../hooks/useDataTable'
-import { useProductStats } from '../../../hooks/useProductStats'
-import { fetchProducts } from '../../../lib/api/products'
+} from '../../../../components/admin/products/components/ProductTable'
+import { Button } from '../../../../components/ui/button'
+import { useDataTable } from '../../../../hooks/useDataTable'
+import { useProductStats } from '../../../../hooks/useProductStats'
+import { fetchProducts } from '../../../../lib/api/products'
 
 import type {
   Product,
   ProductStatus,
-} from '../../../components/admin/products/types'
+} from '../../../../components/admin/products/types'
 
 // URL search params schema
 const searchSchema = z.object({
@@ -33,7 +33,7 @@ const searchSchema = z.object({
 
 type SortKey = 'name' | 'price' | 'inventory' | 'status' | 'createdAt'
 
-export const Route = createFileRoute('/admin/products/')({
+export const Route = createFileRoute('/admin/_authed/products/')({
   component: AdminProductsPage,
   validateSearch: searchSchema,
 })

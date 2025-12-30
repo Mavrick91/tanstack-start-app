@@ -5,16 +5,16 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { OrderBulkActionsBar } from '../../../components/admin/orders/OrderBulkActionsBar'
-import { OrdersTable } from '../../../components/admin/orders/OrdersTable'
+import { OrderBulkActionsBar } from '../../../../components/admin/orders/OrderBulkActionsBar'
+import { OrdersTable } from '../../../../components/admin/orders/OrdersTable'
 import {
   OrderStatsCards,
   type OrderStats,
-} from '../../../components/admin/orders/OrderStatsCards'
-import { Button } from '../../../components/ui/button'
+} from '../../../../components/admin/orders/OrderStatsCards'
+import { Button } from '../../../../components/ui/button'
 
-import type { OrderStatus, FulfillmentStatus } from '../../../types/checkout'
-import type { OrderListItem } from '../../../types/order'
+import type { OrderStatus, FulfillmentStatus } from '../../../../types/checkout'
+import type { OrderListItem } from '../../../../types/order'
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -34,7 +34,7 @@ const searchSchema = z.object({
   page: z.coerce.number().min(1).optional(),
 })
 
-export const Route = createFileRoute('/admin/orders/')({
+export const Route = createFileRoute('/admin/_authed/orders/')({
   component: AdminOrdersPage,
   validateSearch: searchSchema,
 })

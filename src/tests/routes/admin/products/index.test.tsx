@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { NoResults } from '@/routes/admin/products/index'
+import { NoResults } from '@/routes/admin/_authed/products/index'
 import { fireEvent, render, screen } from '@/test/test-utils'
 
 describe('NoResults component', () => {

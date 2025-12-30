@@ -14,6 +14,7 @@ Migrate from REST API endpoints with manual fetch calls to TanStack Start server
 ## Session Strategy
 
 **Hybrid approach:**
+
 - Use TanStack `useSession` for session data (encrypted in cookie)
 - Keep `sessions` table for audit trail and session revocation capability
 - On login: create DB session record + set cookie session
@@ -73,7 +74,10 @@ export const loginFn = createServerFn({ method: 'POST' })
     }
 
     // Verify credentials
-    const [user] = await db.select().from(users).where(eq(users.email, data.email))
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, data.email))
     if (!user || !(await verifyPassword(data.password, user.passwordHash))) {
       return { success: false, error: 'Invalid credentials' }
     }
@@ -84,32 +88,37 @@ export const loginFn = createServerFn({ method: 'POST' })
 
     // Set cookie session
     const session = await useAppSession()
-    await session.update({ userId: user.id, email: user.email, role: user.role })
+    await session.update({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    })
 
-    return { success: true, user: { id: user.id, email: user.email, role: user.role } }
-  })
-
-export const logoutFn = createServerFn({ method: 'POST' })
-  .handler(async () => {
-    const session = await useAppSession()
-    const data = await session.data
-
-    if (data?.userId) {
-      // Clear DB sessions for this user (optional: just the current one)
-      await db.delete(sessions).where(eq(sessions.userId, data.userId))
+    return {
+      success: true,
+      user: { id: user.id, email: user.email, role: user.role },
     }
-
-    await session.clear()
-    return { success: true }
   })
 
-export const getMeFn = createServerFn()
-  .handler(async () => {
-    const session = await useAppSession()
-    const data = await session.data
-    if (!data?.userId) return null
-    return { id: data.userId, email: data.email, role: data.role }
-  })
+export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
+  const session = await useAppSession()
+  const data = await session.data
+
+  if (data?.userId) {
+    // Clear DB sessions for this user (optional: just the current one)
+    await db.delete(sessions).where(eq(sessions.userId, data.userId))
+  }
+
+  await session.clear()
+  return { success: true }
+})
+
+export const getMeFn = createServerFn().handler(async () => {
+  const session = await useAppSession()
+  const data = await session.data
+  if (!data?.userId) return null
+  return { id: data.userId, email: data.email, role: data.role }
+})
 ```
 
 ## Route Protection
@@ -138,6 +147,7 @@ export const Route = createFileRoute('/admin/_authed')({
 ### Child Routes
 
 All admin routes (except login) become children of `_authed`:
+
 - `src/routes/admin/_authed/index.tsx`
 - `src/routes/admin/_authed/products/index.tsx`
 - `src/routes/admin/_authed/orders/index.tsx`
@@ -157,47 +167,63 @@ function AdminDashboard() {
 ### Products (`src/server/products.ts`)
 
 ```typescript
-export const getProductsFn = createServerFn()
-  .handler(async () => {
-    const user = await getMeFn()
-    if (!user) throw new Error('Unauthorized')
-    // ... existing logic from /api/products GET
-  })
+export const getProductsFn = createServerFn().handler(async () => {
+  const user = await getMeFn()
+  if (!user) throw new Error('Unauthorized')
+  // ... existing logic from /api/products GET
+})
 
 export const getProductFn = createServerFn()
   .validator(z.object({ productId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const updateProductFn = createServerFn({ method: 'POST' })
   .validator(/* product schema */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const deleteProductsFn = createServerFn({ method: 'POST' })
   .validator(z.object({ ids: z.array(z.string().uuid()) }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 ```
 
 ### Orders (`src/server/orders.ts`)
 
 ```typescript
 export const getOrdersFn = createServerFn()
-  .validator(z.object({ page: z.number(), status: z.string().optional(), /* ... */ }))
-  .handler(async ({ data }) => { /* ... */ })
+  .validator(
+    z.object({ page: z.number(), status: z.string().optional() /* ... */ }),
+  )
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const getOrderFn = createServerFn()
   .validator(z.object({ orderId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const updateOrderFn = createServerFn({ method: 'POST' })
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
-export const getOrderStatsFn = createServerFn()
-  .handler(async () => { /* ... */ })
+export const getOrderStatsFn = createServerFn().handler(async () => {
+  /* ... */
+})
 
 export const getOrderHistoryFn = createServerFn()
   .validator(z.object({ orderId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 ```
 
 ### Checkout (`src/server/checkout.ts`)
@@ -205,72 +231,101 @@ export const getOrderHistoryFn = createServerFn()
 ```typescript
 export const createCheckoutFn = createServerFn({ method: 'POST' })
   .validator(/* cart items schema */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const getCheckoutFn = createServerFn()
   .validator(z.object({ checkoutId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const updateCheckoutCustomerFn = createServerFn({ method: 'POST' })
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
-export const updateCheckoutShippingAddressFn = createServerFn({ method: 'POST' })
+export const updateCheckoutShippingAddressFn = createServerFn({
+  method: 'POST',
+})
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const getShippingRatesFn = createServerFn()
   .validator(z.object({ checkoutId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const selectShippingMethodFn = createServerFn({ method: 'POST' })
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const createPaymentIntentFn = createServerFn({ method: 'POST' })
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const completeCheckoutFn = createServerFn({ method: 'POST' })
   .validator(/* ... */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 ```
 
 ### Customers (`src/server/customers.ts`)
 
 ```typescript
-export const getCustomerMeFn = createServerFn()
-  .handler(async () => { /* ... */ })
+export const getCustomerMeFn = createServerFn().handler(async () => {
+  /* ... */
+})
 
-export const getCustomerAddressesFn = createServerFn()
-  .handler(async () => { /* ... */ })
+export const getCustomerAddressesFn = createServerFn().handler(async () => {
+  /* ... */
+})
 
 export const createAddressFn = createServerFn({ method: 'POST' })
   .validator(/* address schema */)
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
 export const deleteAddressFn = createServerFn({ method: 'POST' })
   .validator(z.object({ addressId: z.string().uuid() }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 
-export const getCustomerOrdersFn = createServerFn()
-  .handler(async () => { /* ... */ })
+export const getCustomerOrdersFn = createServerFn().handler(async () => {
+  /* ... */
+})
 ```
 
 ### Media (`src/server/media.ts`)
 
 ```typescript
-export const getMediaFn = createServerFn()
-  .handler(async () => { /* ... */ })
+export const getMediaFn = createServerFn().handler(async () => {
+  /* ... */
+})
 
-export const uploadMediaFn = createServerFn({ method: 'POST' })
-  .handler(async () => {
+export const uploadMediaFn = createServerFn({ method: 'POST' }).handler(
+  async () => {
     // Handle multipart form data
-  })
+  },
+)
 
 export const deleteMediaFn = createServerFn({ method: 'POST' })
   .validator(z.object({ ids: z.array(z.string().uuid()) }))
-  .handler(async ({ data }) => { /* ... */ })
+  .handler(async ({ data }) => {
+    /* ... */
+  })
 ```
 
 ## Hook Updates
@@ -331,6 +386,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
 ## Environment Variables
 
 Add to `.env`:
+
 ```
 SESSION_SECRET=your-32-character-or-longer-secret-here
 ```
