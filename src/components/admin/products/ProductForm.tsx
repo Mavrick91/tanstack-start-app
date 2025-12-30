@@ -65,7 +65,6 @@ export type ProductFormData = {
   compareAtPrice: string
   sku: string
   barcode: string
-  inventoryQuantity: number
   weight: string
   images: { id?: string; url: string; file?: File; altText: LocalizedString }[]
   options?: ProductOption[]
@@ -101,7 +100,6 @@ export type Product = {
   compareAtPrice?: string | null
   sku?: string | null
   barcode?: string | null
-  inventoryQuantity?: number | null
   weight?: string | null
   images?: ProductImage[]
   options?: { name: string; values: string[] }[]
@@ -280,7 +278,6 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
       compareAtPrice: product?.compareAtPrice || '',
       sku: product?.sku || '',
       barcode: product?.barcode || '',
-      inventoryQuantity: product?.inventoryQuantity ?? 0,
       weight: product?.weight || '',
       images: [] as {
         id?: string

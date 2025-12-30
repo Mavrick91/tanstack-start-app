@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { sessions, users } from '../../../db/schema'
 import { errorResponse, simpleErrorResponse } from '../../../lib/api'
+import { generateSessionCsrfToken, createCsrfCookie } from '../../../lib/csrf'
 import {
   checkRateLimit,
   getRateLimitKey,
@@ -73,6 +74,15 @@ export const Route = createFileRoute('/api/auth/login')({
             cookieOptions.push('Secure')
           }
 
+          // Generate CSRF token for session
+          const csrfToken = generateSessionCsrfToken(session.id)
+          const csrfCookie = createCsrfCookie(csrfToken)
+
+          const headers = new Headers()
+          headers.set('Content-Type', 'application/json')
+          headers.append('Set-Cookie', cookieOptions.join('; '))
+          headers.append('Set-Cookie', csrfCookie)
+
           return new Response(
             JSON.stringify({
               success: true,
@@ -81,13 +91,11 @@ export const Route = createFileRoute('/api/auth/login')({
                 email: user.email,
                 role: user.role,
               },
+              csrfToken, // Also return in body for SPA usage
             }),
             {
               status: 200,
-              headers: {
-                'Content-Type': 'application/json',
-                'Set-Cookie': cookieOptions.join('; '),
-              },
+              headers,
             },
           )
         } catch (error) {

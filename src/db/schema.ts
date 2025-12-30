@@ -53,11 +53,6 @@ export const collectionSortEnum = pgEnum('collection_sort', [
   'price_desc',
 ])
 
-export const inventoryPolicyEnum = pgEnum('inventory_policy', [
-  'deny', // Stop selling when out of stock
-  'continue', // Continue selling (Made on Demand)
-])
-
 // i18n JSONB type helper
 type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -102,11 +97,6 @@ export const productVariants = pgTable('product_variants', {
   // Pricing
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   compareAtPrice: decimal('compare_at_price', { precision: 10, scale: 2 }),
-  // Inventory
-  inventoryQuantity: integer('inventory_quantity').default(0).notNull(),
-  inventoryPolicy: inventoryPolicyEnum('inventory_policy')
-    .default('continue')
-    .notNull(), // Default: Made on Demand
   available: integer('available').default(1).notNull(), // 1 = available, 0 = unavailable
   // Identifiers
   sku: text('sku'),
@@ -389,4 +379,29 @@ export const orderStatusHistory = pgTable('order_status_history', {
   changedBy: text('changed_by').notNull(),
   reason: text('reason'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// ============================================
+// WEBHOOK EVENTS (Idempotency)
+// ============================================
+
+export const webhookEvents = pgTable('webhook_events', {
+  id: text('id').primaryKey(), // Event ID from provider (Stripe/PayPal)
+  provider: text('provider').notNull(), // 'stripe' | 'paypal'
+  eventType: text('event_type').notNull(),
+  orderId: uuid('order_id').references(() => orders.id, {
+    onDelete: 'set null',
+  }),
+  payload: jsonb('payload'),
+  processedAt: timestamp('processed_at').defaultNow().notNull(),
+})
+
+// ============================================
+// RATE LIMITING
+// ============================================
+
+export const rateLimits = pgTable('rate_limits', {
+  key: text('key').primaryKey(), // IP:limiterType compound key
+  points: integer('points').notNull().default(0),
+  expiresAt: timestamp('expires_at').notNull(),
 })

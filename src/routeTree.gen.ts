@@ -36,6 +36,7 @@ import { Route as ApiOrdersStatsRouteImport } from './routes/api/orders/stats'
 import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiCustomersRegisterRouteImport } from './routes/api/customers/register'
+import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
 import { Route as ApiCheckoutCreateRouteImport } from './routes/api/checkout/create'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -56,6 +57,7 @@ import { Route as LangAccountAddressesRouteImport } from './routes/$lang/account
 import { Route as ApiCustomersMeIndexRouteImport } from './routes/api/customers/me/index'
 import { Route as ApiCheckoutCheckoutIdIndexRouteImport } from './routes/api/checkout/$checkoutId/index'
 import { Route as ApiProductsProductIdImagesRouteImport } from './routes/api/products/$productId/images'
+import { Route as ApiOrdersOrderIdRefundRouteImport } from './routes/api/orders/$orderId/refund'
 import { Route as ApiOrdersOrderIdHistoryRouteImport } from './routes/api/orders/$orderId/history'
 import { Route as ApiCustomersMeOrdersRouteImport } from './routes/api/customers/me/orders'
 import { Route as ApiCustomersMeAddressesRouteImport } from './routes/api/customers/me/addresses'
@@ -211,6 +213,11 @@ const ApiCustomersRegisterRoute = ApiCustomersRegisterRouteImport.update({
   path: '/api/customers/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
+  id: '/api/cron/cleanup-checkouts',
+  path: '/api/cron/cleanup-checkouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCheckoutCreateRoute = ApiCheckoutCreateRouteImport.update({
   id: '/api/checkout/create',
   path: '/api/checkout/create',
@@ -315,6 +322,11 @@ const ApiProductsProductIdImagesRoute =
     path: '/images',
     getParentRoute: () => ApiProductsProductIdRoute,
   } as any)
+const ApiOrdersOrderIdRefundRoute = ApiOrdersOrderIdRefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => ApiOrdersOrderIdRoute,
+} as any)
 const ApiOrdersOrderIdHistoryRoute = ApiOrdersOrderIdHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -447,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/checkout/create': typeof ApiCheckoutCreateRoute
+  '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
@@ -479,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
   '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
+  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me': typeof ApiCustomersMeIndexRoute
@@ -513,6 +527,7 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/checkout/create': typeof ApiCheckoutCreateRoute
+  '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
@@ -545,6 +560,7 @@ export interface FileRoutesByTo {
   '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
   '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
+  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me': typeof ApiCustomersMeIndexRoute
@@ -582,6 +598,7 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/checkout/create': typeof ApiCheckoutCreateRoute
+  '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
@@ -614,6 +631,7 @@ export interface FileRoutesById {
   '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
   '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
+  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/api/checkout/$checkoutId/': typeof ApiCheckoutCheckoutIdIndexRoute
   '/api/customers/me/': typeof ApiCustomersMeIndexRoute
@@ -652,6 +670,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/checkout/create'
+    | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
@@ -684,6 +703,7 @@ export interface FileRouteTypes {
     | '/api/customers/me/addresses'
     | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
+    | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
     | '/api/checkout/$checkoutId'
     | '/api/customers/me'
@@ -718,6 +738,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/checkout/create'
+    | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
@@ -750,6 +771,7 @@ export interface FileRouteTypes {
     | '/api/customers/me/addresses'
     | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
+    | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
     | '/api/checkout/$checkoutId'
     | '/api/customers/me'
@@ -786,6 +808,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/checkout/create'
+    | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
@@ -818,6 +841,7 @@ export interface FileRouteTypes {
     | '/api/customers/me/addresses'
     | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
+    | '/api/orders/$orderId/refund'
     | '/api/products/$productId/images'
     | '/api/checkout/$checkoutId/'
     | '/api/customers/me/'
@@ -839,6 +863,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiCheckoutCreateRoute: typeof ApiCheckoutCreateRoute
+  ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
   ApiCustomersRegisterRoute: typeof ApiCustomersRegisterRoute
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
   ApiOrdersBulkRoute: typeof ApiOrdersBulkRoute
@@ -1056,6 +1081,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCustomersRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/cleanup-checkouts': {
+      id: '/api/cron/cleanup-checkouts'
+      path: '/api/cron/cleanup-checkouts'
+      fullPath: '/api/cron/cleanup-checkouts'
+      preLoaderRoute: typeof ApiCronCleanupCheckoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/checkout/create': {
       id: '/api/checkout/create'
       path: '/api/checkout/create'
@@ -1195,6 +1227,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/products/$productId/images'
       preLoaderRoute: typeof ApiProductsProductIdImagesRouteImport
       parentRoute: typeof ApiProductsProductIdRoute
+    }
+    '/api/orders/$orderId/refund': {
+      id: '/api/orders/$orderId/refund'
+      path: '/refund'
+      fullPath: '/api/orders/$orderId/refund'
+      preLoaderRoute: typeof ApiOrdersOrderIdRefundRouteImport
+      parentRoute: typeof ApiOrdersOrderIdRoute
     }
     '/api/orders/$orderId/history': {
       id: '/api/orders/$orderId/history'
@@ -1421,10 +1460,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ApiOrdersOrderIdRouteChildren {
   ApiOrdersOrderIdHistoryRoute: typeof ApiOrdersOrderIdHistoryRoute
+  ApiOrdersOrderIdRefundRoute: typeof ApiOrdersOrderIdRefundRoute
 }
 
 const ApiOrdersOrderIdRouteChildren: ApiOrdersOrderIdRouteChildren = {
   ApiOrdersOrderIdHistoryRoute: ApiOrdersOrderIdHistoryRoute,
+  ApiOrdersOrderIdRefundRoute: ApiOrdersOrderIdRefundRoute,
 }
 
 const ApiOrdersOrderIdRouteWithChildren =
@@ -1465,6 +1506,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiCheckoutCreateRoute: ApiCheckoutCreateRoute,
+  ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
   ApiCustomersRegisterRoute: ApiCustomersRegisterRoute,
   ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,
   ApiOrdersBulkRoute: ApiOrdersBulkRoute,

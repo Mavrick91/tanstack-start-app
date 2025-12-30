@@ -145,7 +145,6 @@ export const Route = createFileRoute('/api/products/$productId')({
                     sku: v.sku || null,
                     barcode: v.barcode || null,
                     weight: v.weight || null,
-                    inventoryPolicy: 'continue' as const,
                     available: v.available !== false ? 1 : 0,
                     position: index,
                   }),

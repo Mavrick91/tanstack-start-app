@@ -112,6 +112,136 @@ describe('PayPal Utility Functions', () => {
       expect(isCaptureSuccessful('PENDING')).toBe(false)
       expect(isCaptureSuccessful('FAILED')).toBe(false)
     })
+
+    it('should extract captured amount from capture response', () => {
+      const extractCapturedAmount = (data: {
+        purchase_units?: Array<{
+          payments?: {
+            captures?: Array<{
+              amount?: { value?: string; currency_code?: string }
+            }>
+          }
+        }>
+      }) => {
+        const capture = data.purchase_units?.[0]?.payments?.captures?.[0]
+        const capturedAmount = capture?.amount?.value
+          ? parseFloat(capture.amount.value)
+          : null
+        const capturedCurrency = capture?.amount?.currency_code || null
+        return { capturedAmount, capturedCurrency }
+      }
+
+      const mockResponse = {
+        purchase_units: [
+          {
+            payments: {
+              captures: [
+                {
+                  amount: {
+                    value: '99.99',
+                    currency_code: 'USD',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }
+
+      const result = extractCapturedAmount(mockResponse)
+      expect(result.capturedAmount).toBe(99.99)
+      expect(result.capturedCurrency).toBe('USD')
+    })
+
+    it('should return null for missing capture amount', () => {
+      const extractCapturedAmount = (data: {
+        purchase_units?: Array<{
+          payments?: {
+            captures?: Array<{
+              amount?: { value?: string; currency_code?: string }
+            }>
+          }
+        }>
+      }) => {
+        const capture = data.purchase_units?.[0]?.payments?.captures?.[0]
+        const capturedAmount = capture?.amount?.value
+          ? parseFloat(capture.amount.value)
+          : null
+        const capturedCurrency = capture?.amount?.currency_code || null
+        return { capturedAmount, capturedCurrency }
+      }
+
+      expect(extractCapturedAmount({}).capturedAmount).toBeNull()
+      expect(
+        extractCapturedAmount({ purchase_units: [] }).capturedAmount,
+      ).toBeNull()
+    })
+  })
+
+  describe('PayPal Capture Amount Validation', () => {
+    it('should validate captured amount matches checkout total', () => {
+      const validateCaptureAmount = (
+        capturedAmount: number | null,
+        checkoutTotal: number,
+        tolerance: number = 0.01,
+      ) => {
+        if (capturedAmount === null) {
+          return { valid: false, error: 'Missing captured amount' }
+        }
+        if (Math.abs(capturedAmount - checkoutTotal) > tolerance) {
+          return { valid: false, error: 'Amount mismatch' }
+        }
+        return { valid: true }
+      }
+
+      // Exact match
+      expect(validateCaptureAmount(99.99, 99.99)).toEqual({ valid: true })
+
+      // Within tolerance
+      expect(validateCaptureAmount(99.99, 99.989)).toEqual({ valid: true })
+      expect(validateCaptureAmount(100.0, 99.995)).toEqual({ valid: true })
+
+      // Outside tolerance
+      expect(validateCaptureAmount(99.99, 100.02)).toEqual({
+        valid: false,
+        error: 'Amount mismatch',
+      })
+      expect(validateCaptureAmount(50.0, 100.0)).toEqual({
+        valid: false,
+        error: 'Amount mismatch',
+      })
+
+      // Missing amount
+      expect(validateCaptureAmount(null, 99.99)).toEqual({
+        valid: false,
+        error: 'Missing captured amount',
+      })
+    })
+
+    it('should validate captured currency matches checkout currency', () => {
+      const validateCaptureCurrency = (
+        capturedCurrency: string | null,
+        checkoutCurrency: string,
+      ) => {
+        if (capturedCurrency && capturedCurrency !== checkoutCurrency) {
+          return { valid: false, error: 'Currency mismatch' }
+        }
+        return { valid: true }
+      }
+
+      // Match
+      expect(validateCaptureCurrency('USD', 'USD')).toEqual({ valid: true })
+      expect(validateCaptureCurrency('EUR', 'EUR')).toEqual({ valid: true })
+
+      // Mismatch
+      expect(validateCaptureCurrency('USD', 'EUR')).toEqual({
+        valid: false,
+        error: 'Currency mismatch',
+      })
+
+      // Null currency (acceptable - skip validation)
+      expect(validateCaptureCurrency(null, 'USD')).toEqual({ valid: true })
+    })
   })
 
   describe('PayPal Webhook Events', () => {

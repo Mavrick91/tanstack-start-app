@@ -243,3 +243,5 @@ interface FieldDefinition {
 - No semicolons, single quotes, trailing commas (Prettier)
 - Path alias: `@/*` maps to `src/*`
 - Components use CVA (class-variance-authority) for variants
+- Make sure to use "design-system" skill everytime you change the UI
+- Make sure to always use LSP and "typescript-lsp" anytime you want to search for something in my codebase

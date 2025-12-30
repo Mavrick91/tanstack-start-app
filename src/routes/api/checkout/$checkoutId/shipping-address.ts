@@ -9,6 +9,7 @@ import {
   successResponse,
 } from '../../../../lib/api'
 import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
+import { calculateTax, formatTaxAmount } from '../../../../lib/tax'
 
 import type { AddressSnapshot } from '../../../../db/schema'
 
@@ -99,11 +100,20 @@ export const Route = createFileRoute(
             hasUserAccount = !!customer?.userId
           }
 
-          // Update checkout with shipping address
+          // Recalculate tax based on new shipping address
+          // Tax calculation could vary by region in a more complex implementation
+          const subtotal = parseFloat(checkout.subtotal)
+          const shippingTotal = parseFloat(checkout.shippingTotal || '0')
+          const newTaxTotal = calculateTax(subtotal + shippingTotal)
+          const newTotal = subtotal + shippingTotal + newTaxTotal
+
+          // Update checkout with shipping address and recalculated tax
           const [updatedCheckout] = await db
             .update(checkouts)
             .set({
               shippingAddress,
+              taxTotal: formatTaxAmount(newTaxTotal),
+              total: newTotal.toFixed(2),
               // If guest wants to save address, store it as pending for when they create an account
               pendingSaveAddress: saveAddress && !hasUserAccount,
               updatedAt: new Date(),
@@ -136,6 +146,8 @@ export const Route = createFileRoute(
             checkout: {
               id: updatedCheckout.id,
               shippingAddress: updatedCheckout.shippingAddress,
+              taxTotal: parseFloat(updatedCheckout.taxTotal || '0'),
+              total: parseFloat(updatedCheckout.total),
             },
           })
         } catch (error) {

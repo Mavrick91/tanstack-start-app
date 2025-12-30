@@ -24,7 +24,7 @@ export const Route = createFileRoute(
           }
 
           const access = await validateCheckoutAccess(checkoutId, request)
-          if (!access.valid) {
+          if (!access.valid || !access.checkout) {
             const status =
               access.error === 'Checkout not found'
                 ? 404
@@ -37,12 +37,45 @@ export const Route = createFileRoute(
             })
           }
 
+          const checkout = access.checkout
+
           // Capture the PayPal order
           const captureResult = await capturePayPalOrder(orderId)
 
           if (captureResult.status !== 'COMPLETED') {
             return simpleErrorResponse(
               `Payment not completed. Status: ${captureResult.status}`,
+            )
+          }
+
+          // Validate captured amount matches checkout total
+          const checkoutTotal = parseFloat(checkout.total)
+          const tolerance = 0.01 // Allow 1 cent tolerance for rounding
+
+          if (
+            captureResult.capturedAmount === null ||
+            Math.abs(captureResult.capturedAmount - checkoutTotal) > tolerance
+          ) {
+            console.error(
+              `PayPal amount mismatch: captured ${captureResult.capturedAmount}, expected ${checkoutTotal}`,
+            )
+            return simpleErrorResponse(
+              'Payment amount does not match checkout total',
+              400,
+            )
+          }
+
+          // Validate currency matches
+          if (
+            captureResult.capturedCurrency &&
+            captureResult.capturedCurrency !== checkout.currency
+          ) {
+            console.error(
+              `PayPal currency mismatch: captured ${captureResult.capturedCurrency}, expected ${checkout.currency}`,
+            )
+            return simpleErrorResponse(
+              'Payment currency does not match checkout currency',
+              400,
             )
           }
 

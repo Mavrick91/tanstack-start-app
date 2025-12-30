@@ -66,13 +66,6 @@ export function ProductTable({
                 onSort={onSort}
               />
               <SortableHeader
-                label={t('Inventory')}
-                sortKey="inventory"
-                currentKey={sortKey}
-                order={sortOrder}
-                onSort={onSort}
-              />
-              <SortableHeader
                 label={t('Price')}
                 sortKey="price"
                 currentKey={sortKey}
@@ -129,9 +122,6 @@ export function ProductTable({
                 </td>
                 <td className="px-6 py-4">
                   <StatusBadge status={product.status} />
-                </td>
-                <td className="px-6 py-4">
-                  <InventoryIndicator quantity={product.inventoryQuantity} />
                 </td>
                 <td className="px-6 py-4">
                   <PriceDisplay
@@ -199,28 +189,6 @@ function SortableHeader({
   )
 }
 
-function InventoryIndicator({ quantity }: { quantity: number }) {
-  const { t } = useTranslation()
-  const isLow = quantity < 5
-  const isOut = quantity === 0
-
-  return (
-    <div className="space-y-1">
-      <div className="h-1 w-14 bg-muted rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full ${isOut ? 'bg-destructive' : isLow ? 'bg-amber-500' : 'bg-emerald-500'}`}
-          style={{ width: `${Math.min(quantity, 100)}%` }}
-        />
-      </div>
-      <p
-        className={`text-[10px] font-bold uppercase tracking-wide ${isOut ? 'text-destructive' : isLow ? 'text-amber-600' : 'text-foreground/70'}`}
-      >
-        {quantity} {quantity === 1 ? t('unit') : t('units')}
-      </p>
-    </div>
-  )
-}
-
 function PriceDisplay({
   price,
   compareAtPrice,
@@ -254,16 +222,14 @@ export function ProductTableSkeleton() {
               <th className="w-12 px-4 py-3">
                 <div className="w-4 h-4 bg-muted rounded" />
               </th>
-              {['Product', 'Status', 'Inventory', 'Price', 'SKU', ''].map(
-                (h, i) => (
-                  <th
-                    key={i}
-                    className="text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+              {['Product', 'Status', 'Price', 'SKU', ''].map((h, i) => (
+                <th
+                  key={i}
+                  className="text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">

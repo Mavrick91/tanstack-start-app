@@ -1,5 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
+// Set required env var before module loads
+vi.stubEnv('CHECKOUT_SECRET', 'test-checkout-secret-key')
+
 vi.mock('../db', () => {
   const mockLimit = vi.fn()
   const mockWhere = vi.fn(() => ({ limit: mockLimit }))
@@ -151,10 +154,10 @@ describe('Checkout Authentication', () => {
       const result = await validateCheckoutAccess('checkout-123', request)
 
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Unauthorized')
+      expect(result.error).toBe('Invalid session token')
     })
 
-    it('should allow access for guest checkout without session if checkout has no session requirement', async () => {
+    it('should reject access for guest checkout without session token', async () => {
       const checkoutId = 'checkout-123'
 
       mocks.mockLimit.mockResolvedValue([
@@ -163,7 +166,25 @@ describe('Checkout Authentication', () => {
           completedAt: null,
           expiresAt: new Date(Date.now() + 3600000),
           customerId: null,
-          sessionToken: null,
+        },
+      ])
+
+      const request = new Request('http://localhost')
+      const result = await validateCheckoutAccess(checkoutId, request)
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe('Session token required')
+    })
+
+    it('should allow access for authenticated checkout with customerId', async () => {
+      const checkoutId = 'checkout-123'
+
+      mocks.mockLimit.mockResolvedValue([
+        {
+          id: checkoutId,
+          completedAt: null,
+          expiresAt: new Date(Date.now() + 3600000),
+          customerId: 'customer-456',
         },
       ])
 
@@ -171,6 +192,7 @@ describe('Checkout Authentication', () => {
       const result = await validateCheckoutAccess(checkoutId, request)
 
       expect(result.valid).toBe(true)
+      expect(result.checkout).toBeDefined()
     })
   })
 })

@@ -110,7 +110,6 @@ describe('fetchProducts', () => {
               price: '10.00',
               compareAtPrice: null,
               sku: null,
-              inventoryQuantity: 5,
               createdAt: '2024-01-01T00:00:00Z',
               firstImageUrl: null,
             },
@@ -145,7 +144,6 @@ describe('fetchProducts', () => {
       price: '10.00',
       compareAtPrice: null,
       sku: null,
-      inventoryQuantity: 5,
       createdAt: '2024-01-01T00:00:00Z',
       firstImageUrl: null,
     }
@@ -240,7 +238,6 @@ describe('fetchProducts', () => {
       price: '10.00',
       compareAtPrice: null,
       sku: null,
-      inventoryQuantity: 5,
       createdAt: '2024-01-01T00:00:00Z',
       firstImageUrl: null,
       // Extra fields from database that aren't in Product type
@@ -322,7 +319,6 @@ describe('productsResponseSchema', () => {
           price: '10.00',
           compareAtPrice: null,
           sku: null,
-          inventoryQuantity: 5,
           createdAt: '2024-01-01T00:00:00Z',
           firstImageUrl: null,
         },
@@ -351,7 +347,6 @@ describe('productsResponseSchema', () => {
           price: '10.00',
           compareAtPrice: null,
           sku: null,
-          inventoryQuantity: 5,
           createdAt: '2024-01-01T00:00:00Z',
           firstImageUrl: null,
         },
@@ -419,7 +414,6 @@ describe('productsResponseSchema', () => {
           price: '10.00',
           compareAtPrice: null,
           sku: null,
-          inventoryQuantity: 5,
           createdAt: '2024-01-01T00:00:00Z',
           firstImageUrl: null,
           // Extra fields from database
@@ -455,7 +449,6 @@ describe('productsResponseSchema', () => {
           price: '10.00',
           compareAtPrice: null,
           sku: null,
-          inventoryQuantity: 5,
           createdAt: '2024-01-01T00:00:00Z',
           firstImageUrl: null,
           // Null description (common when not set)
@@ -491,7 +484,6 @@ describe('productsResponseSchema', () => {
           productType: null,
           price: '10.00',
           // compareAtPrice and sku are NOT present (undefined)
-          inventoryQuantity: 5,
           createdAt: '2024-01-01T00:00:00Z',
           firstImageUrl: null,
         },
@@ -523,7 +515,6 @@ describe('productsResponseSchema', () => {
           price: '10.00',
           compareAtPrice: null,
           sku: null,
-          inventoryQuantity: 5,
           createdAt: new Date('2024-01-01T00:00:00Z'),
           firstImageUrl: null,
           description: null,

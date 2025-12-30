@@ -49,6 +49,7 @@ e2e/
 ### Happy Paths (`happy-paths.spec.ts`)
 
 **Guest Checkout with Stripe:**
+
 1. Add product to cart → Navigate to checkout
 2. Fill customer info (email, name) without creating account
 3. Enter shipping address → Select standard shipping
@@ -57,12 +58,14 @@ e2e/
 6. Verify order exists in database with correct totals
 
 **Guest Checkout with PayPal:**
+
 1. Same flow through shipping step
 2. Click PayPal button → Approve in PayPal sandbox popup
 3. Verify capture completes → Confirmation displays
 4. Verify order has `paymentProvider: 'paypal'`
 
 **Registered User Checkout:**
+
 1. Create test user account via API/DB seeding
 2. Log in → Add product → Start checkout
 3. Verify email pre-filled from account
@@ -70,12 +73,14 @@ e2e/
 5. Verify order linked to `customerId`
 
 **Registered User with Saved Address:**
+
 1. Seed user with existing saved address
 2. Start checkout → Verify address auto-populated
 3. Skip to shipping method → Complete payment
 4. Verify saved address used in order
 
 **Free Shipping Threshold:**
+
 1. Add products totaling $75+ to cart
 2. Verify shipping step shows $0 for standard shipping
 3. Complete checkout → Verify `shippingTotal: 0` in order
@@ -85,21 +90,25 @@ e2e/
 ### Validation Errors (`validation.spec.ts`)
 
 **Information Step Validation:**
+
 - Submit with empty email → Error message shown, cannot proceed
 - Submit with invalid email format (`not-an-email`) → Validation error
 - Submit with empty required address fields → Field-level errors
 - Submit with invalid postal code format → Validation error
 
 **Account Creation Validation:**
+
 - Check "Create account" with password < 8 chars → Password error
 - Check "Create account" with existing email → Duplicate account error
 - Uncheck "Create account" → No password required, proceeds as guest
 
 **Shipping Step Validation:**
+
 - Attempt to proceed without selecting shipping method → Error shown
 - Verify both Standard and Express options are selectable
 
 **Payment Step - Stripe Errors:**
+
 - Use declined card (`4000000000000002`) → "Card declined" error displayed
 - Use insufficient funds card (`4000000000009995`) → Appropriate error
 - Use expired card (`4000000000000069`) → "Expired card" error
@@ -107,10 +116,12 @@ e2e/
 - Verify user can retry with valid card after error
 
 **Payment Step - PayPal Errors:**
+
 - Cancel PayPal popup → Returns to payment step, can retry
 - Verify checkout not marked complete after cancellation
 
 **Empty Cart:**
+
 - Navigate directly to `/checkout/information` with empty cart
 - Verify redirect to home or cart page with appropriate message
 
@@ -119,29 +130,35 @@ e2e/
 ### Edge Cases (`edge-cases.spec.ts`)
 
 **Browser Navigation:**
+
 - Complete info step → Press back → Data persisted, can edit
 - Complete shipping step → Press back twice → Info still there
 - Use forward/back through entire flow → No data loss
 - Refresh page mid-checkout → Session restored, continue from same step
 
 **Session & Expiry:**
+
 - Start checkout → Clear `checkout_session` cookie → Verify graceful handling
 - Manually set checkout `expiresAt` to past → "Checkout expired" error
 - Start checkout → Simulate 24hr expiry → Cannot complete
 
 **Checkout Recovery:**
+
 - Fill info step → Close browser → Reopen → Checkout ID in localStorage allows resumption
 - Complete through payment step → Payment fails → Can retry without re-entering info
 
 **Concurrent/Duplicate Submissions:**
+
 - Double-click submit on payment → Only one order created (idempotency)
 - Open checkout in two tabs → Complete in one → Second tab shows appropriate state
 
 **Cart Modifications:**
+
 - Start checkout → Open new tab → Remove item from cart → Original checkout unaffected
 - Verify checkout uses price at time of creation
 
 **Address Edge Cases:**
+
 - International address with special characters (ü, ñ, 日本語)
 - Very long address lines (near field limits)
 - Address with apartment/unit number in line2
@@ -151,26 +168,31 @@ e2e/
 ### Payment-Specific Scenarios (`payments.spec.ts`)
 
 **Stripe Deep Testing:**
+
 - 3D Secure required (`4000002500003155`) → Complete auth → Order created
 - 3D Secure fails → Payment rejected, can retry
 - Different card brands (Visa, Mastercard, Amex test numbers)
 - Verify PaymentIntent metadata contains checkout ID
 
 **PayPal Deep Testing:**
+
 - Complete PayPal sandbox flow with test buyer account
 - Verify captured amount matches checkout total exactly
 - PayPal order amount mismatch → Capture rejected
 
 **Payment Provider Switching:**
+
 - Start with Stripe → Switch to PayPal → Complete with PayPal
 - Verify no orphaned PaymentIntents cause issues
 - Switch back to Stripe after PayPal cancellation
 
 **Webhook Verification (optional):**
+
 - Complete Stripe payment → Verify webhook updates order status
 - May require webhook tunnel (ngrok) or mock webhook delivery
 
 **Amount Verification:**
+
 - Multiple items → Verify total calculated correctly
 - Shipping + tax → Verify payment = subtotal + shipping + tax
 - Free shipping → Verify correct final amount charged
@@ -223,7 +245,7 @@ async function completePayPalSandbox(page: Page, popup: Page): Promise<void>
 
 export const PAYPAL_SANDBOX_BUYER = {
   email: 'sb-buyer@personal.example.com',
-  password: 'test-password'
+  password: 'test-password',
 }
 ```
 
@@ -236,7 +258,7 @@ export const PAYPAL_SANDBOX_BUYER = {
 ```typescript
 export default defineConfig({
   testDir: './e2e/tests',
-  timeout: 60_000,  // Increased for payment flows
+  timeout: 60_000, // Increased for payment flows
   retries: 1,
   fullyParallel: false,
   workers: 3,
@@ -253,9 +275,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
 
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 })
 ```
 
@@ -282,12 +302,14 @@ E2E_TEST_MODE=true
 ## Summary
 
 **Test Count:** ~42 tests total
+
 - Happy paths: ~6 tests
 - Validation errors: ~12 tests
 - Edge cases: ~14 tests
 - Payment-specific: ~10 tests
 
 **New Files:**
+
 - 4 test files in `e2e/tests/checkout/`
 - 3 helper files in `e2e/helpers/`
 - 2 new page objects
@@ -296,11 +318,13 @@ E2E_TEST_MODE=true
 - Updates to `playwright.config.ts`
 
 **Prerequisites:**
+
 - Stripe test mode API keys
 - PayPal sandbox account with test buyer
 - Local Postgres with dev database
 
 **Execution:**
+
 ```bash
 npx playwright test checkout/              # All checkout tests
 npx playwright test checkout/happy-paths   # Quick smoke test

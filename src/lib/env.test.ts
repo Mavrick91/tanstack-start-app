@@ -23,9 +23,11 @@ describe('Environment Validation', () => {
       process.env.PAYPAL_CLIENT_ID = 'xxx'
       process.env.PAYPAL_CLIENT_SECRET = 'xxx'
       process.env.PAYPAL_WEBHOOK_ID = 'xxx'
+      process.env.PAYPAL_MODE = 'sandbox'
       process.env.CLOUDINARY_CLOUD_NAME = 'xxx'
       process.env.CLOUDINARY_API_KEY = 'xxx'
       process.env.CLOUDINARY_API_SECRET = 'xxx'
+      process.env.CHECKOUT_SECRET = 'test-secret'
 
       const { validateEnv } = await import('./env')
       expect(() => validateEnv()).not.toThrow()
@@ -65,9 +67,11 @@ describe('Environment Validation', () => {
       process.env.PAYPAL_CLIENT_ID = 'xxx'
       process.env.PAYPAL_CLIENT_SECRET = 'xxx'
       process.env.PAYPAL_WEBHOOK_ID = 'xxx'
+      process.env.PAYPAL_MODE = 'sandbox'
       process.env.CLOUDINARY_CLOUD_NAME = 'xxx'
       process.env.CLOUDINARY_API_KEY = 'xxx'
       process.env.CLOUDINARY_API_SECRET = 'xxx'
+      process.env.CHECKOUT_SECRET = 'test-secret'
       // Intentionally not setting optional vars like SENDGRID_API_KEY
 
       const { validateEnv } = await import('./env')

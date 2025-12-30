@@ -1,6 +1,25 @@
-import { validateSession } from './auth'
+import { getCookie, validateSession } from './auth'
+import { validateCsrf } from './csrf'
+import { securityHeaders } from './security-headers'
 
 const isDev = process.env.NODE_ENV !== 'production'
+
+/**
+ * Apply security headers to a Response
+ */
+export function withSecurityHeaders(response: Response): Response {
+  const headers = new Headers(response.headers)
+  for (const [key, value] of Object.entries(securityHeaders)) {
+    if (!headers.has(key)) {
+      headers.set(key, value)
+    }
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
 
 export function errorResponse(
   message: string,
@@ -9,16 +28,18 @@ export function errorResponse(
 ): Response {
   console.error(`[API Error] ${message}:`, error)
 
-  return Response.json(
-    {
-      success: false,
-      error: message,
-      ...(isDev && {
-        details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      }),
-    },
-    { status },
+  return withSecurityHeaders(
+    Response.json(
+      {
+        success: false,
+        error: message,
+        ...(isDev && {
+          details: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        }),
+      },
+      { status },
+    ),
   )
 }
 
@@ -26,11 +47,15 @@ export function successResponse<T extends object>(
   data: T,
   status = 200,
 ): Response {
-  return Response.json({ success: true, ...data }, { status })
+  return withSecurityHeaders(
+    Response.json({ success: true, ...data }, { status }),
+  )
 }
 
 export function simpleErrorResponse(message: string, status = 400): Response {
-  return Response.json({ success: false, error: message }, { status })
+  return withSecurityHeaders(
+    Response.json({ success: false, error: message }, { status }),
+  )
 }
 
 export function emptyToNull(val: string | undefined | null): string | null {
@@ -49,6 +74,13 @@ type AuthResult =
   | { success: false; response: Response }
 
 export async function requireAuth(request: Request): Promise<AuthResult> {
+  // Validate CSRF for state-changing methods
+  const sessionId = getCookie(request, 'session')
+  const csrfError = validateCsrf(request, sessionId)
+  if (csrfError) {
+    return { success: false, response: csrfError }
+  }
+
   const auth = await validateSession(request)
   if (!auth.success) {
     return {

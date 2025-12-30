@@ -10,6 +10,9 @@ import {
 } from '../../../../lib/api'
 import { validateCheckoutAccess } from '../../../../lib/checkout-auth'
 import { sendOrderConfirmationEmail } from '../../../../lib/email'
+import { getPayPalOrder } from '../../../../lib/paypal'
+import { isQueueAvailable, queueEmail } from '../../../../lib/queue'
+import { retrievePaymentIntent, dollarsToCents } from '../../../../lib/stripe'
 
 import type { PaymentProvider } from '../../../../types/checkout'
 
@@ -74,6 +77,76 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/complete')({
             return simpleErrorResponse('Shipping method is required')
           }
 
+          // Get cart items
+          const cartItems = checkout.cartItems as Array<{
+            productId: string
+            variantId?: string
+            quantity: number
+            title: string
+            variantTitle?: string
+            sku?: string
+            price: number
+            imageUrl?: string
+          }>
+
+          // Verify payment status with provider before creating order
+          const expectedAmount = parseFloat(checkout.total)
+
+          if (paymentProvider === 'stripe') {
+            try {
+              const paymentIntent = await retrievePaymentIntent(paymentId)
+
+              if (paymentIntent.status !== 'succeeded') {
+                return simpleErrorResponse(
+                  `Payment not completed. Status: ${paymentIntent.status}`,
+                  400,
+                )
+              }
+
+              // Verify amount matches (Stripe uses cents)
+              const expectedCents = dollarsToCents(expectedAmount)
+              if (paymentIntent.amount !== expectedCents) {
+                console.error(
+                  `Payment amount mismatch: expected ${expectedCents}, got ${paymentIntent.amount}`,
+                )
+                return simpleErrorResponse('Payment amount mismatch', 400)
+              }
+            } catch (stripeError) {
+              console.error('Stripe payment verification failed:', stripeError)
+              return simpleErrorResponse('Failed to verify payment', 500)
+            }
+          } else if (paymentProvider === 'paypal') {
+            try {
+              const paypalOrder = await getPayPalOrder(paymentId)
+
+              if (paypalOrder.status !== 'COMPLETED') {
+                return simpleErrorResponse(
+                  `Payment not completed. Status: ${paypalOrder.status}`,
+                  400,
+                )
+              }
+
+              // Verify amount matches
+              const capturedAmount =
+                paypalOrder.purchase_units?.[0]?.payments?.captures?.[0]?.amount
+                  ?.value
+              if (
+                capturedAmount &&
+                parseFloat(capturedAmount) !== expectedAmount
+              ) {
+                console.error(
+                  `Payment amount mismatch: expected ${expectedAmount}, got ${capturedAmount}`,
+                )
+                return simpleErrorResponse('Payment amount mismatch', 400)
+              }
+            } catch (paypalError) {
+              console.error('PayPal payment verification failed:', paypalError)
+              return simpleErrorResponse('Failed to verify payment', 500)
+            }
+          } else {
+            return simpleErrorResponse('Invalid payment provider', 400)
+          }
+
           let order
           try {
             order = await db.transaction(async (tx) => {
@@ -98,17 +171,6 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/complete')({
                   paidAt: new Date(),
                 })
                 .returning()
-
-              const cartItems = checkout.cartItems as Array<{
-                productId: string
-                variantId?: string
-                quantity: number
-                title: string
-                variantTitle?: string
-                sku?: string
-                price: number
-                imageUrl?: string
-              }>
 
               await tx.insert(orderItems).values(
                 cartItems.map((item) => ({
@@ -162,18 +224,8 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/complete')({
             throw txError
           }
 
-          const cartItems = checkout.cartItems as Array<{
-            productId: string
-            variantId?: string
-            quantity: number
-            title: string
-            variantTitle?: string
-            sku?: string
-            price: number
-            imageUrl?: string
-          }>
-
-          sendOrderConfirmationEmail({
+          // Send order confirmation email via queue (with retry) or fallback to direct send
+          const emailData = {
             id: order.id,
             orderNumber: order.orderNumber,
             email: order.email,
@@ -186,9 +238,22 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/complete')({
               price: item.price,
             })),
             shippingAddress: checkout.shippingAddress!,
-          }).catch((err) =>
-            console.error('Failed to send order confirmation email:', err),
-          )
+          }
+
+          const queueAvailable = await isQueueAvailable()
+
+          if (queueAvailable) {
+            // Queue for reliable delivery with retries
+            queueEmail({ type: 'order_confirmation', data: emailData }).catch(
+              (err: Error) =>
+                console.error('Failed to queue order confirmation email:', err),
+            )
+          } else {
+            // Fallback to direct send if Redis unavailable
+            sendOrderConfirmationEmail(emailData).catch((err: Error) =>
+              console.error('Failed to send order confirmation email:', err),
+            )
+          }
 
           return successResponse({
             order: {

@@ -20,7 +20,6 @@ const productSchema = z
     // These fields may not be present if the variant doesn't have them
     compareAtPrice: z.string().nullable().optional(),
     sku: z.string().nullable().optional(),
-    inventoryQuantity: z.number(),
     // Accept both string and Date for timestamps (database returns Date objects)
     createdAt: z.union([z.string(), z.date()]),
     firstImageUrl: z.string().nullable(),

@@ -121,7 +121,6 @@ export const Route = createFileRoute('/api/products/')({
               ...product,
               firstImageUrl: imagesByProductId.get(product.id) || null,
               price: firstVariant?.price || null,
-              inventoryQuantity: firstVariant?.inventoryQuantity || 0,
             }
           })
 
@@ -227,7 +226,6 @@ export const Route = createFileRoute('/api/products/')({
                     sku: v.sku || null,
                     barcode: v.barcode || null,
                     weight: v.weight || null,
-                    inventoryPolicy: 'continue' as const,
                     available: v.available !== false ? 1 : 0,
                     position: index,
                   }),
@@ -241,7 +239,6 @@ export const Route = createFileRoute('/api/products/')({
                 selectedOptions: [],
                 price: price || '0',
                 compareAtPrice: compareAtPrice || null,
-                inventoryPolicy: 'continue' as const,
                 available: 1,
                 position: 0,
               })

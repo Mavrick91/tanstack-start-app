@@ -10,7 +10,6 @@ export type Product = {
   price: string | null
   compareAtPrice: string | null
   sku: string | null
-  inventoryQuantity: number
   createdAt: string
   firstImageUrl: string | null
 }

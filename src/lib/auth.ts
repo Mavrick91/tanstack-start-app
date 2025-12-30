@@ -1,6 +1,7 @@
 import { hash, compare } from 'bcrypt-ts'
 import { and, eq, gt } from 'drizzle-orm'
 
+import { validateCsrf } from './csrf'
 import { db } from '../db'
 import { sessions, users } from '../db/schema'
 
@@ -78,5 +79,68 @@ export async function validateSession(request: Request) {
     return { success: false as const, error: 'User not found', status: 401 }
   }
 
-  return { success: true as const, user }
+  return { success: true as const, user, sessionId }
+}
+
+/**
+ * Require authentication and valid CSRF token
+ * Returns error Response if invalid, otherwise returns user + session
+ */
+export async function requireAuthWithCsrf(
+  request: Request,
+): Promise<
+  | {
+      success: true
+      user: { id: string; email: string; role: string }
+      sessionId: string
+    }
+  | Response
+> {
+  const sessionId = getCookie(request, 'session')
+
+  // Check CSRF first for state-changing requests
+  const csrfError = validateCsrf(request, sessionId)
+  if (csrfError) {
+    return csrfError
+  }
+
+  const result = await validateSession(request)
+
+  if (!result.success) {
+    return new Response(JSON.stringify({ error: result.error }), {
+      status: result.status,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  return { success: true, user: result.user, sessionId: result.sessionId! }
+}
+
+/**
+ * Require admin role with CSRF validation
+ */
+export async function requireAdminWithCsrf(
+  request: Request,
+): Promise<
+  | {
+      success: true
+      user: { id: string; email: string; role: string }
+      sessionId: string
+    }
+  | Response
+> {
+  const result = await requireAuthWithCsrf(request)
+
+  if (result instanceof Response) {
+    return result
+  }
+
+  if (result.user.role !== 'admin') {
+    return new Response(JSON.stringify({ error: 'Admin access required' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  return result
 }

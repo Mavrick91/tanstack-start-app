@@ -1,10 +1,40 @@
-import { randomBytes, timingSafeEqual } from 'crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
+
+function getCsrfSecret(): string {
+  const secret = process.env.CHECKOUT_SECRET
+  if (!secret) {
+    throw new Error('CHECKOUT_SECRET required for CSRF protection')
+  }
+  return secret
+}
 
 /**
  * Generate a cryptographically secure CSRF token
  */
 export function generateCsrfToken(): string {
   return randomBytes(32).toString('hex')
+}
+
+/**
+ * Generate a CSRF token tied to a session ID
+ * Uses HMAC so we don't need to store it in the database
+ */
+export function generateSessionCsrfToken(sessionId: string): string {
+  const hmac = createHmac('sha256', getCsrfSecret())
+  hmac.update(`csrf:${sessionId}`)
+  return hmac.digest('hex')
+}
+
+/**
+ * Verify a CSRF token against a session ID
+ */
+export function verifySessionCsrfToken(
+  token: string | undefined,
+  sessionId: string,
+): boolean {
+  if (!token) return false
+  const expectedToken = generateSessionCsrfToken(sessionId)
+  return validateCsrfToken(token, expectedToken)
 }
 
 /**
@@ -96,4 +126,34 @@ export function validateCsrfForRequest(
   }
 
   return { valid: true }
+}
+
+/**
+ * Validate CSRF token against a session ID
+ * Returns error response if invalid, undefined if valid
+ */
+export function validateCsrf(
+  request: Request,
+  sessionId: string | undefined,
+): Response | undefined {
+  // Skip for safe methods
+  const method = request.method.toUpperCase()
+  if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    return undefined
+  }
+
+  // If no session, allow request (will be caught by auth check)
+  if (!sessionId) {
+    return undefined
+  }
+
+  const csrfToken = getCsrfTokenFromRequest(request)
+  if (!verifySessionCsrfToken(csrfToken, sessionId)) {
+    return new Response(JSON.stringify({ error: 'Invalid CSRF token' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  return undefined
 }

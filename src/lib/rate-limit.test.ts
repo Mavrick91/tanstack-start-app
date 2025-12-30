@@ -1,12 +1,46 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import { checkRateLimit, getRateLimitKey, resetRateLimiter } from './rate-limit'
+// Mock the database
+vi.mock('../db', () => {
+  const mockReturning = vi.fn()
+  const mockOnConflictDoUpdate = vi.fn(() => ({ returning: mockReturning }))
+  const mockValues = vi.fn(() => ({
+    onConflictDoUpdate: mockOnConflictDoUpdate,
+  }))
+  const mockInsert = vi.fn(() => ({ values: mockValues }))
+  const mockDeleteWhere = vi.fn()
+  const mockDelete = vi.fn(() => ({ where: mockDeleteWhere }))
+
+  return {
+    db: {
+      insert: mockInsert,
+      delete: mockDelete,
+      _mocks: {
+        mockReturning,
+        mockOnConflictDoUpdate,
+        mockValues,
+        mockInsert,
+        mockDeleteWhere,
+        mockDelete,
+      },
+    },
+  }
+})
+
+import { checkRateLimit, getRateLimitKey } from './rate-limit'
+import { db } from '../db'
+
+const mocks = (
+  db as typeof db & {
+    _mocks: {
+      mockReturning: ReturnType<typeof vi.fn>
+    }
+  }
+)._mocks
 
 describe('Rate Limiting', () => {
-  beforeEach(async () => {
-    await resetRateLimiter('auth')
-    await resetRateLimiter('api')
-    await resetRateLimiter('webhook')
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
   describe('getRateLimitKey', () => {
@@ -47,24 +81,20 @@ describe('Rate Limiting', () => {
   describe('checkRateLimit', () => {
     describe('auth limiter', () => {
       it('should allow requests within limit', async () => {
-        const key = 'test-auth-1'
+        const expiresAt = new Date(Date.now() + 900000) // 15 minutes
+        mocks.mockReturning.mockResolvedValue([{ points: 1, expiresAt }])
 
-        for (let i = 0; i < 5; i++) {
-          const result = await checkRateLimit('auth', key)
-          expect(result.allowed).toBe(true)
-        }
+        const result = await checkRateLimit('auth', 'test-key')
+
+        expect(result.allowed).toBe(true)
       })
 
       it('should block requests exceeding limit', async () => {
-        const key = 'test-auth-2'
+        const expiresAt = new Date(Date.now() + 900000)
+        mocks.mockReturning.mockResolvedValue([{ points: 6, expiresAt }])
 
-        // Use up all 5 attempts
-        for (let i = 0; i < 5; i++) {
-          await checkRateLimit('auth', key)
-        }
+        const result = await checkRateLimit('auth', 'test-key')
 
-        // 6th attempt should be blocked
-        const result = await checkRateLimit('auth', key)
         expect(result.allowed).toBe(false)
         expect(result.retryAfter).toBeGreaterThan(0)
       })
@@ -72,68 +102,50 @@ describe('Rate Limiting', () => {
 
     describe('api limiter', () => {
       it('should allow requests within limit', async () => {
-        const key = 'test-api-1'
+        const expiresAt = new Date(Date.now() + 60000)
+        mocks.mockReturning.mockResolvedValue([{ points: 50, expiresAt }])
 
-        for (let i = 0; i < 100; i++) {
-          const result = await checkRateLimit('api', key)
-          expect(result.allowed).toBe(true)
-        }
+        const result = await checkRateLimit('api', 'test-key')
+
+        expect(result.allowed).toBe(true)
       })
 
       it('should block requests exceeding limit', async () => {
-        const key = 'test-api-2'
+        const expiresAt = new Date(Date.now() + 60000)
+        mocks.mockReturning.mockResolvedValue([{ points: 101, expiresAt }])
 
-        // Use up all 100 requests
-        for (let i = 0; i < 100; i++) {
-          await checkRateLimit('api', key)
-        }
+        const result = await checkRateLimit('api', 'test-key')
 
-        // 101st request should be blocked
-        const result = await checkRateLimit('api', key)
         expect(result.allowed).toBe(false)
       })
     })
 
     describe('webhook limiter', () => {
       it('should allow requests within limit', async () => {
-        const key = 'test-webhook-1'
+        const expiresAt = new Date(Date.now() + 60000)
+        mocks.mockReturning.mockResolvedValue([{ points: 25, expiresAt }])
 
-        for (let i = 0; i < 50; i++) {
-          const result = await checkRateLimit('webhook', key)
-          expect(result.allowed).toBe(true)
-        }
+        const result = await checkRateLimit('webhook', 'test-key')
+
+        expect(result.allowed).toBe(true)
       })
 
       it('should block requests exceeding limit', async () => {
-        const key = 'test-webhook-2'
+        const expiresAt = new Date(Date.now() + 60000)
+        mocks.mockReturning.mockResolvedValue([{ points: 51, expiresAt }])
 
-        // Use up all 50 requests
-        for (let i = 0; i < 50; i++) {
-          await checkRateLimit('webhook', key)
-        }
+        const result = await checkRateLimit('webhook', 'test-key')
 
-        // 51st request should be blocked
-        const result = await checkRateLimit('webhook', key)
         expect(result.allowed).toBe(false)
       })
     })
 
-    it('should track different keys separately', async () => {
-      const key1 = 'test-separate-1'
-      const key2 = 'test-separate-2'
+    it('should fail open on database error', async () => {
+      mocks.mockReturning.mockRejectedValue(new Error('Database error'))
 
-      // Use up all attempts for key1
-      for (let i = 0; i < 5; i++) {
-        await checkRateLimit('auth', key1)
-      }
+      const result = await checkRateLimit('auth', 'test-key')
 
-      // key1 should be blocked
-      const result1 = await checkRateLimit('auth', key1)
-      expect(result1.allowed).toBe(false)
-
-      // key2 should still be allowed
-      const result2 = await checkRateLimit('auth', key2)
-      expect(result2.allowed).toBe(true)
+      expect(result.allowed).toBe(true)
     })
   })
 })

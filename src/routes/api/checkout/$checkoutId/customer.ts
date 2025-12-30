@@ -96,22 +96,41 @@ export const Route = createFileRoute('/api/checkout/$checkoutId/customer')({
 
             customerId = result.customer.id
           } else if (!customerId) {
-            // Create guest customer
+            // Create or find guest customer using upsert pattern
+            const normalizedEmail = email.toLowerCase()
+
+            // Check for existing customer first
             const [existingCustomer] = await db
               .select()
               .from(customers)
-              .where(eq(customers.email, email.toLowerCase()))
+              .where(eq(customers.email, normalizedEmail))
               .limit(1)
 
-            if (existingCustomer && !existingCustomer.userId) {
-              // Reuse existing guest customer
-              customerId = existingCustomer.id
-            } else if (!existingCustomer) {
+            if (existingCustomer) {
+              if (existingCustomer.userId) {
+                // Customer has a registered account - use their customer ID but don't modify their data
+                // This allows guests to checkout with an email that has an account
+                customerId = existingCustomer.id
+              } else {
+                // Reuse existing guest customer and update their info
+                const [updatedCustomer] = await db
+                  .update(customers)
+                  .set({
+                    firstName: firstName?.trim() || existingCustomer.firstName,
+                    lastName: lastName?.trim() || existingCustomer.lastName,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(customers.id, existingCustomer.id))
+                  .returning()
+
+                customerId = updatedCustomer.id
+              }
+            } else {
               // Create new guest customer
               const [newCustomer] = await db
                 .insert(customers)
                 .values({
-                  email: email.toLowerCase(),
+                  email: normalizedEmail,
                   firstName: firstName?.trim() || null,
                   lastName: lastName?.trim() || null,
                 })

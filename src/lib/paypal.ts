@@ -5,8 +5,26 @@ const PAYPAL_API_BASE =
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com'
 
-// Get PayPal access token
+// Token cache for PayPal OAuth tokens
+// PayPal tokens are valid for ~8 hours, we'll refresh with 5 min buffer
+interface TokenCache {
+  token: string
+  expiresAt: number // timestamp in ms
+}
+
+let tokenCache: TokenCache | null = null
+const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000 // 5 minutes buffer before expiry
+
+// Get PayPal access token with caching
 async function getAccessToken(): Promise<string> {
+  // Check if we have a valid cached token
+  if (
+    tokenCache &&
+    tokenCache.expiresAt > Date.now() + TOKEN_EXPIRY_BUFFER_MS
+  ) {
+    return tokenCache.token
+  }
+
   const clientId = process.env.PAYPAL_CLIENT_ID
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET
 
@@ -30,7 +48,21 @@ async function getAccessToken(): Promise<string> {
   }
 
   const data = await response.json()
+
+  // Cache the token with expiry
+  // PayPal returns expires_in in seconds, typically ~32400 (9 hours)
+  const expiresInMs = (data.expires_in || 28800) * 1000 // Default to 8 hours if not provided
+  tokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + expiresInMs,
+  }
+
   return data.access_token
+}
+
+// Clear the token cache (useful for testing or on auth errors)
+export function clearPayPalTokenCache(): void {
+  tokenCache = null
 }
 
 // Shipping address for PayPal order
@@ -162,10 +194,20 @@ export async function capturePayPalOrder(orderId: string) {
   }
 
   const data = await response.json()
+
+  // Extract captured amount from purchase units
+  const capture = data.purchase_units?.[0]?.payments?.captures?.[0]
+  const capturedAmount = capture?.amount?.value
+    ? parseFloat(capture.amount.value)
+    : null
+  const capturedCurrency = capture?.amount?.currency_code || null
+
   return {
     orderId: data.id,
     status: data.status,
     payerId: data.payer?.payer_id,
+    capturedAmount,
+    capturedCurrency,
   }
 }
 

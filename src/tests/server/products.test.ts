@@ -83,14 +83,6 @@ describe('Product Server Functions', () => {
       expect(normalizePrice('')).toBe('0.00')
       expect(normalizePrice('19.99')).toBe('19.99')
     })
-
-    it('should default inventoryQuantity to 0 when not provided', () => {
-      const normalizeInventory = (qty: number | undefined) => qty || 0
-
-      expect(normalizeInventory(undefined)).toBe(0)
-      expect(normalizeInventory(0)).toBe(0)
-      expect(normalizeInventory(10)).toBe(10)
-    })
   })
 
   describe('Cloudinary Image Deletion', () => {

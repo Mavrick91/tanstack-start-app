@@ -41,7 +41,6 @@ const mockProducts: Product[] = [
     status: 'active',
     price: '29.99',
     compareAtPrice: '39.99',
-    inventoryQuantity: 50,
     sku: 'SKU-001',
     vendor: 'TestVendor',
     firstImageUrl: 'https://example.com/image1.jpg',
@@ -55,7 +54,6 @@ const mockProducts: Product[] = [
     status: 'draft',
     price: '19.99',
     compareAtPrice: null,
-    inventoryQuantity: 3,
     sku: null,
     vendor: null,
     firstImageUrl: null,
@@ -69,7 +67,6 @@ const mockProducts: Product[] = [
     status: 'archived',
     price: null,
     compareAtPrice: null,
-    inventoryQuantity: 0,
     sku: 'SKU-003',
     vendor: 'AnotherVendor',
     firstImageUrl: 'https://example.com/image3.jpg',
@@ -124,7 +121,6 @@ describe('ProductTable', () => {
       renderComponent()
       expect(screen.getByText('Product')).toBeInTheDocument()
       expect(screen.getByText('Status')).toBeInTheDocument()
-      expect(screen.getByText('Inventory')).toBeInTheDocument()
       expect(screen.getByText('Price')).toBeInTheDocument()
       expect(screen.getByText('SKU')).toBeInTheDocument()
     })
@@ -188,26 +184,6 @@ describe('ProductTable', () => {
       renderComponent()
       const dashes = screen.getAllByText('—')
       expect(dashes.length).toBeGreaterThanOrEqual(1)
-    })
-  })
-
-  describe('Inventory indicator', () => {
-    it('shows inventory quantity', () => {
-      renderComponent()
-      expect(screen.getByText('50 units')).toBeInTheDocument()
-      expect(screen.getByText('3 units')).toBeInTheDocument()
-      expect(screen.getByText('0 units')).toBeInTheDocument()
-    })
-
-    it('uses singular unit for quantity 1', () => {
-      const singleItemProduct = [{ ...mockProducts[0], inventoryQuantity: 1 }]
-      renderComponent({ products: singleItemProduct })
-      expect(screen.getByText('1 unit')).toBeInTheDocument()
-    })
-
-    it('uses plural units for quantity > 1', () => {
-      renderComponent()
-      expect(screen.getByText('50 units')).toBeInTheDocument()
     })
   })
 
@@ -281,7 +257,7 @@ describe('ProductTable', () => {
     it('renders sortable headers', () => {
       renderComponent()
       const sortButtons = screen.getAllByRole('button')
-      expect(sortButtons.length).toBeGreaterThanOrEqual(4) // Product, Status, Inventory, Price
+      expect(sortButtons.length).toBeGreaterThanOrEqual(3) // Product, Status, Price
     })
 
     it('calls onSort when clicking sortable header', async () => {
@@ -291,15 +267,6 @@ describe('ProductTable', () => {
       await user.click(screen.getByText('Status'))
 
       expect(mockOnSort).toHaveBeenCalledWith('status')
-    })
-
-    it('calls onSort with inventory key', async () => {
-      const user = userEvent.setup()
-      renderComponent()
-
-      await user.click(screen.getByText('Inventory'))
-
-      expect(mockOnSort).toHaveBeenCalledWith('inventory')
     })
 
     it('calls onSort with price key', async () => {
@@ -338,7 +305,6 @@ describe('ProductTableSkeleton', () => {
     render(<ProductTableSkeleton />)
     expect(screen.getByText('Product')).toBeInTheDocument()
     expect(screen.getByText('Status')).toBeInTheDocument()
-    expect(screen.getByText('Inventory')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
     expect(screen.getByText('SKU')).toBeInTheDocument()
   })

@@ -6,9 +6,11 @@ const requiredEnvVars = [
   'PAYPAL_CLIENT_ID',
   'PAYPAL_CLIENT_SECRET',
   'PAYPAL_WEBHOOK_ID',
+  'PAYPAL_MODE',
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
+  'CHECKOUT_SECRET',
 ] as const
 
 const optionalEnvVars = [
@@ -18,7 +20,6 @@ const optionalEnvVars = [
   'FROM_NAME',
   'GEMINI_API_KEY',
   'OPENAI_API_KEY',
-  'CHECKOUT_SECRET',
 ] as const
 
 /**

@@ -568,6 +568,150 @@ describe('PayPal Webhook Handler', () => {
   })
 })
 
+describe('Webhook Error Categorization', () => {
+  describe('Error Type Detection', () => {
+    it('should categorize signature errors as client errors (400)', () => {
+      const categorizeWebhookError = (errorMessage: string) => {
+        const clientErrorPatterns = [
+          'signature',
+          'parse',
+          'json',
+          'invalid',
+          'malformed',
+          'verification',
+        ]
+        const isClientError = clientErrorPatterns.some((pattern) =>
+          errorMessage.toLowerCase().includes(pattern),
+        )
+        return { status: isClientError ? 400 : 500 }
+      }
+
+      expect(categorizeWebhookError('Invalid signature')).toEqual({
+        status: 400,
+      })
+      expect(categorizeWebhookError('Signature verification failed')).toEqual({
+        status: 400,
+      })
+      expect(categorizeWebhookError('signature mismatch')).toEqual({
+        status: 400,
+      })
+    })
+
+    it('should categorize parse errors as client errors (400)', () => {
+      const categorizeWebhookError = (errorMessage: string) => {
+        const clientErrorPatterns = [
+          'signature',
+          'parse',
+          'json',
+          'invalid',
+          'malformed',
+          'verification',
+        ]
+        const isClientError = clientErrorPatterns.some((pattern) =>
+          errorMessage.toLowerCase().includes(pattern),
+        )
+        return { status: isClientError ? 400 : 500 }
+      }
+
+      expect(categorizeWebhookError('JSON parse error')).toEqual({
+        status: 400,
+      })
+      expect(categorizeWebhookError('Failed to parse body')).toEqual({
+        status: 400,
+      })
+      expect(categorizeWebhookError('Malformed request')).toEqual({
+        status: 400,
+      })
+    })
+
+    it('should categorize database errors as server errors (500)', () => {
+      const categorizeWebhookError = (errorMessage: string) => {
+        const clientErrorPatterns = [
+          'signature',
+          'parse',
+          'json',
+          'invalid',
+          'malformed',
+          'verification',
+        ]
+        const isClientError = clientErrorPatterns.some((pattern) =>
+          errorMessage.toLowerCase().includes(pattern),
+        )
+        return { status: isClientError ? 400 : 500 }
+      }
+
+      expect(categorizeWebhookError('Database connection failed')).toEqual({
+        status: 500,
+      })
+      expect(categorizeWebhookError('ECONNREFUSED')).toEqual({ status: 500 })
+      expect(categorizeWebhookError('Query timeout')).toEqual({ status: 500 })
+    })
+
+    it('should categorize network errors as server errors (500)', () => {
+      const categorizeWebhookError = (errorMessage: string) => {
+        const clientErrorPatterns = [
+          'signature',
+          'parse',
+          'json',
+          'invalid',
+          'malformed',
+          'verification',
+        ]
+        const isClientError = clientErrorPatterns.some((pattern) =>
+          errorMessage.toLowerCase().includes(pattern),
+        )
+        return { status: isClientError ? 400 : 500 }
+      }
+
+      expect(categorizeWebhookError('Network error')).toEqual({ status: 500 })
+      expect(categorizeWebhookError('Connection reset')).toEqual({
+        status: 500,
+      })
+      expect(categorizeWebhookError('Timeout')).toEqual({ status: 500 })
+    })
+
+    it('should categorize unknown errors as server errors (500)', () => {
+      const categorizeWebhookError = (errorMessage: string) => {
+        const clientErrorPatterns = [
+          'signature',
+          'parse',
+          'json',
+          'invalid',
+          'malformed',
+          'verification',
+        ]
+        const isClientError = clientErrorPatterns.some((pattern) =>
+          errorMessage.toLowerCase().includes(pattern),
+        )
+        return { status: isClientError ? 400 : 500 }
+      }
+
+      expect(categorizeWebhookError('Unknown error')).toEqual({ status: 500 })
+      expect(categorizeWebhookError('Something went wrong')).toEqual({
+        status: 500,
+      })
+    })
+  })
+
+  describe('Retry Behavior', () => {
+    it('should not retry client errors (400)', () => {
+      const shouldRetry = (status: number) => status >= 500
+
+      expect(shouldRetry(400)).toBe(false)
+      expect(shouldRetry(401)).toBe(false)
+      expect(shouldRetry(403)).toBe(false)
+    })
+
+    it('should retry server errors (500)', () => {
+      const shouldRetry = (status: number) => status >= 500
+
+      expect(shouldRetry(500)).toBe(true)
+      expect(shouldRetry(502)).toBe(true)
+      expect(shouldRetry(503)).toBe(true)
+    })
+  })
+})
+
 describe('Webhook Security', () => {
   describe('Replay Protection', () => {
     it('should include timestamp in verification', () => {

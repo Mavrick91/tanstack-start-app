@@ -112,10 +112,6 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
           ...product,
           image: images[0]?.url || null,
           price: firstVariant?.price || null,
-          inventoryQuantity: variants.reduce(
-            (sum, v) => sum + v.inventoryQuantity,
-            0,
-          ),
           variants,
           options,
         }
@@ -210,7 +206,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
             sku: emptyToNull(v.sku),
             barcode: emptyToNull(v.barcode),
             weight: emptyToNull(v.weight),
-            inventoryPolicy: 'continue' as const,
             available: v.available !== false ? 1 : 0,
             position: index,
           })),
@@ -225,7 +220,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
             selectedOptions: combo,
             price: price || '0',
             compareAtPrice: emptyToNull(compareAtPrice),
-            inventoryPolicy: 'continue' as const,
             available: 1,
             position: index,
           })),
@@ -238,7 +232,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
           selectedOptions: [],
           price: price || '0',
           compareAtPrice: emptyToNull(compareAtPrice),
-          inventoryPolicy: 'continue' as const,
           available: 1,
           position: 0,
         })
@@ -360,7 +353,6 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
             sku: v.sku ? `${v.sku}-copy` : null,
             barcode: null,
             weight: v.weight,
-            inventoryPolicy: v.inventoryPolicy,
             available: v.available,
             position: v.position,
           })),
