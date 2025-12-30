@@ -66,11 +66,11 @@ function LoginPage() {
     const email = String(values.email || '')
     const password = String(values.password || '')
 
-    const success = await login(email, password)
-    if (success) {
+    const result = await login(email, password)
+    if (result.success) {
       router.navigate({ to: '/admin' })
     } else {
-      formRef.current?.setFieldError('email', 'Invalid email or password')
+      formRef.current?.setFieldError('email', result.error || 'Invalid email or password')
     }
   }
 
