@@ -7,10 +7,25 @@ import { ImageUploader, type ImageItem } from './ImageUploader'
 global.URL.revokeObjectURL = vi.fn()
 
 // Mock dnd-kit to avoid complex drag simulation
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let capturedOnDragEnd:
+  | ((event: { active: { id: string }; over: { id: string } | null }) => void)
+  | null = null
+
 vi.mock('@dnd-kit/core', () => ({
-  DndContext: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  DndContext: ({
+    children,
+    onDragEnd,
+  }: {
+    children: React.ReactNode
+    onDragEnd?: (event: {
+      active: { id: string }
+      over: { id: string } | null
+    }) => void
+  }) => {
+    capturedOnDragEnd = onDragEnd || null
+    return <div>{children}</div>
+  },
   DragOverlay: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -72,6 +87,7 @@ describe('ImageUploader', () => {
 
   beforeEach(() => {
     mockOnChange.mockClear()
+    capturedOnDragEnd = null
   })
 
   it('should render the upload button', () => {
@@ -216,5 +232,98 @@ describe('ImageUploader', () => {
         expect.objectContaining({ id: 'e' }),
       ]),
     )
+  })
+
+  describe('Image Reordering', () => {
+    it('should call onChange with reordered array when image moved', () => {
+      const threeImages: ImageItem[] = [
+        {
+          id: 'img-1',
+          url: 'https://example.com/1.jpg',
+          altText: { en: 'First' },
+        },
+        {
+          id: 'img-2',
+          url: 'https://example.com/2.jpg',
+          altText: { en: 'Second' },
+        },
+        {
+          id: 'img-3',
+          url: 'https://example.com/3.jpg',
+          altText: { en: 'Third' },
+        },
+      ]
+
+      render(<ImageUploader images={threeImages} onChange={mockOnChange} />)
+
+      // Simulate dragging img-1 to position of img-3
+      if (capturedOnDragEnd) {
+        capturedOnDragEnd({ active: { id: 'img-1' }, over: { id: 'img-3' } })
+      }
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        expect.objectContaining({ id: 'img-2' }),
+        expect.objectContaining({ id: 'img-3' }),
+        expect.objectContaining({ id: 'img-1' }),
+      ])
+    })
+
+    it('should not call onChange when drag ends without target', () => {
+      const twoImages: ImageItem[] = [
+        {
+          id: 'img-1',
+          url: 'https://example.com/1.jpg',
+          altText: { en: 'First' },
+        },
+        {
+          id: 'img-2',
+          url: 'https://example.com/2.jpg',
+          altText: { en: 'Second' },
+        },
+      ]
+
+      render(<ImageUploader images={twoImages} onChange={mockOnChange} />)
+      mockOnChange.mockClear()
+
+      if (capturedOnDragEnd) {
+        capturedOnDragEnd({ active: { id: 'img-1' }, over: null })
+      }
+
+      expect(mockOnChange).not.toHaveBeenCalled()
+    })
+
+    it('should maintain image data integrity after reorder', () => {
+      const images: ImageItem[] = [
+        {
+          id: 'a',
+          url: 'https://example.com/a.jpg',
+          altText: { en: 'Alpha', fr: 'Alpha FR', id: 'Alpha ID' },
+        },
+        {
+          id: 'b',
+          url: 'https://example.com/b.jpg',
+          altText: { en: 'Beta', fr: 'Beta FR', id: 'Beta ID' },
+        },
+      ]
+
+      render(<ImageUploader images={images} onChange={mockOnChange} />)
+
+      if (capturedOnDragEnd) {
+        capturedOnDragEnd({ active: { id: 'a' }, over: { id: 'b' } })
+      }
+
+      expect(mockOnChange).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'b',
+          url: 'https://example.com/b.jpg',
+          altText: { en: 'Beta', fr: 'Beta FR', id: 'Beta ID' },
+        }),
+        expect.objectContaining({
+          id: 'a',
+          url: 'https://example.com/a.jpg',
+          altText: { en: 'Alpha', fr: 'Alpha FR', id: 'Alpha ID' },
+        }),
+      ])
+    })
   })
 })
