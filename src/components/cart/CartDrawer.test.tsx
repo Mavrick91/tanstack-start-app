@@ -1,25 +1,30 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { ReactNode } from 'react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CartDrawer } from './CartDrawer'
 
-import type { Product } from '../../types/store'
+import { createProduct } from '@/test/factories'
+import { render, screen } from '@/test/test-utils'
+
+// =============================================================================
+// Mocks - must be defined before vi.mock calls due to hoisting
+// =============================================================================
 
 const mockNavigate = vi.fn()
 
+// vi.mock is hoisted, so we inline the mock implementations
+// The shared factories are used for test data, not module mocks
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     to,
-    className,
+    ...props
   }: {
-    children: ReactNode
-    to: string | object
-    className?: string
+    children: React.ReactNode
+    to: string | Record<string, unknown>
+    [key: string]: unknown
   }) => (
-    <a href={typeof to === 'string' ? to : '#'} className={className}>
+    <a href={typeof to === 'string' ? to : '#'} {...props}>
       {children}
     </a>
   ),
@@ -27,6 +32,14 @@ vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ lang: 'en' }),
 }))
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: 'en', changeLanguage: vi.fn() },
+  }),
+}))
+
+// UI component mocks (specific to this component's dependencies)
 vi.mock('../ui/sheet', () => ({
   Sheet: ({ children, open }: { children: ReactNode; open: boolean }) =>
     open ? <div>{children}</div> : null,
@@ -46,10 +59,11 @@ vi.mock('../ui/separator', () => ({
   Separator: () => <hr />,
 }))
 
+// Cart hook mock with test data
 const mockRemoveItem = vi.fn()
 const mockUpdateQuantity = vi.fn()
 
-const MOCK_PRODUCT: Product = {
+const MOCK_PRODUCT = createProduct({
   id: '1',
   slug: 'test-watch',
   name: 'Test Watch',
@@ -58,7 +72,7 @@ const MOCK_PRODUCT: Product = {
   currency: 'USD',
   category: 'Watches',
   images: ['https://example.com/image.jpg'],
-}
+})
 
 const MOCK_ITEMS = [
   {
@@ -79,17 +93,11 @@ vi.mock('../../hooks/useCart', () => ({
   }),
 }))
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
+// =============================================================================
+// Tests
+// =============================================================================
 
 describe('CartDrawer Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   describe('Rendering', () => {
     it('should render cart items', () => {
       render(<CartDrawer open={true} onOpenChange={() => {}} />)
@@ -117,8 +125,9 @@ describe('CartDrawer Component', () => {
 
   describe('Cart Interactions', () => {
     it('should call updateQuantity with incremented value when + clicked', async () => {
-      const user = userEvent.setup()
-      render(<CartDrawer open={true} onOpenChange={() => {}} />)
+      const { user } = render(
+        <CartDrawer open={true} onOpenChange={() => {}} />,
+      )
 
       const incrementButton = screen
         .getAllByRole('button')
@@ -131,8 +140,9 @@ describe('CartDrawer Component', () => {
     })
 
     it('should call updateQuantity with decremented value when - clicked', async () => {
-      const user = userEvent.setup()
-      render(<CartDrawer open={true} onOpenChange={() => {}} />)
+      const { user } = render(
+        <CartDrawer open={true} onOpenChange={() => {}} />,
+      )
 
       const decrementButton = screen
         .getAllByRole('button')
@@ -145,8 +155,9 @@ describe('CartDrawer Component', () => {
     })
 
     it('should call removeItem when trash button clicked', async () => {
-      const user = userEvent.setup()
-      render(<CartDrawer open={true} onOpenChange={() => {}} />)
+      const { user } = render(
+        <CartDrawer open={true} onOpenChange={() => {}} />,
+      )
 
       const removeButton = screen
         .getAllByRole('button')
@@ -159,9 +170,10 @@ describe('CartDrawer Component', () => {
     })
 
     it('should navigate to checkout when checkout button clicked', async () => {
-      const user = userEvent.setup()
       const mockOnOpenChange = vi.fn()
-      render(<CartDrawer open={true} onOpenChange={mockOnOpenChange} />)
+      const { user } = render(
+        <CartDrawer open={true} onOpenChange={mockOnOpenChange} />,
+      )
 
       const checkoutButton = screen.getByRole('button', { name: /checkout/i })
       await user.click(checkoutButton)

@@ -83,7 +83,9 @@ import { vi } from 'vitest'
 
 type TranslationFn = (key: string, options?: Record<string, any>) => string
 
-export const createMockT = (translations?: Record<string, string>): TranslationFn => {
+export const createMockT = (
+  translations?: Record<string, string>,
+): TranslationFn => {
   return (key: string) => translations?.[key] ?? key
 }
 
@@ -166,7 +168,11 @@ export const createProduct = (overrides = {}) => ({
   id: uniqueId('product'),
   name: { en: 'Test Product', fr: 'Produit Test', id: 'Produk Tes' },
   slug: 'test-product',
-  description: { en: 'A test product', fr: 'Un produit test', id: 'Produk tes' },
+  description: {
+    en: 'A test product',
+    fr: 'Un produit test',
+    id: 'Produk tes',
+  },
   price: 99.99,
   images: [],
   variants: [],
@@ -195,7 +201,9 @@ export const createUser = (overrides = {}) => ({
   ...overrides,
 })
 
-export const resetFactories = () => { idCounter = 0 }
+export const resetFactories = () => {
+  idCounter = 0
+}
 ```
 
 ### Enhanced Setup (`setup.ts`)
@@ -281,24 +289,51 @@ describe('CartDrawer', () => {
 ### After
 
 ```typescript
+import { describe, it, vi } from 'vitest'
+import { CartDrawer } from './CartDrawer'
+import { createProduct } from '@/test/factories'
 import { render, screen } from '@/test/test-utils'
-import { mockRouter, mockI18n, createMockCart } from '@/test/mocks'
-import { createCartItem } from '@/test/factories'
 
-vi.mock('@tanstack/react-router', () => mockRouter())
-vi.mock('react-i18next', () => mockI18n())
+// vi.mock is hoisted - module mocks must be inlined
+// Data factories (createProduct, etc.) work normally
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to, ...props }) => <a href={typeof to === 'string' ? to : '#'} {...props}>{children}</a>,
+  useNavigate: () => vi.fn(),
+  useParams: () => ({ lang: 'en' }),
+}))
 
-const mockCart = createMockCart({ items: [createCartItem()], itemCount: 1 })
-vi.mock('@/hooks/useCart', () => ({ useCart: () => mockCart }))
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}))
+
+const mockRemoveItem = vi.fn()
+const MOCK_PRODUCT = createProduct({ id: '1', name: 'Product' })
+
+vi.mock('@/hooks/useCart', () => ({
+  useCart: () => ({
+    items: [{ productId: '1', quantity: 1, product: MOCK_PRODUCT }],
+    removeItem: mockRemoveItem,
+  }),
+}))
 
 describe('CartDrawer', () => {
   it('removes item', async () => {
     const { user } = render(<CartDrawer />)
     await user.click(screen.getByRole('button', { name: /remove/i }))
-    expect(mockCart.removeItem).toHaveBeenCalled()
+    expect(mockRemoveItem).toHaveBeenCalled()
   })
 })
 ```
+
+## Important: vi.mock Hoisting
+
+**Note:** Vitest hoists `vi.mock()` calls to the top of the file, which means:
+
+1. **Module mock factories cannot be imported and used directly** - The imports haven't loaded yet when vi.mock runs
+2. **Data factories work normally** - `createProduct()`, `createCartItem()`, etc. can be used for test data
+3. **Use inline mocks for modules** - Copy the mock pattern from `mocks/*.ts` files as reference
+
+The mocks in `src/test/mocks/` serve as **reference implementations** that you copy into your test files. The data factories in `src/test/factories/` work normally and can be imported and used.
 
 ## Migration Strategy
 
