@@ -29,7 +29,7 @@ import {
   useCreateCheckout,
   useSaveCustomerInfo,
   useSaveShippingAddress,
-} from '../../../hooks/useCheckoutQueries'
+} from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
 
 import type { AddressFormData } from '../../../lib/checkout-schemas'

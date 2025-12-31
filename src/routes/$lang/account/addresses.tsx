@@ -1,11 +1,6 @@
-import {
-  createFileRoute,
-  useNavigate,
-  useParams,
-  Link,
-} from '@tanstack/react-router'
+import { createFileRoute, useParams, Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, MapPin, Plus, Trash2, Loader2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -19,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../../../components/ui/dialog'
-import { useAuthStore } from '../../../hooks/useAuth'
 import {
   getCustomerAddressesFn,
   createAddressFn,
@@ -48,46 +42,16 @@ type CustomerAddress = {
 
 const AccountAddressesPage = (): React.ReactNode => {
   const { lang } = useParams({ strict: false }) as { lang: string }
-  const navigate = useNavigate()
+  const router = useRouter()
   const { t } = useTranslation()
-  const {
-    isAuthenticated,
-    isLoading: authLoading,
-    checkSession,
-  } = useAuthStore()
 
-  const [addresses, setAddresses] = useState<CustomerAddress[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  // Auth is handled by parent layout's beforeLoad
+  // Data is loaded via route loader
+  const { addresses } = Route.useLoaderData()
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const addressFormRef = useRef<{ submit: () => void } | null>(null)
-
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate({ to: '/$lang', params: { lang } })
-      return
-    }
-
-    if (isAuthenticated) {
-      loadAddresses()
-    }
-  }, [authLoading, isAuthenticated, lang, navigate])
-
-  const loadAddresses = async (): Promise<void> => {
-    setIsLoading(true)
-    try {
-      const data = await getCustomerAddressesFn()
-      setAddresses(data.addresses as CustomerAddress[])
-    } catch (err) {
-      console.error('Failed to fetch addresses:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleAddAddress = async (
     addressData: AddressFormData,
@@ -114,7 +78,7 @@ const AccountAddressesPage = (): React.ReactNode => {
       })
       toast.success(t('Address added'))
       setIsDialogOpen(false)
-      loadAddresses()
+      router.invalidate()
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : t('Failed to add address'),
@@ -134,18 +98,10 @@ const AccountAddressesPage = (): React.ReactNode => {
     try {
       await deleteAddressFn({ data: { addressId } })
       toast.success(t('Address deleted'))
-      loadAddresses()
+      router.invalidate()
     } catch {
       toast.error(t('Failed to delete address'))
     }
-  }
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
-      </div>
-    )
   }
 
   return (
@@ -267,5 +223,9 @@ const AccountAddressesPage = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/$lang/account/addresses')({
+  loader: async () => {
+    const data = await getCustomerAddressesFn()
+    return { addresses: data.addresses as CustomerAddress[] }
+  },
   component: AccountAddressesPage,
 })

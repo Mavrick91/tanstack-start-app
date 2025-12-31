@@ -25,7 +25,7 @@ import {
   useCheckout,
   useShippingRates,
   useSaveShippingMethod,
-} from '../../../hooks/useCheckoutQueries'
+} from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
 
 const CheckoutShippingPage = () => {

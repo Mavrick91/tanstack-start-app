@@ -1,16 +1,9 @@
-import {
-  createFileRoute,
-  useNavigate,
-  useParams,
-  Link,
-} from '@tanstack/react-router'
-import { ArrowLeft, Package, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { createFileRoute, useParams, Link } from '@tanstack/react-router'
+import { ArrowLeft, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { OrderStatusBadge } from '../../../components/admin/orders/OrderStatusBadge'
 import { Button } from '../../../components/ui/button'
-import { useAuthStore } from '../../../hooks/useAuth'
 import { formatCurrency } from '../../../lib/format'
 import { getCustomerOrdersFn } from '../../../server/customers'
 
@@ -33,34 +26,11 @@ type OrderListItem = {
 
 const AccountOrdersPage = (): React.ReactNode => {
   const { lang } = useParams({ strict: false }) as { lang: string }
-  const navigate = useNavigate()
   const { t } = useTranslation()
-  const {
-    isAuthenticated,
-    isLoading: authLoading,
-    checkSession,
-  } = useAuthStore()
 
-  const [orders, setOrders] = useState<OrderListItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate({ to: '/$lang', params: { lang } })
-      return
-    }
-
-    if (isAuthenticated) {
-      getCustomerOrdersFn({ data: { page: 1, limit: 50 } })
-        .then((data) => setOrders(data.orders as OrderListItem[]))
-        .catch(console.error)
-        .finally(() => setIsLoading(false))
-    }
-  }, [authLoading, isAuthenticated, lang, navigate])
+  // Auth is handled by parent layout's beforeLoad
+  // Data is loaded via route loader
+  const { orders } = Route.useLoaderData()
 
   const formatDate = (date: Date | string): string => {
     const d = typeof date === 'string' ? new Date(date) : date
@@ -69,14 +39,6 @@ const AccountOrdersPage = (): React.ReactNode => {
       month: 'long',
       day: 'numeric',
     })
-  }
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
-      </div>
-    )
   }
 
   return (
@@ -206,5 +168,9 @@ const AccountOrdersPage = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/$lang/account/orders')({
+  loader: async () => {
+    const data = await getCustomerOrdersFn({ data: { page: 1, limit: 50 } })
+    return { orders: data.orders as OrderListItem[] }
+  },
   component: AccountOrdersPage,
 })

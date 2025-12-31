@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -13,67 +14,40 @@ import {
 
 import type { Checkout, AddressInput, ShippingRate } from '../types/checkout'
 
-type CheckoutState = {
+// Zustand store for checkout ID persistence
+type CheckoutIdStore = {
   checkoutId: string | null
-  checkout: Checkout | null
-  shippingRates: ShippingRate[]
-  isLoading: boolean
-  error: string | null
-
-  // Actions
   setCheckoutId: (id: string | null) => void
-  setCheckout: (checkout: Checkout | null) => void
-  setShippingRates: (rates: ShippingRate[]) => void
-  setLoading: (loading: boolean) => void
-  setError: (error: string | null) => void
-  clearCheckout: () => void
+  clearCheckoutId: () => void
 }
 
-export const useCheckoutStore = create<CheckoutState>()(
+export const useCheckoutIdStore = create<CheckoutIdStore>()(
   persist(
     (set) => ({
       checkoutId: null,
-      checkout: null,
-      shippingRates: [],
-      isLoading: false,
-      error: null,
-
       setCheckoutId: (id) => set({ checkoutId: id }),
-      setCheckout: (checkout) => set({ checkout }),
-      setShippingRates: (rates) => set({ shippingRates: rates }),
-      setLoading: (loading) => set({ isLoading: loading }),
-      setError: (error) => set({ error }),
-      clearCheckout: () =>
-        set({
-          checkoutId: null,
-          checkout: null,
-          shippingRates: [],
-          error: null,
-        }),
+      clearCheckoutId: () => set({ checkoutId: null }),
     }),
     {
-      name: 'checkout-storage',
-      partialize: (state) => ({
-        checkoutId: state.checkoutId,
-      }),
+      name: 'checkout-id',
     },
   ),
 )
 
-// Checkout API functions using server functions
-export const createCheckout = async (
+// API functions using server functions
+const createCheckoutApi = async (
   items: Array<{ productId: string; variantId?: string; quantity: number }>,
 ) => {
   const result = await createCheckoutFn({ data: { items } })
   return result.checkout as Checkout
 }
 
-export const getCheckout = async (checkoutId: string) => {
+const getCheckoutApi = async (checkoutId: string) => {
   const result = await getCheckoutFn({ data: { checkoutId } })
   return result.checkout as Checkout
 }
 
-export const saveCustomerInfo = async (
+const saveCustomerInfoApi = async (
   checkoutId: string,
   data: {
     email: string
@@ -93,10 +67,18 @@ export const saveCustomerInfo = async (
       password: data.password,
     },
   })
-  return result
+  // Return the updated checkout with email
+  if (!result.checkout) {
+    throw new Error('Failed to save customer info')
+  }
+  return {
+    id: result.checkout.id,
+    email: result.checkout.email,
+    customerId: result.checkout.customerId,
+  } as Checkout
 }
 
-export const saveShippingAddress = async (
+const saveShippingAddressApi = async (
   checkoutId: string,
   address: AddressInput & { saveAddress?: boolean },
 ) => {
@@ -108,27 +90,215 @@ export const saveShippingAddress = async (
       saveAddress,
     },
   })
-  return result
+  return result.checkout as Checkout
 }
 
-export const getShippingRates = async (checkoutId: string) => {
+const getShippingRatesApi = async (checkoutId: string) => {
   const result = await getShippingRatesFn({ data: { checkoutId } })
   return result.shippingRates as ShippingRate[]
 }
 
-export const saveShippingMethod = async (
+const saveShippingMethodApi = async (
   checkoutId: string,
   shippingRateId: string,
 ) => {
   const result = await saveShippingMethodFn({
     data: { checkoutId, shippingRateId },
   })
+  return result.checkout as Checkout
+}
+
+const completeCheckoutApi = async (
+  checkoutId: string,
+  paymentProvider: 'stripe' | 'paypal',
+  paymentId: string,
+) => {
+  const result = await completeCheckoutFn({
+    data: { checkoutId, paymentProvider, paymentId },
+  })
   return result
+}
+
+// Query keys
+export const checkoutKeys = {
+  all: ['checkout'] as const,
+  detail: (id: string) => [...checkoutKeys.all, id] as const,
+  shippingRates: (id: string) =>
+    [...checkoutKeys.detail(id), 'shipping-rates'] as const,
+}
+
+// React Query hooks
+export const useCheckout = (checkoutId: string | null) => {
+  return useQuery({
+    queryKey: checkoutId
+      ? checkoutKeys.detail(checkoutId)
+      : ['checkout', 'none'],
+    queryFn: () => (checkoutId ? getCheckoutApi(checkoutId) : null),
+    enabled: !!checkoutId,
+    staleTime: 1000 * 60, // 1 minute
+  })
+}
+
+export const useShippingRates = (checkoutId: string | null) => {
+  return useQuery({
+    queryKey: checkoutId
+      ? checkoutKeys.shippingRates(checkoutId)
+      : ['shipping-rates', 'none'],
+    queryFn: () => (checkoutId ? getShippingRatesApi(checkoutId) : []),
+    enabled: !!checkoutId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
+}
+
+export const useCreateCheckout = () => {
+  const queryClient = useQueryClient()
+  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
+
+  return useMutation({
+    mutationFn: createCheckoutApi,
+    onSuccess: (checkout) => {
+      setCheckoutId(checkout.id)
+      queryClient.setQueryData(checkoutKeys.detail(checkout.id), checkout)
+    },
+  })
+}
+
+export const useSaveCustomerInfo = (checkoutId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: Parameters<typeof saveCustomerInfoApi>[1]) =>
+      saveCustomerInfoApi(checkoutId, data),
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+      const previous = queryClient.getQueryData<Checkout>(
+        checkoutKeys.detail(checkoutId),
+      )
+
+      // Optimistic update
+      if (previous) {
+        queryClient.setQueryData<Checkout>(checkoutKeys.detail(checkoutId), {
+          ...previous,
+          email: newData.email,
+        })
+      }
+
+      return { previous }
+    },
+    onError: (_err, _newData, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          checkoutKeys.detail(checkoutId),
+          context.previous,
+        )
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+    },
+  })
+}
+
+export const useSaveShippingAddress = (checkoutId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (address: AddressInput & { saveAddress?: boolean }) =>
+      saveShippingAddressApi(checkoutId, address),
+    onMutate: async (newAddress) => {
+      await queryClient.cancelQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+      const previous = queryClient.getQueryData<Checkout>(
+        checkoutKeys.detail(checkoutId),
+      )
+
+      // Optimistic update
+      if (previous) {
+        queryClient.setQueryData<Checkout>(checkoutKeys.detail(checkoutId), {
+          ...previous,
+          shippingAddress: {
+            firstName: newAddress.firstName,
+            lastName: newAddress.lastName,
+            company: newAddress.company,
+            address1: newAddress.address1,
+            address2: newAddress.address2,
+            city: newAddress.city,
+            province: newAddress.province,
+            provinceCode: newAddress.provinceCode,
+            country: newAddress.country,
+            countryCode: newAddress.countryCode,
+            zip: newAddress.zip,
+            phone: newAddress.phone,
+          },
+        })
+      }
+
+      return { previous }
+    },
+    onError: (_err, _newData, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          checkoutKeys.detail(checkoutId),
+          context.previous,
+        )
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+    },
+  })
+}
+
+export const useSaveShippingMethod = (checkoutId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (shippingRateId: string) =>
+      saveShippingMethodApi(checkoutId, shippingRateId),
+    onMutate: async (shippingRateId) => {
+      await queryClient.cancelQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+      const previous = queryClient.getQueryData<Checkout>(
+        checkoutKeys.detail(checkoutId),
+      )
+
+      // Optimistic update
+      if (previous) {
+        queryClient.setQueryData<Checkout>(checkoutKeys.detail(checkoutId), {
+          ...previous,
+          shippingRateId,
+        })
+      }
+
+      return { previous }
+    },
+    onError: (_err, _newData, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          checkoutKeys.detail(checkoutId),
+          context.previous,
+        )
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: checkoutKeys.detail(checkoutId),
+      })
+    },
+  })
 }
 
 // Stripe payment intent - still uses fetch because it needs special handling
 // for returning client secret to the browser
-export const createStripePaymentIntent = async (checkoutId: string) => {
+const createStripePaymentIntentApi = async (checkoutId: string) => {
   const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -143,69 +313,27 @@ export const createStripePaymentIntent = async (checkoutId: string) => {
   return await response.json()
 }
 
-export const completeCheckout = async (
-  checkoutId: string,
-  paymentProvider: 'stripe' | 'paypal',
-  paymentId: string,
-) => {
-  const result = await completeCheckoutFn({
-    data: { checkoutId, paymentProvider, paymentId },
+export const useCreateStripePaymentIntent = (checkoutId: string) => {
+  return useMutation({
+    mutationFn: () => createStripePaymentIntentApi(checkoutId),
   })
-  return result
 }
 
-// Hook for easy access
-export const useCheckout = () => {
-  const store = useCheckoutStore()
+export const useCompleteCheckout = (checkoutId: string) => {
+  const queryClient = useQueryClient()
+  const clearCheckoutId = useCheckoutIdStore((s) => s.clearCheckoutId)
 
-  return {
-    ...store,
-    createCheckout: async (
-      items: Array<{ productId: string; variantId?: string; quantity: number }>,
-    ) => {
-      store.setLoading(true)
-      store.setError(null)
-      try {
-        const checkout = await createCheckout(items)
-        store.setCheckoutId(checkout.id)
-        store.setCheckout(checkout)
-        return checkout
-      } catch (err) {
-        const error =
-          err instanceof Error ? err.message : 'Failed to create checkout'
-        store.setError(error)
-        throw err
-      } finally {
-        store.setLoading(false)
-      }
+  return useMutation({
+    mutationFn: ({
+      paymentProvider,
+      paymentId,
+    }: {
+      paymentProvider: 'stripe' | 'paypal'
+      paymentId: string
+    }) => completeCheckoutApi(checkoutId, paymentProvider, paymentId),
+    onSuccess: () => {
+      clearCheckoutId()
+      queryClient.removeQueries({ queryKey: checkoutKeys.detail(checkoutId) })
     },
-    loadCheckout: async (checkoutId: string) => {
-      store.setLoading(true)
-      store.setError(null)
-      try {
-        const checkout = await getCheckout(checkoutId)
-        store.setCheckout(checkout)
-        return checkout
-      } catch (err) {
-        const error =
-          err instanceof Error ? err.message : 'Failed to load checkout'
-        store.setError(error)
-        throw err
-      } finally {
-        store.setLoading(false)
-      }
-    },
-    loadShippingRates: async (checkoutId: string) => {
-      try {
-        const rates = await getShippingRates(checkoutId)
-        store.setShippingRates(rates)
-        return rates
-      } catch (err) {
-        const error =
-          err instanceof Error ? err.message : 'Failed to load shipping rates'
-        store.setError(error)
-        throw err
-      }
-    },
-  }
+  })
 }

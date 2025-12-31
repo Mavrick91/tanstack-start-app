@@ -1,76 +1,22 @@
-import {
-  createFileRoute,
-  useNavigate,
-  useParams,
-  Link,
-} from '@tanstack/react-router'
-import {
-  Package,
-  MapPin,
-  User,
-  LogOut,
-  Loader2,
-  ChevronRight,
-} from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { createFileRoute, useNavigate, useParams, Link } from '@tanstack/react-router'
+import { Package, MapPin, User, LogOut, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../hooks/useAuth'
-import { getCustomerMeFn } from '../../../server/customers'
 
 const AccountPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const {
-    isAuthenticated,
-    isLoading: authLoading,
-    logout,
-    checkSession,
-  } = useAuthStore()
+  const { logout } = useAuthStore()
 
-  const [customer, setCustomer] = useState<{
-    id: string
-    email: string
-    firstName: string | null
-    lastName: string | null
-  } | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate({ to: '/$lang', params: { lang } })
-      return
-    }
-
-    if (isAuthenticated) {
-      getCustomerMeFn()
-        .then((data) => setCustomer(data.customer))
-        .catch(console.error)
-        .finally(() => setIsLoading(false))
-    }
-  }, [authLoading, isAuthenticated, lang, navigate])
+  // Customer is guaranteed by parent layout's beforeLoad
+  const { customer } = Route.useRouteContext()
 
   const handleLogout = async () => {
     await logout()
     navigate({ to: '/$lang', params: { lang } })
-  }
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null
   }
 
   const menuItems = [

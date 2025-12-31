@@ -72,6 +72,31 @@ const requireCustomer = async () => {
 // SERVER FUNCTIONS
 // ============================================
 
+// Check customer session (returns null if not authenticated, doesn't throw)
+export const getCustomerSessionFn = createServerFn().handler(async () => {
+  const user = await getMeFn()
+  if (!user) {
+    return { customer: null }
+  }
+
+  const customer = await getCustomerForUser(user.id)
+  if (!customer) {
+    return { customer: null }
+  }
+
+  return {
+    customer: {
+      id: customer.id,
+      email: customer.email,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      phone: customer.phone,
+      acceptsMarketing: customer.acceptsMarketing,
+      createdAt: customer.createdAt,
+    } satisfies CustomerProfile,
+  }
+})
+
 // Get customer profile
 export const getCustomerMeFn = createServerFn().handler(async () => {
   const { customer } = await requireCustomer()

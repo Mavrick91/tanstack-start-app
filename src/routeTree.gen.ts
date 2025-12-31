@@ -16,6 +16,7 @@ import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
+import { Route as LangAccountRouteImport } from './routes/$lang/account'
 import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
 import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
@@ -99,6 +100,11 @@ const AdminAuthedRoute = AdminAuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => AdminRoute,
 } as any)
+const LangAccountRoute = LangAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => LangRoute,
+} as any)
 const ApiOrdersIndexRoute = ApiOrdersIndexRouteImport.update({
   id: '/api/orders/',
   path: '/api/orders/',
@@ -135,9 +141,9 @@ const LangCheckoutIndexRoute = LangCheckoutIndexRouteImport.update({
   getParentRoute: () => LangRoute,
 } as any)
 const LangAccountIndexRoute = LangAccountIndexRouteImport.update({
-  id: '/account/',
-  path: '/account/',
-  getParentRoute: () => LangRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangAccountRoute,
 } as any)
 const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
   id: '/api/webhooks/stripe',
@@ -226,14 +232,14 @@ const LangCheckoutConfirmationRoute =
     getParentRoute: () => LangRoute,
   } as any)
 const LangAccountOrdersRoute = LangAccountOrdersRouteImport.update({
-  id: '/account/orders',
-  path: '/account/orders',
-  getParentRoute: () => LangRoute,
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => LangAccountRoute,
 } as any)
 const LangAccountAddressesRoute = LangAccountAddressesRouteImport.update({
-  id: '/account/addresses',
-  path: '/account/addresses',
-  getParentRoute: () => LangRoute,
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => LangAccountRoute,
 } as any)
 const AdminAuthedProductsIndexRoute =
   AdminAuthedProductsIndexRouteImport.update({
@@ -357,6 +363,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminAuthedRouteWithChildren
+  '/$lang/account': typeof LangAccountRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
@@ -379,7 +386,7 @@ export interface FileRoutesByFullPath {
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
-  '/$lang/account': typeof LangAccountIndexRoute
+  '/$lang/account/': typeof LangAccountIndexRoute
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
@@ -468,6 +475,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/$lang/account': typeof LangAccountRouteWithChildren
   '/admin/_authed': typeof AdminAuthedRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
@@ -527,6 +535,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$lang'
     | '/admin'
+    | '/$lang/account'
     | '/admin/login'
     | '/api/upload'
     | '/$lang/'
@@ -549,7 +558,7 @@ export interface FileRouteTypes {
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
-    | '/$lang/account'
+    | '/$lang/account/'
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
@@ -637,6 +646,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$lang'
     | '/admin'
+    | '/$lang/account'
     | '/admin/_authed'
     | '/admin/login'
     | '/api/upload'
@@ -765,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthedRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/$lang/account': {
+      id: '/$lang/account'
+      path: '/account'
+      fullPath: '/$lang/account'
+      preLoaderRoute: typeof LangAccountRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/api/orders/': {
       id: '/api/orders/'
       path: '/api/orders'
@@ -816,10 +833,10 @@ declare module '@tanstack/react-router' {
     }
     '/$lang/account/': {
       id: '/$lang/account/'
-      path: '/account'
-      fullPath: '/$lang/account'
+      path: '/'
+      fullPath: '/$lang/account/'
       preLoaderRoute: typeof LangAccountIndexRouteImport
-      parentRoute: typeof LangRoute
+      parentRoute: typeof LangAccountRoute
     }
     '/api/webhooks/stripe': {
       id: '/api/webhooks/stripe'
@@ -942,17 +959,17 @@ declare module '@tanstack/react-router' {
     }
     '/$lang/account/orders': {
       id: '/$lang/account/orders'
-      path: '/account/orders'
+      path: '/orders'
       fullPath: '/$lang/account/orders'
       preLoaderRoute: typeof LangAccountOrdersRouteImport
-      parentRoute: typeof LangRoute
+      parentRoute: typeof LangAccountRoute
     }
     '/$lang/account/addresses': {
       id: '/$lang/account/addresses'
-      path: '/account/addresses'
+      path: '/addresses'
       fullPath: '/$lang/account/addresses'
       preLoaderRoute: typeof LangAccountAddressesRouteImport
-      parentRoute: typeof LangRoute
+      parentRoute: typeof LangAccountRoute
     }
     '/admin/_authed/products/': {
       id: '/admin/_authed/products/'
@@ -1115,17 +1132,31 @@ const LangAccountOrdersRouteChildren: LangAccountOrdersRouteChildren = {
 const LangAccountOrdersRouteWithChildren =
   LangAccountOrdersRoute._addFileChildren(LangAccountOrdersRouteChildren)
 
-interface LangRouteChildren {
-  LangIndexRoute: typeof LangIndexRoute
+interface LangAccountRouteChildren {
   LangAccountAddressesRoute: typeof LangAccountAddressesRoute
   LangAccountOrdersRoute: typeof LangAccountOrdersRouteWithChildren
+  LangAccountIndexRoute: typeof LangAccountIndexRoute
+}
+
+const LangAccountRouteChildren: LangAccountRouteChildren = {
+  LangAccountAddressesRoute: LangAccountAddressesRoute,
+  LangAccountOrdersRoute: LangAccountOrdersRouteWithChildren,
+  LangAccountIndexRoute: LangAccountIndexRoute,
+}
+
+const LangAccountRouteWithChildren = LangAccountRoute._addFileChildren(
+  LangAccountRouteChildren,
+)
+
+interface LangRouteChildren {
+  LangAccountRoute: typeof LangAccountRouteWithChildren
+  LangIndexRoute: typeof LangIndexRoute
   LangCheckoutConfirmationRoute: typeof LangCheckoutConfirmationRoute
   LangCheckoutInformationRoute: typeof LangCheckoutInformationRoute
   LangCheckoutPaymentRoute: typeof LangCheckoutPaymentRoute
   LangCheckoutShippingRoute: typeof LangCheckoutShippingRoute
   LangCollectionsHandleRoute: typeof LangCollectionsHandleRoute
   LangProductsProductIdRoute: typeof LangProductsProductIdRoute
-  LangAccountIndexRoute: typeof LangAccountIndexRoute
   LangCheckoutIndexRoute: typeof LangCheckoutIndexRoute
   LangCollectionsIndexRoute: typeof LangCollectionsIndexRoute
   LangProductsIndexRoute: typeof LangProductsIndexRoute
@@ -1139,16 +1170,14 @@ interface LangRouteChildren {
 }
 
 const LangRouteChildren: LangRouteChildren = {
+  LangAccountRoute: LangAccountRouteWithChildren,
   LangIndexRoute: LangIndexRoute,
-  LangAccountAddressesRoute: LangAccountAddressesRoute,
-  LangAccountOrdersRoute: LangAccountOrdersRouteWithChildren,
   LangCheckoutConfirmationRoute: LangCheckoutConfirmationRoute,
   LangCheckoutInformationRoute: LangCheckoutInformationRoute,
   LangCheckoutPaymentRoute: LangCheckoutPaymentRoute,
   LangCheckoutShippingRoute: LangCheckoutShippingRoute,
   LangCollectionsHandleRoute: LangCollectionsHandleRoute,
   LangProductsProductIdRoute: LangProductsProductIdRoute,
-  LangAccountIndexRoute: LangAccountIndexRoute,
   LangCheckoutIndexRoute: LangCheckoutIndexRoute,
   LangCollectionsIndexRoute: LangCollectionsIndexRoute,
   LangProductsIndexRoute: LangProductsIndexRoute,

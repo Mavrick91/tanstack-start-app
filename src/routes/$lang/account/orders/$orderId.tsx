@@ -1,16 +1,9 @@
-import {
-  createFileRoute,
-  useNavigate,
-  useParams,
-  Link,
-} from '@tanstack/react-router'
-import { ArrowLeft, Loader2, Package, Truck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { createFileRoute, useParams, Link } from '@tanstack/react-router'
+import { ArrowLeft, Package, Truck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { OrderStatusBadge } from '../../../../components/admin/orders/OrderStatusBadge'
 import { Separator } from '../../../../components/ui/separator'
-import { useAuthStore } from '../../../../hooks/useAuth'
 import { formatCurrency } from '../../../../lib/format'
 import { getCustomerOrdersFn } from '../../../../server/customers'
 
@@ -50,48 +43,12 @@ type OrderDetail = {
 }
 
 const AccountOrderDetailPage = (): React.ReactNode => {
-  const { lang, orderId } = useParams({ strict: false }) as {
-    lang: string
-    orderId: string
-  }
-  const navigate = useNavigate()
+  const { lang } = useParams({ strict: false }) as { lang: string }
   const { t } = useTranslation()
-  const {
-    isAuthenticated,
-    isLoading: authLoading,
-    checkSession,
-  } = useAuthStore()
 
-  const [order, setOrder] = useState<OrderDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate({ to: '/$lang', params: { lang } })
-      return
-    }
-
-    if (isAuthenticated && orderId) {
-      getCustomerOrdersFn({ data: { page: 1, limit: 100 } })
-        .then((data) => {
-          const foundOrder = data.orders.find((o) => o.id === orderId) as
-            | OrderDetail
-            | undefined
-          if (foundOrder) {
-            setOrder(foundOrder)
-          } else {
-            setError('Order not found')
-          }
-        })
-        .catch(() => setError('Failed to load order'))
-        .finally(() => setIsLoading(false))
-    }
-  }, [authLoading, isAuthenticated, orderId, lang, navigate])
+  // Auth is handled by parent layout's beforeLoad
+  // Data is loaded via route loader
+  const { order } = Route.useLoaderData()
 
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -103,15 +60,7 @@ const AccountOrderDetailPage = (): React.ReactNode => {
     })
   }
 
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
-      </div>
-    )
-  }
-
-  if (error || !order) {
+  if (!order) {
     return (
       <div className="min-h-screen bg-black">
         <div className="container mx-auto px-4 py-12">
@@ -125,7 +74,7 @@ const AccountOrderDetailPage = (): React.ReactNode => {
               {t('Back to orders')}
             </Link>
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-8 text-center">
-              <p className="text-red-400">{error || 'Order not found'}</p>
+              <p className="text-red-400">{t('Order not found')}</p>
             </div>
           </div>
         </div>
@@ -308,5 +257,12 @@ const AccountOrderDetailPage = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/$lang/account/orders/$orderId')({
+  loader: async ({ params }) => {
+    const data = await getCustomerOrdersFn({ data: { page: 1, limit: 100 } })
+    const order = data.orders.find((o) => o.id === params.orderId) as
+      | OrderDetail
+      | undefined
+    return { order: order ?? null }
+  },
   component: AccountOrderDetailPage,
 })

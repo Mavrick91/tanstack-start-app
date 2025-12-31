@@ -1,16 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { Package, Search, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { OrderBulkActionsBar } from '../../../../components/admin/orders/OrderBulkActionsBar'
 import { OrdersTable } from '../../../../components/admin/orders/OrdersTable'
-import {
-  OrderStatsCards,
-  type OrderStats,
-} from '../../../../components/admin/orders/OrderStatsCards'
+import { OrderStatsCards } from '../../../../components/admin/orders/OrderStatsCards'
 import { Button } from '../../../../components/ui/button'
 import {
   getAdminOrdersFn,
@@ -20,7 +17,6 @@ import {
 } from '../../../../server/orders'
 
 import type { OrderStatus, FulfillmentStatus } from '../../../../types/checkout'
-import type { OrderListItem } from '../../../../types/order'
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -52,15 +48,14 @@ type FulfillmentFilter = 'all' | 'unfulfilled' | 'partial' | 'fulfilled'
 
 const AdminOrdersPage = () => {
   const { t } = useTranslation()
+  const router = useRouter()
   const searchParams = Route.useSearch()
   const navigate = Route.useNavigate()
 
-  const [orders, setOrders] = useState<OrderListItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
+  // Data loaded via route loader
+  const { orders, total, stats } = Route.useLoaderData()
+
   const [search, setSearch] = useState(searchParams.q || '')
-  const [stats, setStats] = useState<OrderStats | null>(null)
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -69,61 +64,6 @@ const AdminOrdersPage = () => {
   const status = searchParams.status || 'all'
   const paymentStatus = searchParams.paymentStatus || 'all'
   const fulfillmentStatus = searchParams.fulfillmentStatus || 'all'
-  const sort = searchParams.sort || 'createdAt'
-  const order = searchParams.order || 'desc'
-
-  // Load stats
-  useEffect(() => {
-    const loadStats = async () => {
-      setIsLoadingStats(true)
-      try {
-        const result = await getOrderStatsFn()
-        setStats(result.stats)
-      } catch (err) {
-        console.error('Failed to fetch stats:', err)
-      } finally {
-        setIsLoadingStats(false)
-      }
-    }
-    loadStats()
-  }, [orders]) // Refresh stats when orders change
-
-  // Load orders
-  useEffect(() => {
-    const loadOrders = async () => {
-      setIsLoading(true)
-      try {
-        const result = await getAdminOrdersFn({
-          data: {
-            page,
-            limit,
-            search: searchParams.q,
-            status,
-            paymentStatus,
-            fulfillmentStatus,
-            sortKey: sort,
-            sortOrder: order,
-          },
-        })
-        setOrders(result.orders)
-        setTotal(result.total)
-        setSelectedIds(new Set()) // Clear selection on filter change
-      } catch (err) {
-        console.error('Failed to fetch orders:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadOrders()
-  }, [
-    searchParams,
-    page,
-    status,
-    paymentStatus,
-    fulfillmentStatus,
-    sort,
-    order,
-  ])
 
   const updateSearch = (
     updates: Record<string, string | number | undefined>,
@@ -160,21 +100,7 @@ const AdminOrdersPage = () => {
           fulfillmentStatus: updates.fulfillmentStatus,
         },
       })
-      // Refresh orders
-      const result = await getAdminOrdersFn({
-        data: {
-          page,
-          limit,
-          search: searchParams.q,
-          status,
-          paymentStatus,
-          fulfillmentStatus,
-          sortKey: sort,
-          sortOrder: order,
-        },
-      })
-      setOrders(result.orders)
-      setTotal(result.total)
+      router.invalidate()
       toast.success(t('Order status updated'))
     } catch (err) {
       console.error('Failed to update order:', err)
@@ -201,21 +127,7 @@ const AdminOrdersPage = () => {
           value,
         },
       })
-      // Refresh orders
-      const result = await getAdminOrdersFn({
-        data: {
-          page,
-          limit,
-          search: searchParams.q,
-          status,
-          paymentStatus,
-          fulfillmentStatus,
-          sortKey: sort,
-          sortOrder: order,
-        },
-      })
-      setOrders(result.orders)
-      setTotal(result.total)
+      router.invalidate()
       setSelectedIds(new Set())
       toast.success(t('{{count}} orders updated', { count: selectedIds.size }))
     } catch (err) {
@@ -268,7 +180,7 @@ const AdminOrdersPage = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="px-1">
-          <OrderStatsCards stats={stats} isLoading={isLoadingStats} />
+          <OrderStatsCards stats={stats} isLoading={false} />
         </div>
       )}
 
@@ -364,13 +276,7 @@ const AdminOrdersPage = () => {
       </div>
 
       {/* Orders table */}
-      {isLoading ? (
-        <div className="rounded-2xl border border-border/50 bg-card p-8 text-center shadow-sm">
-          <div className="animate-pulse text-muted-foreground">
-            {t('Loading orders...')}
-          </div>
-        </div>
-      ) : orders.length === 0 ? (
+      {orders.length === 0 ? (
         <div className="text-center py-20 bg-card border border-border/50 rounded-2xl shadow-sm">
           <div className="w-14 h-14 bg-pink-500/5 rounded-xl flex items-center justify-center mx-auto mb-4">
             <Package className="w-7 h-7 text-pink-500/40" />
@@ -438,6 +344,38 @@ const AdminOrdersPage = () => {
 }
 
 export const Route = createFileRoute('/admin/_authed/orders/')({
-  component: AdminOrdersPage,
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ search }),
+  loader: async ({ deps: { search } }) => {
+    const page = search.page || 1
+    const limit = 10
+    const status = search.status || 'all'
+    const paymentStatus = search.paymentStatus || 'all'
+    const fulfillmentStatus = search.fulfillmentStatus || 'all'
+    const sort = search.sort || 'createdAt'
+    const order = search.order || 'desc'
+
+    const [ordersResult, statsResult] = await Promise.all([
+      getAdminOrdersFn({
+        data: {
+          page,
+          limit,
+          search: search.q,
+          status,
+          paymentStatus,
+          fulfillmentStatus,
+          sortKey: sort,
+          sortOrder: order,
+        },
+      }),
+      getOrderStatsFn(),
+    ])
+
+    return {
+      orders: ordersResult.orders,
+      total: ordersResult.total,
+      stats: statsResult.stats,
+    }
+  },
+  component: AdminOrdersPage,
 })

@@ -30,7 +30,7 @@ import {
   useCheckout,
   useCreateStripePaymentIntent,
   useCompleteCheckout,
-} from '../../../hooks/useCheckoutQueries'
+} from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
 
 const CheckoutPaymentPage = () => {
