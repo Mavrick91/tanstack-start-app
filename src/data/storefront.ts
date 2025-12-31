@@ -11,17 +11,17 @@ import {
   productVariants,
 } from '../db/schema'
 
-import type { Product, ProductOption, ProductVariant } from '../types/store'
+import type { ProductOption, ProductVariant } from '../types/store'
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
-function getLocalizedText(value: LocalizedString | null, lang = 'en'): string {
+const getLocalizedText = (value: LocalizedString | null, lang = 'en') => {
   if (!value) return ''
   return value[lang as keyof LocalizedString] || value.en || ''
 }
 
 // Fetch first variant for a product (for price)
-async function fetchProductFirstVariant(productId: string) {
+const fetchProductFirstVariant = async (productId: string) => {
   const [variant] = await db
     .select({ price: productVariants.price })
     .from(productVariants)
@@ -31,7 +31,7 @@ async function fetchProductFirstVariant(productId: string) {
   return variant
 }
 
-function toStorefrontProduct(
+const toStorefrontProduct = (
   dbProduct: {
     id: string
     handle: string
@@ -45,7 +45,7 @@ function toStorefrontProduct(
   lang = 'en',
   options?: ProductOption[],
   variants?: ProductVariant[],
-): Product {
+) => {
   return {
     id: dbProduct.id,
     name: getLocalizedText(dbProduct.name, lang),
@@ -66,7 +66,7 @@ function toStorefrontProduct(
   }
 }
 
-async function fetchProductImages(productId: string) {
+const fetchProductImages = async (productId: string) => {
   return db
     .select({ url: productImages.url })
     .from(productImages)
@@ -74,10 +74,7 @@ async function fetchProductImages(productId: string) {
     .orderBy(productImages.position)
 }
 
-async function fetchProductOptionsAndVariants(productId: string): Promise<{
-  options: ProductOption[]
-  variants: ProductVariant[]
-}> {
+const fetchProductOptionsAndVariants = async (productId: string) => {
   // Fetch options
   const dbOptions = await db
     .select({

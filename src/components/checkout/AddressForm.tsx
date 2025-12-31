@@ -38,11 +38,11 @@ const COUNTRY_MAP = COUNTRIES.reduce(
   {} as Record<string, string>,
 )
 
-export function AddressForm({
+export const AddressForm = ({
   defaultValues,
   onSubmit,
   formRef,
-}: AddressFormProps) {
+}: AddressFormProps) => {
   const { t } = useTranslation()
   const internalFormRef = useRef<FNFormRef | null>(null)
 

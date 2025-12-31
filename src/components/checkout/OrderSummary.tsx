@@ -14,7 +14,7 @@ type OrderSummaryProps = {
   showItems?: boolean
 }
 
-export function OrderSummary({
+export const OrderSummary = ({
   items,
   subtotal,
   shippingTotal = 0,
@@ -22,7 +22,7 @@ export function OrderSummary({
   total,
   currency = 'USD',
   showItems = true,
-}: OrderSummaryProps) {
+}: OrderSummaryProps) => {
   const { t } = useTranslation()
 
   return (

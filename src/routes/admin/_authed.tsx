@@ -2,6 +2,10 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 import { getMeFn } from '../../server/auth'
 
+const AdminAuthLayout = (): React.ReactNode => {
+  return <Outlet />
+}
+
 export const Route = createFileRoute('/admin/_authed')({
   beforeLoad: async () => {
     const user = await getMeFn()
@@ -18,7 +22,3 @@ export const Route = createFileRoute('/admin/_authed')({
   },
   component: AdminAuthLayout,
 })
-
-function AdminAuthLayout() {
-  return <Outlet />
-}

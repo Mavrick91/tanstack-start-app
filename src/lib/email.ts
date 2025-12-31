@@ -39,18 +39,18 @@ export interface PasswordResetEmailData {
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@finenail.com'
 const FROM_NAME = process.env.FROM_NAME || 'FineNail'
 
-export function isEmailConfigured(): boolean {
+export const isEmailConfigured = () => {
   return !!process.env.SENDGRID_API_KEY
 }
 
-function initializeSendGrid(): boolean {
+const initializeSendGrid = () => {
   const apiKey = process.env.SENDGRID_API_KEY
   if (!apiKey) return false
   sgMail.setApiKey(apiKey)
   return true
 }
 
-function generateOrderConfirmationHtml(order: OrderEmailData): string {
+const generateOrderConfirmationHtml = (order: OrderEmailData) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -155,7 +155,7 @@ function generateOrderConfirmationHtml(order: OrderEmailData): string {
   `
 }
 
-function generateShippingUpdateHtml(data: ShippingEmailData): string {
+const generateShippingUpdateHtml = (data: ShippingEmailData) => {
   return `
 <!DOCTYPE html>
 <html>
@@ -205,7 +205,7 @@ function generateShippingUpdateHtml(data: ShippingEmailData): string {
   `
 }
 
-function generatePasswordResetHtml(data: PasswordResetEmailData): string {
+const generatePasswordResetHtml = (data: PasswordResetEmailData) => {
   return `
 <!DOCTYPE html>
 <html>
@@ -252,9 +252,7 @@ function generatePasswordResetHtml(data: PasswordResetEmailData): string {
   `
 }
 
-export async function sendOrderConfirmationEmail(
-  order: OrderEmailData,
-): Promise<EmailResult> {
+export const sendOrderConfirmationEmail = async (order: OrderEmailData) => {
   if (!isEmailConfigured()) {
     return { success: false, error: 'Email service not configured' }
   }
@@ -285,9 +283,7 @@ export async function sendOrderConfirmationEmail(
   }
 }
 
-export async function sendShippingUpdateEmail(
-  data: ShippingEmailData,
-): Promise<EmailResult> {
+export const sendShippingUpdateEmail = async (data: ShippingEmailData) => {
   if (!isEmailConfigured()) {
     return { success: false, error: 'Email service not configured' }
   }
@@ -318,9 +314,7 @@ export async function sendShippingUpdateEmail(
   }
 }
 
-export async function sendPasswordResetEmail(
-  data: PasswordResetEmailData,
-): Promise<EmailResult> {
+export const sendPasswordResetEmail = async (data: PasswordResetEmailData) => {
   if (!isEmailConfigured()) {
     return { success: false, error: 'Email service not configured' }
   }

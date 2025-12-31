@@ -5,9 +5,9 @@ import type { Checkout, CheckoutCartItem } from '../../../types/checkout'
 /**
  * Creates a valid cart item with sensible defaults.
  */
-export function createCartItem(
+export const createCartItem = (
   overrides: Partial<CheckoutCartItem> = {},
-): CheckoutCartItem {
+): CheckoutCartItem => {
   return {
     productId: 'prod-123',
     variantId: 'var-456',
@@ -25,7 +25,7 @@ export function createCartItem(
  * By default, creates a complete checkout ready for payment.
  * Use overrides to customize specific fields for your test case.
  */
-export function createCheckout(overrides: Partial<Checkout> = {}): Checkout {
+export const createCheckout = (overrides: Partial<Checkout> = {}): Checkout => {
   const cartItems = overrides.cartItems ?? [createCartItem()]
   const subtotal =
     overrides.subtotal ??
@@ -58,29 +58,29 @@ export function createCheckout(overrides: Partial<Checkout> = {}): Checkout {
  */
 export const checkoutVariants = {
   /** Complete checkout ready for payment (default) */
-  readyForPayment: () => createCheckout(),
+  readyForPayment: (): Checkout => createCheckout(),
 
   /** Checkout missing email */
-  missingEmail: () =>
+  missingEmail: (): Checkout =>
     createCheckout({
       email: undefined,
     }),
 
   /** Checkout missing shipping address */
-  missingShippingAddress: () =>
+  missingShippingAddress: (): Checkout =>
     createCheckout({
       shippingAddress: undefined,
     }),
 
   /** Checkout missing shipping method */
-  missingShippingMethod: () =>
+  missingShippingMethod: (): Checkout =>
     createCheckout({
       shippingRateId: undefined,
       shippingMethod: undefined,
     }),
 
   /** Checkout with empty cart */
-  emptyCart: () =>
+  emptyCart: (): Checkout =>
     createCheckout({
       cartItems: [],
       subtotal: 0,
@@ -88,19 +88,19 @@ export const checkoutVariants = {
     }),
 
   /** Expired checkout */
-  expired: () =>
+  expired: (): Checkout =>
     createCheckout({
       expiresAt: new Date('2020-01-01T00:00:00Z'),
     }),
 
   /** Already completed checkout */
-  completed: () =>
+  completed: (): Checkout =>
     createCheckout({
       completedAt: new Date('2024-01-15T12:00:00Z'),
     }),
 
   /** Checkout with multiple items */
-  multipleItems: () =>
+  multipleItems: (): Checkout =>
     createCheckout({
       cartItems: [
         createCartItem({
@@ -120,7 +120,7 @@ export const checkoutVariants = {
     }),
 
   /** Checkout with free shipping (over threshold) */
-  freeShipping: () =>
+  freeShipping: (): Checkout =>
     createCheckout({
       cartItems: [createCartItem({ price: 100 })],
       subtotal: 100,
@@ -129,7 +129,7 @@ export const checkoutVariants = {
     }),
 
   /** Checkout with express shipping */
-  expressShipping: () =>
+  expressShipping: (): Checkout =>
     createCheckout({
       shippingRateId: 'express',
       shippingMethod: 'Express Shipping',
@@ -138,13 +138,13 @@ export const checkoutVariants = {
     }),
 
   /** Checkout with customer account */
-  withCustomer: () =>
+  withCustomer: (): Checkout =>
     createCheckout({
       customerId: 'cust-123',
     }),
 
   /** Minimal checkout (just created, no info filled) */
-  minimal: () =>
+  minimal: (): Checkout =>
     createCheckout({
       email: undefined,
       shippingAddress: undefined,

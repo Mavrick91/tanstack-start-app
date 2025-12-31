@@ -26,7 +26,7 @@ interface OrderCancellationDialogProps {
   isLoading?: boolean
 }
 
-export function OrderCancellationDialog({
+export const OrderCancellationDialog = ({
   open,
   onOpenChange,
   onConfirm,
@@ -35,7 +35,7 @@ export function OrderCancellationDialog({
   total,
   currency,
   isLoading = false,
-}: OrderCancellationDialogProps) {
+}: OrderCancellationDialogProps) => {
   const [reason, setReason] = useState('')
 
   const handleConfirm = () => {

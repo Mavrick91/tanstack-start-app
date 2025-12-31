@@ -10,7 +10,9 @@ import type { Order, OrderItem, OrderListItem } from '../../../types/order'
 /**
  * Creates a valid OrderItem with sensible defaults.
  */
-export function createOrderItem(overrides: Partial<OrderItem> = {}): OrderItem {
+export const createOrderItem = (
+  overrides: Partial<OrderItem> = {},
+): OrderItem => {
   const price = overrides.price ?? 29.99
   const quantity = overrides.quantity ?? 1
   const total = overrides.total ?? price * quantity
@@ -36,7 +38,7 @@ export function createOrderItem(overrides: Partial<OrderItem> = {}): OrderItem {
  * Creates a valid Order with sensible defaults.
  * By default, creates a paid, unfulfilled order.
  */
-export function createOrder(overrides: Partial<Order> = {}): Order {
+export const createOrder = (overrides: Partial<Order> = {}): Order => {
   const items = overrides.items ?? [createOrderItem()]
   const subtotal =
     overrides.subtotal ?? items.reduce((sum, item) => sum + item.total, 0)
@@ -71,9 +73,9 @@ export function createOrder(overrides: Partial<Order> = {}): Order {
 /**
  * Creates an OrderListItem for table display.
  */
-export function createOrderListItem(
+export const createOrderListItem = (
   overrides: Partial<OrderListItem> = {},
-): OrderListItem {
+): OrderListItem => {
   return {
     id: 'order-123',
     orderNumber: 1001,
@@ -94,37 +96,37 @@ export function createOrderListItem(
  */
 export const orderVariants = {
   /** Paid, unfulfilled order (default) */
-  pending: () => createOrder(),
+  pending: (): Order => createOrder(),
 
   /** Processing order */
-  processing: () =>
+  processing: (): Order =>
     createOrder({
       status: 'processing' as OrderStatus,
     }),
 
   /** Shipped order */
-  shipped: () =>
+  shipped: (): Order =>
     createOrder({
       status: 'shipped' as OrderStatus,
       fulfillmentStatus: 'fulfilled' as FulfillmentStatus,
     }),
 
   /** Delivered order */
-  delivered: () =>
+  delivered: (): Order =>
     createOrder({
       status: 'delivered' as OrderStatus,
       fulfillmentStatus: 'fulfilled' as FulfillmentStatus,
     }),
 
   /** Cancelled order */
-  cancelled: () =>
+  cancelled: (): Order =>
     createOrder({
       status: 'cancelled' as OrderStatus,
       cancelledAt: new Date('2024-01-16T10:00:00Z'),
     }),
 
   /** Refunded order */
-  refunded: () =>
+  refunded: (): Order =>
     createOrder({
       status: 'cancelled' as OrderStatus,
       paymentStatus: 'refunded' as PaymentStatus,
@@ -132,34 +134,34 @@ export const orderVariants = {
     }),
 
   /** Payment pending */
-  paymentPending: () =>
+  paymentPending: (): Order =>
     createOrder({
       paymentStatus: 'pending' as PaymentStatus,
       paidAt: undefined,
     }),
 
   /** Payment failed */
-  paymentFailed: () =>
+  paymentFailed: (): Order =>
     createOrder({
       paymentStatus: 'failed' as PaymentStatus,
       paidAt: undefined,
     }),
 
   /** Partially fulfilled */
-  partiallyFulfilled: () =>
+  partiallyFulfilled: (): Order =>
     createOrder({
       fulfillmentStatus: 'partial' as FulfillmentStatus,
     }),
 
   /** Order with PayPal payment */
-  paypal: () =>
+  paypal: (): Order =>
     createOrder({
       paymentProvider: 'paypal',
       paymentId: 'PAYPAL-ORDER-123',
     }),
 
   /** Order with multiple items */
-  multipleItems: () =>
+  multipleItems: (): Order =>
     createOrder({
       items: [
         createOrderItem({
@@ -182,13 +184,13 @@ export const orderVariants = {
     }),
 
   /** Order with customer account */
-  withCustomer: () =>
+  withCustomer: (): Order =>
     createOrder({
       customerId: 'cust-123',
     }),
 
   /** High-value order */
-  highValue: () =>
+  highValue: (): Order =>
     createOrder({
       subtotal: 500,
       shippingTotal: 0, // Free shipping
@@ -199,7 +201,7 @@ export const orderVariants = {
 /**
  * Creates multiple orders for testing lists/pagination.
  */
-export function createOrderList(count: number): OrderListItem[] {
+export const createOrderList = (count: number): OrderListItem[] => {
   return Array.from({ length: count }, (_, i) =>
     createOrderListItem({
       id: `order-${i + 1}`,

@@ -18,10 +18,10 @@ interface UseProductFiltersOptions {
  * The actual filtering is now done server-side.
  * This hook manages UI state and selection, not data transformation.
  */
-export function useProductFilters(
+export const useProductFilters = (
   products: Product[],
   options: UseProductFiltersOptions = {},
-) {
+) => {
   const [search, setSearchState] = useState(options.initialSearch || '')
   const [statusFilter, setStatusFilterState] = useState<ProductStatus | 'all'>(
     options.initialStatus || 'all',

@@ -10,12 +10,12 @@ interface PaginationProps {
   onPageChange: (page: number) => void
 }
 
-export function Pagination({
+export const Pagination = ({
   currentPage,
   totalPages,
   totalItems,
   onPageChange,
-}: PaginationProps) {
+}: PaginationProps) => {
   const { t } = useTranslation()
 
   if (totalPages <= 1) return null

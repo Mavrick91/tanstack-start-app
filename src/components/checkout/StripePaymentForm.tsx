@@ -24,7 +24,7 @@ const TEST_CARDS = [
   },
 ]
 
-function TestCardHelper() {
+const TestCardHelper = () => {
   const [copiedCard, setCopiedCard] = useState<string | null>(null)
 
   const copyToClipboard = async (cardNumber: string) => {
@@ -74,11 +74,11 @@ type StripePaymentFormProps = {
   returnUrl: string
 }
 
-export function StripePaymentForm({
+export const StripePaymentForm = ({
   onSuccess,
   onError,
   returnUrl,
-}: StripePaymentFormProps) {
+}: StripePaymentFormProps) => {
   const { t } = useTranslation()
   const stripe = useStripe()
   const elements = useElements()

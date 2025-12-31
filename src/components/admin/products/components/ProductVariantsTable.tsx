@@ -32,11 +32,11 @@ interface ProductVariantsTableProps {
   disabled?: boolean
 }
 
-export function ProductVariantsTable({
+export const ProductVariantsTable = ({
   variants,
   onChange,
   disabled = false,
-}: ProductVariantsTableProps) {
+}: ProductVariantsTableProps) => {
   const { t } = useTranslation()
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editValues, setEditValues] = useState<Partial<ProductVariant>>({})

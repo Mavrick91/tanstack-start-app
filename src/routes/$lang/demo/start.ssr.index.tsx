@@ -1,10 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/$lang/demo/start/ssr/')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
+const RouteComponent = () => {
   const { lang } = Route.useParams()
 
   return (
@@ -46,3 +42,7 @@ function RouteComponent() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/demo/start/ssr/')({
+  component: RouteComponent,
+})

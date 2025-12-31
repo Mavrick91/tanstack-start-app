@@ -11,11 +11,11 @@ export interface RequestLog {
 /**
  * Log an API request
  */
-export function logRequest(
+export const logRequest = (
   request: Request,
   response: Response,
   durationMs: number,
-): void {
+) => {
   const url = new URL(request.url)
 
   const log: RequestLog = {
@@ -43,11 +43,11 @@ export function logRequest(
 /**
  * Log an error
  */
-export function logError(
+export const logError = (
   message: string,
   error: unknown,
   context?: Record<string, unknown>,
-): void {
+) => {
   const log = {
     timestamp: new Date().toISOString(),
     level: 'error',
@@ -63,10 +63,10 @@ export function logError(
 /**
  * Log a warning
  */
-export function logWarning(
+export const logWarning = (
   message: string,
   context?: Record<string, unknown>,
-): void {
+) => {
   const log = {
     timestamp: new Date().toISOString(),
     level: 'warn',
@@ -80,10 +80,7 @@ export function logWarning(
 /**
  * Log info
  */
-export function logInfo(
-  message: string,
-  context?: Record<string, unknown>,
-): void {
+export const logInfo = (message: string, context?: Record<string, unknown>) => {
   const log = {
     timestamp: new Date().toISOString(),
     level: 'info',
@@ -97,7 +94,7 @@ export function logInfo(
 /**
  * Create a request timer for measuring duration
  */
-export function createRequestTimer(): () => number {
+export const createRequestTimer = () => {
   const start = performance.now()
   return () => Math.round(performance.now() - start)
 }

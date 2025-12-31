@@ -30,7 +30,7 @@ interface CollectionTableProps {
   onSort: (key: SortKey) => void
 }
 
-export function CollectionTable({
+export const CollectionTable = ({
   collections,
   selectedIds,
   onToggleSelect,
@@ -40,7 +40,7 @@ export function CollectionTable({
   sortKey,
   sortOrder,
   onSort,
-}: CollectionTableProps) {
+}: CollectionTableProps) => {
   const { t } = useTranslation()
 
   return (
@@ -170,13 +170,13 @@ export function CollectionTable({
   )
 }
 
-function StatusBadge({
+const StatusBadge = ({
   publishedAt,
   t,
 }: {
   publishedAt: Date | null
   t: TFunction
-}) {
+}) => {
   const status = publishedAt ? 'active' : 'draft'
 
   const styles: Record<string, { bg: string; text: string; dot: string }> = {
@@ -214,7 +214,7 @@ function StatusBadge({
   )
 }
 
-function SortableHeader({
+const SortableHeader = ({
   label,
   sortKey,
   currentSort,
@@ -226,7 +226,7 @@ function SortableHeader({
   currentSort: SortKey
   sortOrder: SortOrder
   onSort: (key: SortKey) => void
-}) {
+}) => {
   const isActive = sortKey === currentSort
 
   return (
@@ -252,7 +252,7 @@ function SortableHeader({
   )
 }
 
-export function CollectionTableSkeleton() {
+export const CollectionTableSkeleton = () => {
   return (
     <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">

@@ -2,14 +2,10 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 
 import { ProductForm } from '../../../../components/admin/products/ProductForm'
 
-export const Route = createFileRoute('/admin/_authed/products/new')({
-  component: NewProductPage,
-})
-
-function NewProductPage() {
+const NewProductPage = (): React.ReactNode => {
   const router = useRouter()
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     router.navigate({ to: '/admin/products' })
   }
 
@@ -19,3 +15,7 @@ function NewProductPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/_authed/products/new')({
+  component: NewProductPage,
+})

@@ -13,10 +13,10 @@ type RequestOptions = {
 /**
  * Create a mock Request object for testing API handlers.
  */
-export function createMockRequest(
+export const createMockRequest = (
   url: string,
   options: RequestOptions = {},
-): Request {
+) => {
   const { method = 'GET', body, headers = {}, cookies = {} } = options
 
   // Build cookie header
@@ -48,9 +48,7 @@ export function createMockRequest(
 /**
  * Parse a JSON response from an API handler.
  */
-export async function parseJsonResponse<T = unknown>(
-  response: Response,
-): Promise<T> {
+export const parseJsonResponse = async <T = unknown>(response: Response) => {
   const text = await response.text()
   try {
     return JSON.parse(text) as T
@@ -149,7 +147,7 @@ export type CheckoutCompleteResponse = {
  * Generate a valid checkout session token for testing.
  * This mimics the token generation from checkout-auth.ts
  */
-export function generateTestCheckoutToken(checkoutId: string): string {
+export const generateTestCheckoutToken = (checkoutId: string) => {
   // Simple token for testing - in production this uses crypto
   // We'll need to mock or use the real function
   return Buffer.from(`${checkoutId}:test-session`).toString('base64')
@@ -158,10 +156,10 @@ export function generateTestCheckoutToken(checkoutId: string): string {
 /**
  * Create handler context for TanStack Start route handlers.
  */
-export function createHandlerContext(
+export const createHandlerContext = (
   request: Request,
   params: Record<string, string> = {},
-) {
+) => {
   return {
     request,
     params,

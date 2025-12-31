@@ -32,13 +32,13 @@ type RichTextEditorProps = {
   minHeight?: string
 }
 
-export function RichTextEditor({
+export const RichTextEditor = ({
   value,
   onChange,
   placeholder = 'Start writing...',
   className,
   minHeight = '120px',
-}: RichTextEditorProps) {
+}: RichTextEditorProps) => {
   const isExternalUpdate = useRef(false)
 
   const editor = useEditor({
@@ -318,13 +318,13 @@ type ToolbarButtonProps = {
   children: React.ReactNode
 }
 
-function ToolbarButton({
+const ToolbarButton = ({
   onClick,
   active,
   disabled,
   tooltip,
   children,
-}: ToolbarButtonProps) {
+}: ToolbarButtonProps) => {
   return (
     <Button
       type="button"
@@ -344,6 +344,6 @@ function ToolbarButton({
   )
 }
 
-function Separator() {
+const Separator = () => {
   return <div className="w-px h-6 bg-border/50 mx-1" />
 }

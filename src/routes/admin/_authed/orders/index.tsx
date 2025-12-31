@@ -40,11 +40,6 @@ const searchSchema = z.object({
   page: z.coerce.number().min(1).optional(),
 })
 
-export const Route = createFileRoute('/admin/_authed/orders/')({
-  component: AdminOrdersPage,
-  validateSearch: searchSchema,
-})
-
 type StatusFilter =
   | 'all'
   | 'pending'
@@ -55,7 +50,7 @@ type StatusFilter =
 type PaymentFilter = 'all' | 'pending' | 'paid' | 'failed' | 'refunded'
 type FulfillmentFilter = 'all' | 'unfulfilled' | 'partial' | 'fulfilled'
 
-function AdminOrdersPage() {
+const AdminOrdersPage = () => {
   const { t } = useTranslation()
   const searchParams = Route.useSearch()
   const navigate = Route.useNavigate()
@@ -441,3 +436,8 @@ function AdminOrdersPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/_authed/orders/')({
+  component: AdminOrdersPage,
+  validateSearch: searchSchema,
+})

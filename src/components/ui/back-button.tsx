@@ -10,7 +10,12 @@ interface BackButtonProps {
   className?: string
 }
 
-export function BackButton({ to, params, label, className }: BackButtonProps) {
+export const BackButton = ({
+  to,
+  params,
+  label,
+  className,
+}: BackButtonProps) => {
   return (
     <Link
       to={to}

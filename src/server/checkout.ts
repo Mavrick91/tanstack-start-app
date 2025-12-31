@@ -73,9 +73,7 @@ export type CheckoutError = {
 // Create Checkout
 // =============================================================================
 
-export async function createCheckout(
-  input: CreateCheckoutInput,
-): Promise<CreateCheckoutResult | CheckoutError> {
+export const createCheckout = async (input: CreateCheckoutInput) => {
   const { items, currency = 'USD' } = input
 
   // Validate input
@@ -229,9 +227,7 @@ export type SaveCustomerResult = {
   }
 }
 
-export async function saveCustomerInfo(
-  input: SaveCustomerInput,
-): Promise<SaveCustomerResult | CheckoutError> {
+export const saveCustomerInfo = async (input: SaveCustomerInput) => {
   const { checkoutId, email, firstName, lastName } = input
 
   // Get checkout
@@ -332,9 +328,7 @@ export type SaveShippingAddressResult = {
   }
 }
 
-export async function saveShippingAddress(
-  input: ShippingAddressInput,
-): Promise<SaveShippingAddressResult | CheckoutError> {
+export const saveShippingAddress = async (input: ShippingAddressInput) => {
   const { checkoutId, address } = input
 
   // Get checkout
@@ -415,9 +409,7 @@ export type SaveShippingMethodResult = {
   }
 }
 
-export async function saveShippingMethod(
-  input: SaveShippingMethodInput,
-): Promise<SaveShippingMethodResult | CheckoutError> {
+export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
   const { checkoutId, shippingRateId } = input
 
   // Get checkout
@@ -500,9 +492,7 @@ export type CompleteCheckoutResult = {
   }
 }
 
-export async function completeCheckout(
-  input: CompleteCheckoutInput,
-): Promise<CompleteCheckoutResult | CheckoutError> {
+export const completeCheckout = async (input: CompleteCheckoutInput) => {
   const { checkoutId, paymentProvider, paymentId } = input
 
   // Get checkout

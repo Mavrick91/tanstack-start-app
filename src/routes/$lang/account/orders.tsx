@@ -31,11 +31,7 @@ type OrderListItem = {
   }>
 }
 
-export const Route = createFileRoute('/$lang/account/orders')({
-  component: AccountOrdersPage,
-})
-
-function AccountOrdersPage() {
+const AccountOrdersPage = (): React.ReactNode => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -66,7 +62,7 @@ function AccountOrdersPage() {
     }
   }, [authLoading, isAuthenticated, lang, navigate])
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date: Date | string): string => {
     const d = typeof date === 'string' ? new Date(date) : date
     return d.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -208,3 +204,7 @@ function AccountOrdersPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/account/orders')({
+  component: AccountOrdersPage,
+})

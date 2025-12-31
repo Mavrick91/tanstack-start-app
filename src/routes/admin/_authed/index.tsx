@@ -7,11 +7,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/admin/_authed/')({
-  component: AdminDashboard,
-})
-
-function AdminDashboard() {
+const AdminDashboard = (): React.ReactNode => {
   const { user } = Route.useRouteContext()
 
   const stats = [
@@ -181,3 +177,7 @@ function AdminDashboard() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/_authed/')({
+  component: AdminDashboard,
+})

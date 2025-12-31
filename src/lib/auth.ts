@@ -8,24 +8,24 @@ import { sessions, users } from '../db/schema'
 /**
  * Hash a password using bcrypt
  */
-export async function hashPassword(password: string): Promise<string> {
+export const hashPassword = async (password: string) => {
   return await hash(password, 10)
 }
 
 /**
  * Verify a password against a hash
  */
-export async function verifyPassword(
+export const verifyPassword = async (
   password: string,
   passwordHash: string,
-): Promise<boolean> {
+) => {
   return await compare(password, passwordHash)
 }
 
 /**
  * Parse cookies from request header, handling values with '=' characters
  */
-export function getCookie(request: Request, name: string): string | undefined {
+export const getCookie = (request: Request, name: string) => {
   const cookieHeader = request.headers.get('Cookie')
   if (!cookieHeader) return undefined
 
@@ -48,7 +48,7 @@ export function getCookie(request: Request, name: string): string | undefined {
 /**
  * Validate session and return user if authenticated
  */
-export async function validateSession(request: Request) {
+export const validateSession = async (request: Request) => {
   const sessionId = getCookie(request, 'session')
 
   if (!sessionId) {
@@ -86,14 +86,7 @@ export async function validateSession(request: Request) {
  * Require authentication and valid CSRF token
  * Returns error Response if invalid, otherwise returns user + session
  */
-export async function requireAuthWithCsrf(request: Request): Promise<
-  | {
-      success: true
-      user: { id: string; email: string; role: string }
-      sessionId: string
-    }
-  | Response
-> {
+export const requireAuthWithCsrf = async (request: Request) => {
   const sessionId = getCookie(request, 'session')
 
   // Check CSRF first for state-changing requests
@@ -117,14 +110,7 @@ export async function requireAuthWithCsrf(request: Request): Promise<
 /**
  * Require admin role with CSRF validation
  */
-export async function requireAdminWithCsrf(request: Request): Promise<
-  | {
-      success: true
-      user: { id: string; email: string; role: string }
-      sessionId: string
-    }
-  | Response
-> {
+export const requireAdminWithCsrf = async (request: Request) => {
   const result = await requireAuthWithCsrf(request)
 
   if (result instanceof Response) {

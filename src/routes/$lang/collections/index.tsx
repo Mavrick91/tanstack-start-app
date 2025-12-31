@@ -4,22 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { CollectionCard } from '../../../components/collections/CollectionCard'
 import { getCollections } from '../../../data/storefront'
 
-export const Route = createFileRoute('/$lang/collections/')({
-  loader: ({ params }) => getCollections({ data: { lang: params.lang } }),
-  head: ({ params }) => {
-    const titles: Record<string, string> = {
-      en: 'All Collections | FineNail Season',
-      fr: 'Toutes les collections | FineNail Season',
-      id: 'Semua Koleksi | FineNail Season',
-    }
-    return {
-      meta: [{ title: titles[params.lang] || titles.en }],
-    }
-  },
-  component: CollectionsPage,
-})
-
-function CollectionsPage() {
+const CollectionsPage = () => {
   const { t } = useTranslation()
   const collections = Route.useLoaderData()
 
@@ -50,3 +35,18 @@ function CollectionsPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/collections/')({
+  loader: ({ params }) => getCollections({ data: { lang: params.lang } }),
+  head: ({ params }) => {
+    const titles: Record<string, string> = {
+      en: 'All Collections | FineNail Season',
+      fr: 'Toutes les collections | FineNail Season',
+      id: 'Semua Koleksi | FineNail Season',
+    }
+    return {
+      meta: [{ title: titles[params.lang] || titles.en }],
+    }
+  },
+  component: CollectionsPage,
+})

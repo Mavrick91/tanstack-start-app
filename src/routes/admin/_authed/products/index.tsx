@@ -33,20 +33,21 @@ const searchSchema = z.object({
 
 type SortKey = 'name' | 'price' | 'inventory' | 'status' | 'createdAt'
 
-export const Route = createFileRoute('/admin/_authed/products/')({
-  component: AdminProductsPage,
-  validateSearch: searchSchema,
-})
-
 // Wrapper for fetchProducts for useDataTable
-async function fetchProductsForTable(state: {
+const fetchProductsForTable = async (state: {
   search: string
   page: number
   limit: number
   sortKey: string
   sortOrder: string
   filters: Record<string, string | undefined>
-}) {
+}): Promise<{
+  data: Product[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}> => {
   const result = await fetchProducts(state)
   return {
     data: result.data,
@@ -57,7 +58,7 @@ async function fetchProductsForTable(state: {
   }
 }
 
-function AdminProductsPage() {
+const AdminProductsPage = (): React.ReactNode => {
   const { t } = useTranslation()
   const searchParams = Route.useSearch()
 
@@ -84,7 +85,7 @@ function AdminProductsPage() {
   const statusFilter = (table.filters.status || 'all') as ProductStatus | 'all'
 
   // Handler to clear both search and status filter
-  const handleClearFilters = () => {
+  const handleClearFilters = (): void => {
     table.setSearch('')
     table.setFilter('status', 'all')
   }
@@ -224,7 +225,12 @@ function AdminProductsPage() {
   )
 }
 
-function EmptyState() {
+export const Route = createFileRoute('/admin/_authed/products/')({
+  component: AdminProductsPage,
+  validateSearch: searchSchema,
+})
+
+const EmptyState = (): React.ReactNode => {
   const { t } = useTranslation()
   return (
     <div className="text-center py-20 bg-card border border-border/50 rounded-2xl shadow-sm">
@@ -244,7 +250,11 @@ function EmptyState() {
   )
 }
 
-export function NoResults({ onClear }: { onClear: () => void }) {
+export const NoResults = ({
+  onClear,
+}: {
+  onClear: () => void
+}): React.ReactNode => {
   const { t } = useTranslation()
   return (
     <div className="text-center py-16 bg-card border border-border/50 rounded-2xl shadow-sm">

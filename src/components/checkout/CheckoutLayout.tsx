@@ -14,13 +14,13 @@ type CheckoutLayoutProps = {
   isFullWidth?: boolean
 }
 
-export function CheckoutLayout({
+export const CheckoutLayout = ({
   children,
   currentStep,
   orderSummary,
   total,
   isFullWidth = false,
-}: CheckoutLayoutProps) {
+}: CheckoutLayoutProps) => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const currentLang = lang || 'en'
   const { t } = useTranslation()

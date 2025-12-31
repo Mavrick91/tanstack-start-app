@@ -15,17 +15,19 @@ vi.mock('@/server/products', () => ({
 
 const mockGetProductStats = vi.mocked(getProductStatsFn)
 
-function createWrapper() {
+const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
     },
   })
-  return function Wrapper({ children }: { children: ReactNode }) {
+  const Wrapper = ({ children }: { children: ReactNode }) => {
     return (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     )
   }
+  Wrapper.displayName = 'QueryClientWrapper'
+  return Wrapper
 }
 
 describe('useProductStats', () => {

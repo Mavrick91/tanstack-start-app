@@ -24,14 +24,14 @@ interface StatCardProps {
   hasAttention?: boolean
 }
 
-function StatCard({
+const StatCard = ({
   label,
   value,
   icon,
   isLoading,
   variant = 'default',
   hasAttention,
-}: StatCardProps) {
+}: StatCardProps) => {
   const variantStyles = {
     default: 'border-border/50',
     warning: 'border-yellow-500/30 bg-yellow-500/5',
@@ -67,10 +67,10 @@ function StatCard({
   )
 }
 
-export function OrderStatsCards({
+export const OrderStatsCards = ({
   stats,
   isLoading = false,
-}: OrderStatsCardsProps) {
+}: OrderStatsCardsProps) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard

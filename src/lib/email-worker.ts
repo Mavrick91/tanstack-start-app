@@ -4,9 +4,10 @@ import { sendOrderConfirmationEmail, sendShippingUpdateEmail } from './email'
 import { getRedisConnection, type EmailJob } from './queue'
 
 // Email worker processor
-async function processEmailJob(job: Job<EmailJob>): Promise<void> {
+const processEmailJob = async (job: Job<EmailJob>): Promise<void> => {
   const { type, data } = job.data
 
+  // eslint-disable-next-line no-console
   console.log(`[EmailWorker] Processing job: ${type} for ${data.email}`)
 
   let result
@@ -26,17 +27,19 @@ async function processEmailJob(job: Job<EmailJob>): Promise<void> {
     throw new Error(result.error || 'Email send failed')
   }
 
+  // eslint-disable-next-line no-console
   console.log(`[EmailWorker] Email sent successfully: ${type} to ${data.email}`)
 }
 
 // Create and start worker
-export function startEmailWorker(): Worker {
+export const startEmailWorker = (): Worker => {
   const worker = new Worker('email', processEmailJob, {
     connection: getRedisConnection(),
     concurrency: 5, // Process up to 5 emails concurrently
   })
 
   worker.on('completed', (job) => {
+    // eslint-disable-next-line no-console
     console.log(`[EmailWorker] Job ${job.id} completed`)
   })
 
@@ -58,6 +61,7 @@ export function startEmailWorker(): Worker {
     console.error('[EmailWorker] Worker error:', err)
   })
 
+  // eslint-disable-next-line no-console
   console.log('[EmailWorker] Worker started')
 
   return worker

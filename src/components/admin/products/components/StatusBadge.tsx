@@ -19,7 +19,7 @@ const styles: Record<ProductStatus, { bg: string; text: string; dot: string }> =
     },
   }
 
-export function StatusBadge({ status }: { status: ProductStatus }) {
+export const StatusBadge = ({ status }: { status: ProductStatus }) => {
   const current = styles[status] || styles.draft
 
   return (

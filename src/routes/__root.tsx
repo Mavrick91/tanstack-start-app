@@ -14,32 +14,7 @@ import { Toaster } from 'sonner'
 import { Navbar } from '../components/layout/Navbar'
 import appCss from '../styles.css?url'
 
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'FineNail Season | Premium Nail Art & Manicure',
-      },
-    ],
-    links: [
-      {
-        rel: 'stylesheet',
-        href: appCss,
-      },
-    ],
-  }),
-
-  shellComponent: RootDocument,
-})
-
-function RootDocument({ children }: { children: React.ReactNode }) {
+const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const currentLang = lang || 'en'
   const routerState = useRouterState()
@@ -88,3 +63,28 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </html>
   )
 }
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      {
+        charSet: 'utf-8',
+      },
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1',
+      },
+      {
+        title: 'FineNail Season | Premium Nail Art & Manicure',
+      },
+    ],
+    links: [
+      {
+        rel: 'stylesheet',
+        href: appCss,
+      },
+    ],
+  }),
+
+  shellComponent: RootDocument,
+})

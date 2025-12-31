@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../db'
 import { users } from '../db/schema'
 
-async function seed() {
+const seed = async () => {
   console.log('🌱 Seeding admin user...')
 
   const email = 'marina.katili@gmail.com'

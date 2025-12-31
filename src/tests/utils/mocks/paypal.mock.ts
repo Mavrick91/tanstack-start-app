@@ -43,7 +43,31 @@ export interface MockPayPalOptions {
 /**
  * Creates a mock PayPal order object.
  */
-export function createMockPayPalOrder(options: MockPayPalOptions = {}) {
+export const createMockPayPalOrder = (
+  options: MockPayPalOptions = {},
+): {
+  id: string
+  status: string
+  intent: string
+  purchase_units: Array<{
+    reference_id: string
+    amount: { currency_code: string; value: string }
+    payments: {
+      captures: Array<{
+        id: string
+        status: string
+        amount: { currency_code: string; value: string }
+      }>
+    }
+  }>
+  payer: {
+    email_address: string
+    payer_id: string
+    name: { given_name: string; surname: string }
+  }
+  create_time: string
+  update_time: string
+} => {
   const amount = options.amount ?? '35.98'
   const currency = options.currency ?? 'USD'
   const orderId = options.orderId ?? 'PAYPAL-ORDER-123'
@@ -89,7 +113,16 @@ export function createMockPayPalOrder(options: MockPayPalOptions = {}) {
 /**
  * Creates a mock PayPal capture result.
  */
-export function createMockPayPalCapture(options: MockPayPalOptions = {}) {
+export const createMockPayPalCapture = (
+  options: MockPayPalOptions = {},
+): {
+  id: string
+  status: string
+  amount: { currency_code: string; value: string }
+  final_capture: boolean
+  create_time: string
+  update_time: string
+} => {
   const amount = options.amount ?? '35.98'
   const currency = options.currency ?? 'USD'
 
@@ -120,7 +153,15 @@ export function createMockPayPalCapture(options: MockPayPalOptions = {}) {
  * expect(paypal.getOrder).toHaveBeenCalledWith('PAYPAL-ORDER-123')
  * ```
  */
-export function createMockPayPal(options: MockPayPalOptions = {}) {
+export const createMockPayPal = (
+  options: MockPayPalOptions = {},
+): {
+  createOrder: ReturnType<typeof vi.fn>
+  getOrder: ReturnType<typeof vi.fn>
+  captureOrder: ReturnType<typeof vi.fn>
+  capturePayment: ReturnType<typeof vi.fn>
+  verifyWebhookSignature: ReturnType<typeof vi.fn>
+} => {
   const mockOrder = createMockPayPalOrder(options)
   const mockCapture = createMockPayPalCapture(options)
 
@@ -162,10 +203,16 @@ export function createMockPayPal(options: MockPayPalOptions = {}) {
 /**
  * Creates a mock PayPal webhook event.
  */
-export function createMockPayPalWebhookEvent(
+export const createMockPayPalWebhookEvent = (
   eventType: string,
   resource: Record<string, unknown> = {},
-) {
+): {
+  id: string
+  event_type: string
+  resource_type: string
+  resource: Record<string, unknown>
+  create_time: string
+} => {
   return {
     id: 'WH-123',
     event_type: eventType,
@@ -249,7 +296,7 @@ export const paypalScenarios = {
  * vi.mock('../../lib/paypal', () => mockPayPalModule({ orderStatus: 'COMPLETED' }))
  * ```
  */
-export function mockPayPalModule(options: MockPayPalOptions = {}) {
+export const mockPayPalModule = (options: MockPayPalOptions = {}) => {
   const mockPayPal = createMockPayPal(options)
   const mockOrder = createMockPayPalOrder(options)
 

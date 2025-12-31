@@ -43,25 +43,25 @@ describe('saveShippingMethod', () => {
 
       // Add shipping address first (required)
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       // Save shipping method
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'standard',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingRateId).toBe('standard')
-      expect(result.checkout.shippingMethod).toBe('Standard Shipping')
-      expect(result.checkout.shippingTotal).toBe(5.99)
+      expect(result.checkout!.shippingRateId).toBe('standard')
+      expect(result.checkout!.shippingMethod).toBe('Standard Shipping')
+      expect(result.checkout!.shippingTotal).toBe(5.99)
 
       // Verify in database
-      const savedCheckout = await getCheckout(createResult.checkout.id)
+      const savedCheckout = await getCheckout(createResult.checkout!.id)
       expect(savedCheckout.shippingRateId).toBe('standard')
       expect(savedCheckout.shippingMethod).toBe('Standard Shipping')
     })
@@ -75,21 +75,21 @@ describe('saveShippingMethod', () => {
       if (!createResult.success) return
 
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'express',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingRateId).toBe('express')
-      expect(result.checkout.shippingMethod).toBe('Express Shipping')
-      expect(result.checkout.shippingTotal).toBe(14.99)
+      expect(result.checkout!.shippingRateId).toBe('express')
+      expect(result.checkout!.shippingMethod).toBe('Express Shipping')
+      expect(result.checkout!.shippingTotal).toBe(14.99)
     })
 
     it('recalculates total with shipping', async () => {
@@ -101,12 +101,12 @@ describe('saveShippingMethod', () => {
       if (!createResult.success) return
 
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'standard',
       })
 
@@ -114,8 +114,8 @@ describe('saveShippingMethod', () => {
       if (!result.success) return
 
       // Total should include subtotal + tax + shipping
-      expect(result.checkout.shippingTotal).toBe(5.99)
-      expect(result.checkout.total).toBeGreaterThan(100 + 5.99) // subtotal + shipping + some tax
+      expect(result.checkout!.shippingTotal).toBe(5.99)
+      expect(result.checkout!.total).toBeGreaterThan(100 + 5.99) // subtotal + shipping + some tax
     })
 
     it('allows changing shipping method', async () => {
@@ -127,27 +127,27 @@ describe('saveShippingMethod', () => {
       if (!createResult.success) return
 
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       // Select standard first
       await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'standard',
       })
 
       // Change to express
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'express',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingRateId).toBe('express')
-      expect(result.checkout.shippingTotal).toBe(14.99)
+      expect(result.checkout!.shippingRateId).toBe('express')
+      expect(result.checkout!.shippingTotal).toBe(14.99)
     })
   })
 
@@ -193,7 +193,7 @@ describe('saveShippingMethod', () => {
 
       // Try to set shipping method without address
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'standard',
       })
 
@@ -213,12 +213,12 @@ describe('saveShippingMethod', () => {
       if (!createResult.success) return
 
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       const result = await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'invalid-rate',
       })
 

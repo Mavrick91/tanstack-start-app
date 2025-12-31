@@ -106,12 +106,12 @@ Specific segment, e.g., "busy professionals who want salon results without appoi
 Return ONLY valid JSON. No markdown, no explanations.
 `
 
-export async function generateWithGemini(
+export const generateWithGemini = async (
   imageUrl: string | undefined,
   imageBase64: string | undefined,
   mimeType: string | undefined,
   apiKey: string,
-): Promise<AIProductDetails> {
+) => {
   const ai = new GoogleGenAI({ apiKey })
 
   let data = imageBase64
@@ -171,12 +171,12 @@ export async function generateWithGemini(
   return aiProductDetailsSchema.parse(parsed)
 }
 
-async function generateWithOpenAI(
+const generateWithOpenAI = async (
   imageUrl: string | undefined,
   imageBase64: string | undefined,
   mimeType: string | undefined,
   apiKey: string,
-): Promise<AIProductDetails> {
+) => {
   const openai = new OpenAI({ apiKey })
 
   const content: (
@@ -227,13 +227,13 @@ async function generateWithOpenAI(
   return aiProductDetailsSchema.parse(parsed)
 }
 
-export async function generateProductDetails(params: {
+export const generateProductDetails = async (params: {
   imageUrl?: string
   imageBase64?: string
   mimeType?: string
   provider: AIProvider
   apiKey: string
-}): Promise<AIProductDetails> {
+}) => {
   if (params.provider === 'openai') {
     return generateWithOpenAI(
       params.imageUrl,

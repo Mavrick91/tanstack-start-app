@@ -41,7 +41,7 @@ let createdIds: CreatedIds = {
  * Reset the tracking of created IDs.
  * Call this at the start of each test.
  */
-export function resetTestIds() {
+export const resetTestIds = () => {
   createdIds = {
     products: [],
     variants: [],
@@ -57,7 +57,7 @@ export function resetTestIds() {
  * Clean up all test data created during the test.
  * Call this after each test.
  */
-export async function cleanupTestData() {
+export const cleanupTestData = async () => {
   // Delete in reverse dependency order
   if (createdIds.orders.length > 0) {
     // Order items are cascade deleted with orders
@@ -105,7 +105,7 @@ type SeedProductOptions = {
 /**
  * Seed a product with a default variant for testing.
  */
-export async function seedProduct(options: SeedProductOptions = {}) {
+export const seedProduct = async (options: SeedProductOptions = {}) => {
   const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
   const handle = options.handle || `test-product-${uniqueId}`
 
@@ -142,7 +142,9 @@ export async function seedProduct(options: SeedProductOptions = {}) {
 /**
  * Seed a product with an image.
  */
-export async function seedProductWithImage(options: SeedProductOptions = {}) {
+export const seedProductWithImage = async (
+  options: SeedProductOptions = {},
+) => {
   const { product, variant } = await seedProduct(options)
 
   const [image] = await db
@@ -195,7 +197,7 @@ type SeedCheckoutOptions = {
 /**
  * Seed a checkout for testing.
  */
-export async function seedCheckout(options: SeedCheckoutOptions = {}) {
+export const seedCheckout = async (options: SeedCheckoutOptions = {}) => {
   const defaultItems = options.items || [
     {
       productId: 'prod-1',
@@ -240,14 +242,14 @@ export async function seedCheckout(options: SeedCheckoutOptions = {}) {
 /**
  * Seed a customer for testing.
  */
-export async function seedCustomer(
+export const seedCustomer = async (
   options: {
     email?: string
     firstName?: string
     lastName?: string
     userId?: string
   } = {},
-) {
+) => {
   const timestamp = Date.now()
 
   const [customer] = await db
@@ -268,13 +270,13 @@ export async function seedCustomer(
 /**
  * Seed a user for testing.
  */
-export async function seedUser(
+export const seedUser = async (
   options: {
     email?: string
     passwordHash?: string
     role?: string
   } = {},
-) {
+) => {
   const timestamp = Date.now()
 
   const [user] = await db
@@ -294,7 +296,7 @@ export async function seedUser(
 /**
  * Get a checkout by ID (for assertions).
  */
-export async function getCheckout(id: string) {
+export const getCheckout = async (id: string) => {
   const [checkout] = await db
     .select()
     .from(checkouts)
@@ -307,7 +309,7 @@ export async function getCheckout(id: string) {
 /**
  * Get an order by checkout-related criteria (for assertions).
  */
-export async function getOrderByEmail(email: string) {
+export const getOrderByEmail = async (email: string) => {
   const [order] = await db
     .select()
     .from(orders)

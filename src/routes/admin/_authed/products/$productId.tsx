@@ -8,11 +8,7 @@ import {
 } from '../../../../components/admin/products/ProductForm'
 import { getProductByIdFn } from '../../../../server/products'
 
-export const Route = createFileRoute('/admin/_authed/products/$productId')({
-  component: EditProductPage,
-})
-
-function EditProductPage() {
+const EditProductPage = () => {
   const { t } = useTranslation()
   const { productId } = Route.useParams()
   const router = useRouter()
@@ -59,3 +55,7 @@ function EditProductPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/_authed/products/$productId')({
+  component: EditProductPage,
+})

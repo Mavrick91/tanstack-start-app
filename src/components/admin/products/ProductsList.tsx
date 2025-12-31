@@ -24,7 +24,7 @@ export type Product = {
 /**
  * Extracted component for testing (without route wrapper)
  */
-export function ProductsListContent() {
+export const ProductsListContent = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: () => getAdminProductsFn(),
@@ -165,7 +165,11 @@ export function ProductsListContent() {
   )
 }
 
-function StatusBadge({ status }: { status: 'draft' | 'active' | 'archived' }) {
+const StatusBadge = ({
+  status,
+}: {
+  status: 'draft' | 'active' | 'archived'
+}) => {
   const variants: Record<
     string,
     'default' | 'secondary' | 'destructive' | 'outline'

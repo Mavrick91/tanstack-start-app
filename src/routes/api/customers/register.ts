@@ -47,7 +47,7 @@ export const Route = createFileRoute('/api/customers/register')({
           // Validate required fields
           const emailResult = validateEmail(email)
           if (!emailResult.valid) {
-            return simpleErrorResponse(emailResult.error)
+            return simpleErrorResponse(emailResult.error || 'Invalid email')
           }
 
           const passwordValidation = validatePassword(password)

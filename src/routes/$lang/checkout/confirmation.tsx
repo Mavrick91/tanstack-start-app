@@ -12,12 +12,7 @@ const searchSchema = z.object({
   orderNumber: z.coerce.number().optional(),
 })
 
-export const Route = createFileRoute('/$lang/checkout/confirmation')({
-  validateSearch: searchSchema,
-  component: CheckoutConfirmationPage,
-})
-
-function CheckoutConfirmationPage() {
+const CheckoutConfirmationPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const { t } = useTranslation()
   const { orderNumber } = Route.useSearch()
@@ -135,3 +130,8 @@ function CheckoutConfirmationPage() {
     </CheckoutLayout>
   )
 }
+
+export const Route = createFileRoute('/$lang/checkout/confirmation')({
+  validateSearch: searchSchema,
+  component: CheckoutConfirmationPage,
+})

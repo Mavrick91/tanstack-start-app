@@ -23,11 +23,11 @@ type CartDrawerProps = {
   products?: Array<Product>
 }
 
-export function CartDrawer({
+export const CartDrawer = ({
   open,
   onOpenChange,
   products = [],
-}: CartDrawerProps) {
+}: CartDrawerProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { lang } = useParams({ strict: false }) as { lang?: string }

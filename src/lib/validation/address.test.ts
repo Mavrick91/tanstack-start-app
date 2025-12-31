@@ -7,9 +7,9 @@ import type { AddressInput } from './address'
 /**
  * Helper to create a valid address input for tests.
  */
-function createAddressInput(
+const createAddressInput = (
   overrides: Partial<AddressInput> = {},
-): AddressInput {
+): AddressInput => {
   return {
     firstName: 'John',
     lastName: 'Doe',

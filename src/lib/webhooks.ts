@@ -6,10 +6,10 @@ import { webhookEvents } from '../db/schema'
 /**
  * Check if a webhook event has already been processed
  */
-export async function isWebhookProcessed(
+export const isWebhookProcessed = async (
   eventId: string,
   provider: 'stripe' | 'paypal',
-): Promise<boolean> {
+) => {
   const existing = await db
     .select({ id: webhookEvents.id })
     .from(webhookEvents)
@@ -24,13 +24,13 @@ export async function isWebhookProcessed(
 /**
  * Record a webhook event after successful processing
  */
-export async function recordWebhookEvent(event: {
+export const recordWebhookEvent = async (event: {
   id: string
   provider: 'stripe' | 'paypal'
   eventType: string
   orderId?: string
   payload?: unknown
-}): Promise<void> {
+}) => {
   await db.insert(webhookEvents).values({
     id: event.id,
     provider: event.provider,

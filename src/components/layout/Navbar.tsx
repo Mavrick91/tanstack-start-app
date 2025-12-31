@@ -11,7 +11,7 @@ import { Button } from '../ui/button'
 
 import type { Product } from '../../types/store'
 
-export function Navbar() {
+export const Navbar = () => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const { t } = useTranslation()
   const [isCartOpen, setIsCartOpen] = useState(false)

@@ -15,9 +15,9 @@ export interface CleanupResult {
  * Clean up abandoned checkouts that are older than the specified hours
  * and haven't been completed.
  */
-export async function cleanupAbandonedCheckouts(
+export const cleanupAbandonedCheckouts = async (
   expiryHours: number = DEFAULT_EXPIRY_HOURS,
-): Promise<CleanupResult> {
+): Promise<CleanupResult> => {
   try {
     const expiryDate = new Date()
     expiryDate.setHours(expiryDate.getHours() - expiryHours)
@@ -42,9 +42,9 @@ export async function cleanupAbandonedCheckouts(
 /**
  * Get count of abandoned checkouts (for monitoring)
  */
-export async function getAbandonedCheckoutCount(
+export const getAbandonedCheckoutCount = async (
   expiryHours: number = DEFAULT_EXPIRY_HOURS,
-): Promise<number> {
+): Promise<number> => {
   const expiryDate = new Date()
   expiryDate.setHours(expiryDate.getHours() - expiryHours)
 

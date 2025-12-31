@@ -12,12 +12,12 @@ type ShippingMethodSelectorProps = {
   currency?: string
 }
 
-export function ShippingMethodSelector({
+export const ShippingMethodSelector = ({
   rates,
   selectedRateId,
   onSelect,
   currency = 'USD',
-}: ShippingMethodSelectorProps) {
+}: ShippingMethodSelectorProps) => {
   const { t } = useTranslation()
 
   return (

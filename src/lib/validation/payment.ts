@@ -1,4 +1,3 @@
-import type { ValidationResult } from './checkout'
 import type { PaymentProvider } from '../../types/checkout'
 
 /**
@@ -29,9 +28,7 @@ export interface ValidatedPayment {
  * const { paymentProvider, paymentId } = result.data
  * ```
  */
-export function validatePaymentInput(
-  input: PaymentInput,
-): ValidationResult<ValidatedPayment> {
+export const validatePaymentInput = (input: PaymentInput) => {
   if (!input.paymentProvider || !input.paymentId) {
     return {
       valid: false,
@@ -60,9 +57,9 @@ export function validatePaymentInput(
 /**
  * Type guard for valid payment providers.
  */
-export function isValidPaymentProvider(
+export const isValidPaymentProvider = (
   provider: string,
-): provider is PaymentProvider {
+): provider is PaymentProvider => {
   return provider === 'stripe' || provider === 'paypal'
 }
 
@@ -85,10 +82,10 @@ export interface PayPalPaymentVerification {
 /**
  * Validates Stripe payment is successful and amount matches.
  */
-export function validateStripePayment(
+export const validateStripePayment = (
   payment: StripePaymentVerification,
   expectedAmountCents: number,
-): ValidationResult {
+) => {
   if (payment.status !== 'succeeded') {
     return {
       valid: false,
@@ -111,10 +108,10 @@ export function validateStripePayment(
 /**
  * Validates PayPal payment is successful and amount matches.
  */
-export function validatePayPalPayment(
+export const validatePayPalPayment = (
   payment: PayPalPaymentVerification,
   expectedAmountDollars: number,
-): ValidationResult {
+) => {
   if (payment.status !== 'COMPLETED') {
     return {
       valid: false,
@@ -140,13 +137,13 @@ export function validatePayPalPayment(
 /**
  * Converts dollars to cents (for Stripe).
  */
-export function dollarsToCents(dollars: number): number {
+export const dollarsToCents = (dollars: number) => {
   return Math.round(dollars * 100)
 }
 
 /**
  * Converts cents to dollars (from Stripe).
  */
-export function centsToDollars(cents: number): number {
+export const centsToDollars = (cents: number) => {
   return cents / 100
 }

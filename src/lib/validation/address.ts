@@ -1,6 +1,3 @@
-import type { ValidationResult } from './checkout'
-import type { AddressSnapshot } from '../../db/schema'
-
 /**
  * Input type for address validation.
  * All fields are optional for validation - we check required ones.
@@ -33,7 +30,7 @@ export interface AddressInput {
  * }
  * ```
  */
-export function validateAddressFields(address: AddressInput): ValidationResult {
+export const validateAddressFields = (address: AddressInput) => {
   if (!address.firstName?.trim()) {
     return { valid: false, error: 'First name is required', status: 400 }
   }
@@ -74,7 +71,7 @@ export function validateAddressFields(address: AddressInput): ValidationResult {
  * const shippingAddress = normalizeAddress(body)
  * ```
  */
-export function normalizeAddress(address: AddressInput): AddressSnapshot {
+export const normalizeAddress = (address: AddressInput) => {
   return {
     firstName: address.firstName!.trim(),
     lastName: address.lastName!.trim(),

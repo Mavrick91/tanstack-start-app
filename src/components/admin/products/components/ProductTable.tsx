@@ -20,7 +20,7 @@ interface ProductTableProps {
   onSort: (key: SortKey) => void
 }
 
-export function ProductTable({
+export const ProductTable = ({
   products,
   selectedIds,
   onToggleSelect,
@@ -30,7 +30,7 @@ export function ProductTable({
   sortKey,
   sortOrder,
   onSort,
-}: ProductTableProps) {
+}: ProductTableProps) => {
   const { t } = useTranslation()
 
   return (
@@ -151,7 +151,7 @@ export function ProductTable({
   )
 }
 
-function SortableHeader({
+const SortableHeader = ({
   label,
   sortKey,
   currentKey,
@@ -163,7 +163,7 @@ function SortableHeader({
   currentKey: SortKey
   order: SortOrder
   onSort: (key: SortKey) => void
-}) {
+}) => {
   const isActive = sortKey === currentKey
 
   return (
@@ -189,13 +189,13 @@ function SortableHeader({
   )
 }
 
-function PriceDisplay({
+const PriceDisplay = ({
   price,
   compareAtPrice,
 }: {
   price: string | null
   compareAtPrice: string | null
-}) {
+}) => {
   if (price === null) {
     return <span className="text-muted-foreground text-xs font-medium">—</span>
   }
@@ -212,7 +212,7 @@ function PriceDisplay({
   )
 }
 
-export function ProductTableSkeleton() {
+export const ProductTableSkeleton = () => {
   return (
     <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">

@@ -74,7 +74,7 @@ export type ProductWithRelations = Product & {
 /**
  * Creates a valid Product with sensible defaults.
  */
-export function createProduct(overrides: Partial<Product> = {}): Product {
+export const createProduct = (overrides: Partial<Product> = {}): Product => {
   return {
     id: 'prod-123',
     handle: 'test-product',
@@ -91,9 +91,9 @@ export function createProduct(overrides: Partial<Product> = {}): Product {
 /**
  * Creates a valid ProductVariant with sensible defaults.
  */
-export function createProductVariant(
+export const createProductVariant = (
   overrides: Partial<ProductVariant> = {},
-): ProductVariant {
+): ProductVariant => {
   return {
     id: 'var-123',
     productId: 'prod-123',
@@ -109,9 +109,9 @@ export function createProductVariant(
 /**
  * Creates a valid ProductOption with sensible defaults.
  */
-export function createProductOption(
+export const createProductOption = (
   overrides: Partial<ProductOption> = {},
-): ProductOption {
+): ProductOption => {
   return {
     id: 'opt-123',
     productId: 'prod-123',
@@ -125,9 +125,9 @@ export function createProductOption(
 /**
  * Creates a valid ProductImage with sensible defaults.
  */
-export function createProductImage(
+export const createProductImage = (
   overrides: Partial<ProductImage> = {},
-): ProductImage {
+): ProductImage => {
   return {
     id: 'img-123',
     productId: 'prod-123',
@@ -141,9 +141,9 @@ export function createProductImage(
 /**
  * Creates a Product with all relations populated.
  */
-export function createProductWithRelations(
+export const createProductWithRelations = (
   overrides: Partial<ProductWithRelations> = {},
-): ProductWithRelations {
+): ProductWithRelations => {
   const product = createProduct(overrides)
   const variants = overrides.variants ?? [createProductVariant()]
   const options = overrides.options ?? []
@@ -165,23 +165,23 @@ export function createProductWithRelations(
  */
 export const productVariants = {
   /** Active product with default variant (default) */
-  active: () => createProductWithRelations(),
+  active: (): ProductWithRelations => createProductWithRelations(),
 
   /** Draft product */
-  draft: () =>
+  draft: (): ProductWithRelations =>
     createProductWithRelations({
       status: 'draft',
       publishedAt: undefined,
     }),
 
   /** Archived product */
-  archived: () =>
+  archived: (): ProductWithRelations =>
     createProductWithRelations({
       status: 'archived',
     }),
 
   /** Product with size options */
-  withSizeOptions: () =>
+  withSizeOptions: (): ProductWithRelations =>
     createProductWithRelations({
       options: [
         createProductOption({
@@ -218,7 +218,7 @@ export const productVariants = {
     }),
 
   /** Product with multiple options (size + color) */
-  withMultipleOptions: () =>
+  withMultipleOptions: (): ProductWithRelations =>
     createProductWithRelations({
       options: [
         createProductOption({
@@ -275,7 +275,7 @@ export const productVariants = {
     }),
 
   /** Product with compare at price (on sale) */
-  onSale: () =>
+  onSale: (): ProductWithRelations =>
     createProductWithRelations({
       variants: [
         createProductVariant({
@@ -286,7 +286,7 @@ export const productVariants = {
     }),
 
   /** Out of stock product */
-  outOfStock: () =>
+  outOfStock: (): ProductWithRelations =>
     createProductWithRelations({
       variants: [
         createProductVariant({
@@ -296,7 +296,7 @@ export const productVariants = {
     }),
 
   /** Product with multiple images */
-  multipleImages: () =>
+  multipleImages: (): ProductWithRelations =>
     createProductWithRelations({
       images: [
         createProductImage({ id: 'img-1', position: 0 }),
@@ -314,7 +314,7 @@ export const productVariants = {
     }),
 
   /** Product with translations */
-  translated: () =>
+  translated: (): ProductWithRelations =>
     createProductWithRelations({
       name: { en: 'Test Product', fr: 'Produit de Test', id: 'Produk Uji' },
       description: {
@@ -325,7 +325,7 @@ export const productVariants = {
     }),
 
   /** Product with vendor and type */
-  withMetadata: () =>
+  withMetadata: (): ProductWithRelations =>
     createProductWithRelations({
       vendor: 'Test Vendor',
       productType: 'Accessories',
@@ -336,7 +336,7 @@ export const productVariants = {
 /**
  * Creates multiple products for testing lists/pagination.
  */
-export function createProductList(count: number): ProductWithRelations[] {
+export const createProductList = (count: number): ProductWithRelations[] => {
   return Array.from({ length: count }, (_, i) =>
     createProductWithRelations({
       id: `prod-${i + 1}`,

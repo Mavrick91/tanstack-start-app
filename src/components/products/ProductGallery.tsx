@@ -7,7 +7,10 @@ interface ProductGalleryProps {
   productName: string
 }
 
-export function ProductGallery({ images, productName }: ProductGalleryProps) {
+export const ProductGallery = ({
+  images,
+  productName,
+}: ProductGalleryProps) => {
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return

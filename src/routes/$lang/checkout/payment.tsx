@@ -33,11 +33,7 @@ import {
 } from '../../../hooks/useCheckoutQueries'
 import { formatCurrency } from '../../../lib/format'
 
-export const Route = createFileRoute('/$lang/checkout/payment')({
-  component: CheckoutPaymentPage,
-})
-
-function CheckoutPaymentPage() {
+const CheckoutPaymentPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -118,8 +114,8 @@ function CheckoutPaymentPage() {
         to: '/$lang/checkout/confirmation',
         params: { lang },
         search: {
-          orderId: result.order.id,
-          orderNumber: result.order.orderNumber,
+          orderId: result.order!.id,
+          orderNumber: result.order!.orderNumber,
         },
       })
     } catch (err) {
@@ -361,3 +357,7 @@ function CheckoutPaymentPage() {
     </CheckoutLayout>
   )
 }
+
+export const Route = createFileRoute('/$lang/checkout/payment')({
+  component: CheckoutPaymentPage,
+})

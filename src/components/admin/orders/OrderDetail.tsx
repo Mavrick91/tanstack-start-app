@@ -34,12 +34,12 @@ type OrderDetailProps = {
   isLoadingHistory?: boolean
 }
 
-export function OrderDetail({
+export const OrderDetail = ({
   order,
   onUpdateStatus,
   historyEntries = [],
   isLoadingHistory = false,
-}: OrderDetailProps) {
+}: OrderDetailProps) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)

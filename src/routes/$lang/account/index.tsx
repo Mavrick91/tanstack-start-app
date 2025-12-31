@@ -19,11 +19,7 @@ import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../hooks/useAuth'
 import { getCustomerMeFn } from '../../../server/customers'
 
-export const Route = createFileRoute('/$lang/account/')({
-  component: AccountPage,
-})
-
-function AccountPage() {
+const AccountPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -161,3 +157,7 @@ function AccountPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/account/')({
+  component: AccountPage,
+})

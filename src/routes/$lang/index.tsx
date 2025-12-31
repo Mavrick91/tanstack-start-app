@@ -7,39 +7,7 @@ import { ProductCard } from '../../components/products/ProductCard'
 import { Button } from '../../components/ui/button'
 import { getCollections, getFeaturedProducts } from '../../data/storefront'
 
-export const Route = createFileRoute('/$lang/')({
-  loader: async ({ params }) => {
-    const [featuredProducts, collections] = await Promise.all([
-      getFeaturedProducts({ data: { lang: params.lang } }),
-      getCollections({ data: { lang: params.lang } }),
-    ])
-    return { featuredProducts, collections }
-  },
-  head: ({ params }) => {
-    const titles: Record<string, string> = {
-      en: 'Home | FineNail Season',
-      fr: 'Accueil | FineNail Season',
-      id: 'Beranda | FineNail Season',
-    }
-    const descriptions: Record<string, string> = {
-      en: 'Premium nail art and manicure essentials for the modern beauty enthusiast.',
-      fr: 'Essentiels de nail art et manucure premium pour les passionnées de beauté.',
-      id: 'Perlengkapan nail art dan manikur premium untuk pecinta kecantikan modern.',
-    }
-    return {
-      meta: [
-        { title: titles[params.lang] || titles.en },
-        {
-          name: 'description',
-          content: descriptions[params.lang] || descriptions.en,
-        },
-      ],
-    }
-  },
-  component: HomePage,
-})
-
-function HomePage() {
+const HomePage = () => {
   const { lang } = Route.useParams()
   const { t } = useTranslation()
   const { featuredProducts, collections } = Route.useLoaderData()
@@ -180,3 +148,35 @@ function HomePage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/')({
+  loader: async ({ params }) => {
+    const [featuredProducts, collections] = await Promise.all([
+      getFeaturedProducts({ data: { lang: params.lang } }),
+      getCollections({ data: { lang: params.lang } }),
+    ])
+    return { featuredProducts, collections }
+  },
+  head: ({ params }) => {
+    const titles: Record<string, string> = {
+      en: 'Home | FineNail Season',
+      fr: 'Accueil | FineNail Season',
+      id: 'Beranda | FineNail Season',
+    }
+    const descriptions: Record<string, string> = {
+      en: 'Premium nail art and manicure essentials for the modern beauty enthusiast.',
+      fr: 'Essentiels de nail art et manucure premium pour les passionnées de beauté.',
+      id: 'Perlengkapan nail art dan manikur premium untuk pecinta kecantikan modern.',
+    }
+    return {
+      meta: [
+        { title: titles[params.lang] || titles.en },
+        {
+          name: 'description',
+          content: descriptions[params.lang] || descriptions.en,
+        },
+      ],
+    }
+  },
+  component: HomePage,
+})

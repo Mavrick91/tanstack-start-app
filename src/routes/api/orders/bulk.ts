@@ -18,6 +18,9 @@ export const Route = createFileRoute('/api/orders/bulk')({
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           // Only admin can bulk update orders
           if (auth.user.role !== 'admin') {

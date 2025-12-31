@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV !== 'production'
 /**
  * Apply security headers to a Response
  */
-export function withSecurityHeaders(response: Response): Response {
+export const withSecurityHeaders = (response: Response) => {
   const headers = new Headers(response.headers)
   for (const [key, value] of Object.entries(securityHeaders)) {
     if (!headers.has(key)) {
@@ -21,11 +21,11 @@ export function withSecurityHeaders(response: Response): Response {
   })
 }
 
-export function errorResponse(
+export const errorResponse = (
   message: string,
   error: unknown,
   status = 500,
-): Response {
+) => {
   console.error(`[API Error] ${message}:`, error)
 
   return withSecurityHeaders(
@@ -43,37 +43,30 @@ export function errorResponse(
   )
 }
 
-export function successResponse<T extends object>(
-  data: T,
-  status = 200,
-): Response {
+export const successResponse = <T extends object>(data: T, status = 200) => {
   return withSecurityHeaders(
     Response.json({ success: true, ...data }, { status }),
   )
 }
 
-export function simpleErrorResponse(message: string, status = 400): Response {
+export const simpleErrorResponse = (message: string, status = 400) => {
   return withSecurityHeaders(
     Response.json({ success: false, error: message }, { status }),
   )
 }
 
-export function emptyToNull(val: string | undefined | null): string | null {
+export const emptyToNull = (val: string | undefined | null) => {
   return val === '' || val === undefined || val === null ? null : val
 }
 
-export function sanitizeProductFields(input: Record<string, unknown>) {
+export const sanitizeProductFields = (input: Record<string, unknown>) => {
   return {
     vendor: emptyToNull(input.vendor as string),
     productType: emptyToNull(input.productType as string),
   }
 }
 
-type AuthResult =
-  | { success: true; user: { id: string; email: string; role: string } }
-  | { success: false; response: Response }
-
-export async function requireAuth(request: Request): Promise<AuthResult> {
+export const requireAuth = async (request: Request) => {
   // Validate CSRF for state-changing methods
   const sessionId = getCookie(request, 'session')
   const csrfError = validateCsrf(request, sessionId)
@@ -91,13 +84,13 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
   return { success: true, user: auth.user }
 }
 
-export async function requireAdmin(request: Request): Promise<AuthResult> {
+export const requireAdmin = async (request: Request) => {
   const auth = await requireAuth(request)
   if (!auth.success) {
     return auth
   }
 
-  if (auth.user.role !== 'admin') {
+  if (!auth.user || auth.user.role !== 'admin') {
     return {
       success: false,
       response: simpleErrorResponse('Forbidden', 403),

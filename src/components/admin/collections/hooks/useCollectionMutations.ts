@@ -31,7 +31,7 @@ interface UseCollectionMutationsOptions {
   onSelectionReset: () => void
 }
 
-export function useCollectionMutations({
+export const useCollectionMutations = ({
   collection,
   isEdit,
   allProducts,
@@ -39,7 +39,7 @@ export function useCollectionMutations({
   onProductRemoved,
   onPickerClose,
   onSelectionReset,
-}: UseCollectionMutationsOptions) {
+}: UseCollectionMutationsOptions) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()

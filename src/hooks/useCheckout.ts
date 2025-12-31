@@ -61,19 +61,19 @@ export const useCheckoutStore = create<CheckoutState>()(
 )
 
 // Checkout API functions using server functions
-export async function createCheckout(
+export const createCheckout = async (
   items: Array<{ productId: string; variantId?: string; quantity: number }>,
-) {
+) => {
   const result = await createCheckoutFn({ data: { items } })
   return result.checkout as Checkout
 }
 
-export async function getCheckout(checkoutId: string) {
+export const getCheckout = async (checkoutId: string) => {
   const result = await getCheckoutFn({ data: { checkoutId } })
   return result.checkout as Checkout
 }
 
-export async function saveCustomerInfo(
+export const saveCustomerInfo = async (
   checkoutId: string,
   data: {
     email: string
@@ -82,7 +82,7 @@ export async function saveCustomerInfo(
     createAccount?: boolean
     password?: string
   },
-) {
+) => {
   const result = await saveCustomerInfoFn({
     data: {
       checkoutId,
@@ -96,10 +96,10 @@ export async function saveCustomerInfo(
   return result
 }
 
-export async function saveShippingAddress(
+export const saveShippingAddress = async (
   checkoutId: string,
   address: AddressInput & { saveAddress?: boolean },
-) {
+) => {
   const { saveAddress, ...addressData } = address
   const result = await saveShippingAddressFn({
     data: {
@@ -111,15 +111,15 @@ export async function saveShippingAddress(
   return result
 }
 
-export async function getShippingRates(checkoutId: string) {
+export const getShippingRates = async (checkoutId: string) => {
   const result = await getShippingRatesFn({ data: { checkoutId } })
   return result.shippingRates as ShippingRate[]
 }
 
-export async function saveShippingMethod(
+export const saveShippingMethod = async (
   checkoutId: string,
   shippingRateId: string,
-) {
+) => {
   const result = await saveShippingMethodFn({
     data: { checkoutId, shippingRateId },
   })
@@ -128,7 +128,7 @@ export async function saveShippingMethod(
 
 // Stripe payment intent - still uses fetch because it needs special handling
 // for returning client secret to the browser
-export async function createStripePaymentIntent(checkoutId: string) {
+export const createStripePaymentIntent = async (checkoutId: string) => {
   const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -143,11 +143,11 @@ export async function createStripePaymentIntent(checkoutId: string) {
   return await response.json()
 }
 
-export async function completeCheckout(
+export const completeCheckout = async (
   checkoutId: string,
   paymentProvider: 'stripe' | 'paypal',
   paymentId: string,
-) {
+) => {
   const result = await completeCheckoutFn({
     data: { checkoutId, paymentProvider, paymentId },
   })
@@ -155,7 +155,7 @@ export async function completeCheckout(
 }
 
 // Hook for easy access
-export function useCheckout() {
+export const useCheckout = () => {
   const store = useCheckoutStore()
 
   return {

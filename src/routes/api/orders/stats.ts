@@ -3,7 +3,12 @@ import { and, count, eq, gte, sql } from 'drizzle-orm'
 
 import { db } from '../../../db'
 import { orders } from '../../../db/schema'
-import { errorResponse, requireAuth, successResponse } from '../../../lib/api'
+import {
+  errorResponse,
+  requireAuth,
+  simpleErrorResponse,
+  successResponse,
+} from '../../../lib/api'
 
 export const Route = createFileRoute('/api/orders/stats')({
   server: {
@@ -12,6 +17,9 @@ export const Route = createFileRoute('/api/orders/stats')({
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           // Only admin can access order stats
           if (auth.user.role !== 'admin') {

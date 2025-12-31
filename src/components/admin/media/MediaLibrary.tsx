@@ -39,12 +39,12 @@ type MediaLibraryProps = {
   multiple?: boolean
 }
 
-export function MediaLibrary({
+export const MediaLibrary = ({
   open,
   onClose,
   onSelect,
   multiple = true,
-}: MediaLibraryProps) {
+}: MediaLibraryProps) => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -140,7 +140,7 @@ export function MediaLibrary({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="!max-w-7xl w-[98vw] h-[95vh] flex flex-col p-0 overflow-hidden border-border/50 shadow-2xl bg-background">
+      <DialogContent className="max-w-7xl! w-[98vw] h-[95vh] flex flex-col p-0 overflow-hidden border-border/50 shadow-2xl bg-background">
         <Tabs defaultValue="library" className="flex-1 flex flex-col min-h-0">
           <DialogHeader className="px-6 py-4 border-b">
             <div className="flex items-center justify-between pr-8">

@@ -10,7 +10,7 @@ export interface ProductStats {
   lowStockCount?: number
 }
 
-export function useProductStats() {
+export const useProductStats = () => {
   return useQuery({
     queryKey: ['product-stats'],
     queryFn: () => getProductStatsFn(),

@@ -35,10 +35,10 @@ const BADGE_TYPE_MAP: Record<string, 'order' | 'payment' | 'fulfillment'> = {
   fulfillmentStatus: 'fulfillment',
 }
 
-export function OrderHistory({
+export const OrderHistory = ({
   entries,
   isLoading = false,
-}: OrderHistoryProps) {
+}: OrderHistoryProps) => {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',

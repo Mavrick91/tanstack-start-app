@@ -27,7 +27,7 @@ const validAddress = {
   zip: '10001',
 }
 
-async function createReadyCheckout() {
+const createReadyCheckout = async () => {
   const { product, variant } = await seedProduct({ price: 50.0 })
   const createResult = await createCheckout({
     items: [{ productId: product.id, variantId: variant.id, quantity: 2 }],
@@ -35,23 +35,23 @@ async function createReadyCheckout() {
   if (!createResult.success) throw new Error('Failed to create checkout')
 
   await saveCustomerInfo({
-    checkoutId: createResult.checkout.id,
+    checkoutId: createResult.checkout!.id,
     email: 'customer@example.com',
     firstName: 'John',
     lastName: 'Doe',
   })
 
   await saveShippingAddress({
-    checkoutId: createResult.checkout.id,
+    checkoutId: createResult.checkout!.id,
     address: validAddress,
   })
 
   await saveShippingMethod({
-    checkoutId: createResult.checkout.id,
+    checkoutId: createResult.checkout!.id,
     shippingRateId: 'standard',
   })
 
-  return { checkout: createResult.checkout, product, variant }
+  return { checkout: createResult.checkout!, product, variant }
 }
 
 describe('completeCheckout', () => {
@@ -78,10 +78,10 @@ describe('completeCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.order.id).toBeDefined()
-      expect(result.order.orderNumber).toBeDefined()
-      expect(result.order.email).toBe('customer@example.com')
-      expect(result.order.total).toBeGreaterThan(0)
+      expect(result.order!.id).toBeDefined()
+      expect(result.order!.orderNumber).toBeDefined()
+      expect(result.order!.email).toBe('customer@example.com')
+      expect(result.order!.total).toBeGreaterThan(0)
     })
 
     it('marks checkout as completed', async () => {
@@ -116,7 +116,7 @@ describe('completeCheckout', () => {
       const [order] = await db
         .select()
         .from(orders)
-        .where(eq(orders.id, result.order.id))
+        .where(eq(orders.id, result.order!.id))
 
       expect(order.paymentProvider).toBe('stripe')
       expect(order.paymentId).toBe('pi_test_789')
@@ -139,7 +139,7 @@ describe('completeCheckout', () => {
       const [order] = await db
         .select()
         .from(orders)
-        .where(eq(orders.id, result.order.id))
+        .where(eq(orders.id, result.order!.id))
 
       expect(order.paymentProvider).toBe('paypal')
       expect(order.paymentId).toBe('PAYPAL_ORDER_123')
@@ -160,7 +160,7 @@ describe('completeCheckout', () => {
       const [order] = await db
         .select()
         .from(orders)
-        .where(eq(orders.id, result.order.id))
+        .where(eq(orders.id, result.order!.id))
 
       // Checkout was 2 x $50 = $100 subtotal + $5.99 shipping + tax
       expect(parseFloat(order.subtotal)).toBe(100.0)
@@ -218,16 +218,16 @@ describe('completeCheckout', () => {
 
       // Add address and shipping but NOT email
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
       await saveShippingMethod({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         shippingRateId: 'standard',
       })
 
       const result = await completeCheckout({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         paymentProvider: 'stripe',
         paymentId: 'pi_test',
       })
@@ -249,12 +249,12 @@ describe('completeCheckout', () => {
 
       // Add email but NOT address
       await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'test@example.com',
       })
 
       const result = await completeCheckout({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         paymentProvider: 'stripe',
         paymentId: 'pi_test',
       })
@@ -276,16 +276,16 @@ describe('completeCheckout', () => {
 
       // Add email and address but NOT shipping method
       await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'test@example.com',
       })
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       const result = await completeCheckout({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         paymentProvider: 'stripe',
         paymentId: 'pi_test',
       })

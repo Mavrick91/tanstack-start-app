@@ -61,7 +61,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   },
 }
 
-export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
+export const OrderStatusBadge = ({ status }: OrderStatusBadgeProps) => {
   const config = statusConfig[status] || {
     label: status,
     className: 'bg-gray-500/20 text-gray-400 border-gray-500/30',

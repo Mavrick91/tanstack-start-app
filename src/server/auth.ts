@@ -16,7 +16,7 @@ export type SessionUser = {
 }
 
 // Session helper
-export function useAppSession() {
+export const useAppSession = () => {
   return useSession<SessionUser>({
     name: 'app-session',
     password: process.env.SESSION_SECRET!,

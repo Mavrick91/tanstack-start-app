@@ -19,6 +19,9 @@ export const Route = createFileRoute('/api/orders/$orderId/refund')({
           // Require admin authentication
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           if (auth.user.role !== 'admin') {
             return new Response('Forbidden', { status: 403 })
@@ -75,6 +78,14 @@ export const Route = createFileRoute('/api/orders/$orderId/refund')({
               updatedAt: new Date(),
             })
             .where(eq(orders.id, orderId))
+
+          // Type narrowing: refundResult.success is true and has refundId
+          if (!('refundId' in refundResult)) {
+            return simpleErrorResponse(
+              'Refund succeeded but no refund ID returned',
+              500,
+            )
+          }
 
           // Record in audit trail
           await recordStatusChange({

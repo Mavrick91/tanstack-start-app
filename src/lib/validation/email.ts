@@ -1,5 +1,3 @@
-import type { ValidationResult } from './checkout'
-
 /**
  * Email regex pattern - matches standard email format.
  * Same pattern used in existing routes.
@@ -17,9 +15,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  * }
  * ```
  */
-export function validateEmailRequired(
-  email: string | null | undefined,
-): ValidationResult {
+export const validateEmailRequired = (email: string | null | undefined) => {
   if (!email?.trim()) {
     return { valid: false, error: 'Email is required', status: 400 }
   }
@@ -38,7 +34,7 @@ export function validateEmailRequired(
  * }
  * ```
  */
-export function validateEmailFormat(email: string): ValidationResult {
+export const validateEmailFormat = (email: string) => {
   if (!EMAIL_REGEX.test(email)) {
     return { valid: false, error: 'Invalid email format', status: 400 }
   }
@@ -57,9 +53,7 @@ export function validateEmailFormat(email: string): ValidationResult {
  * }
  * ```
  */
-export function validateEmail(
-  email: string | null | undefined,
-): ValidationResult {
+export const validateEmail = (email: string | null | undefined) => {
   const requiredResult = validateEmailRequired(email)
   if (!requiredResult.valid) {
     return requiredResult
@@ -72,6 +66,6 @@ export function validateEmail(
  * Normalizes email to lowercase.
  * Use after validation to ensure consistent storage.
  */
-export function normalizeEmail(email: string): string {
+export const normalizeEmail = (email: string) => {
   return email.toLowerCase().trim()
 }

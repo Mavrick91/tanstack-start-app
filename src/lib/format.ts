@@ -7,11 +7,11 @@ export type FormatCurrencyOptions = {
   locale?: string
 }
 
-export function formatCurrency({
+export const formatCurrency = ({
   value,
   currency = 'USD',
   locale = 'en-US',
-}: FormatCurrencyOptions): string {
+}: FormatCurrencyOptions) => {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,

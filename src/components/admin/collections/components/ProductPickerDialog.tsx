@@ -27,7 +27,7 @@ interface ProductPickerDialogProps {
   isAdding: boolean
 }
 
-export function ProductPickerDialog({
+export const ProductPickerDialog = ({
   isOpen,
   onOpenChange,
   products,
@@ -38,7 +38,7 @@ export function ProductPickerDialog({
   onAdd,
   onCancel,
   isAdding,
-}: ProductPickerDialogProps) {
+}: ProductPickerDialogProps) => {
   const { t } = useTranslation()
 
   return (

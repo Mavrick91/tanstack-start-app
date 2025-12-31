@@ -31,10 +31,12 @@ export interface UseDataTableOptions<TData, TSortKey extends string = string> {
   defaultLimit?: number
 }
 
-export function useDataTable<
+export const useDataTable = <
   TData extends { id: string },
   TSortKey extends string = string,
->(options: UseDataTableOptions<TData, TSortKey>) {
+>(
+  options: UseDataTableOptions<TData, TSortKey>,
+) => {
   const {
     id,
     queryFn,

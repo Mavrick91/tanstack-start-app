@@ -11,7 +11,7 @@ export const getStripePublishableKey = () => {
 }
 
 // Create a payment intent for checkout
-export async function createPaymentIntent({
+export const createPaymentIntent = async ({
   amount,
   currency = 'usd',
   metadata,
@@ -19,7 +19,7 @@ export async function createPaymentIntent({
   amount: number // in cents
   currency?: string
   metadata?: Record<string, string>
-}) {
+}) => {
   const paymentIntent = await stripe.paymentIntents.create({
     amount,
     currency,
@@ -36,25 +36,25 @@ export async function createPaymentIntent({
 }
 
 // Retrieve a payment intent
-export async function retrievePaymentIntent(paymentIntentId: string) {
+export const retrievePaymentIntent = async (paymentIntentId: string) => {
   return await stripe.paymentIntents.retrieve(paymentIntentId)
 }
 
 // Verify webhook signature
-export function constructWebhookEvent(
+export const constructWebhookEvent = (
   body: string | Buffer,
   signature: string,
   webhookSecret: string,
-) {
+) => {
   return stripe.webhooks.constructEvent(body, signature, webhookSecret)
 }
 
 // Convert dollars to cents
-export function dollarsToCents(dollars: number): number {
+export const dollarsToCents = (dollars: number) => {
   return Math.round(dollars * 100)
 }
 
 // Convert cents to dollars
-export function centsToDollars(cents: number): number {
+export const centsToDollars = (cents: number) => {
   return cents / 100
 }

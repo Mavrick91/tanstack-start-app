@@ -46,11 +46,7 @@ type CustomerAddress = {
   isDefault: boolean
 }
 
-export const Route = createFileRoute('/$lang/account/addresses')({
-  component: AccountAddressesPage,
-})
-
-function AccountAddressesPage() {
+const AccountAddressesPage = (): React.ReactNode => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -81,7 +77,7 @@ function AccountAddressesPage() {
     }
   }, [authLoading, isAuthenticated, lang, navigate])
 
-  const loadAddresses = async () => {
+  const loadAddresses = async (): Promise<void> => {
     setIsLoading(true)
     try {
       const data = await getCustomerAddressesFn()
@@ -93,7 +89,9 @@ function AccountAddressesPage() {
     }
   }
 
-  const handleAddAddress = async (addressData: AddressFormData) => {
+  const handleAddAddress = async (
+    addressData: AddressFormData,
+  ): Promise<void> => {
     setIsSubmitting(true)
     try {
       await createAddressFn({
@@ -126,11 +124,11 @@ function AccountAddressesPage() {
     }
   }
 
-  const handleSubmitClick = () => {
+  const handleSubmitClick = (): void => {
     addressFormRef.current?.submit()
   }
 
-  const handleDeleteAddress = async (addressId: string) => {
+  const handleDeleteAddress = async (addressId: string): Promise<void> => {
     if (!confirm(t('Are you sure you want to delete this address?'))) return
 
     try {
@@ -267,3 +265,7 @@ function AccountAddressesPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/account/addresses')({
+  component: AccountAddressesPage,
+})

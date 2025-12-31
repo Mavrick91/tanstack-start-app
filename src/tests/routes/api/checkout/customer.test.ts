@@ -30,18 +30,18 @@ describe('saveCustomerInfo', () => {
 
       // Save customer info
       const result = await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'customer@example.com',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.email).toBe('customer@example.com')
-      expect(result.checkout.customerId).toBeDefined()
+      expect(result.checkout!.email).toBe('customer@example.com')
+      expect(result.checkout!.customerId).toBeDefined()
 
       // Verify in database
-      const savedCheckout = await getCheckout(createResult.checkout.id)
+      const savedCheckout = await getCheckout(createResult.checkout!.id)
       expect(savedCheckout.email).toBe('customer@example.com')
     })
 
@@ -54,7 +54,7 @@ describe('saveCustomerInfo', () => {
       if (!createResult.success) return
 
       const result = await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'john@example.com',
         firstName: 'John',
         lastName: 'Doe',
@@ -63,7 +63,7 @@ describe('saveCustomerInfo', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.email).toBe('john@example.com')
+      expect(result.checkout!.email).toBe('john@example.com')
     })
 
     it('normalizes email to lowercase', async () => {
@@ -75,14 +75,14 @@ describe('saveCustomerInfo', () => {
       if (!createResult.success) return
 
       const result = await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'John.Doe@Example.COM',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.email).toBe('john.doe@example.com')
+      expect(result.checkout!.email).toBe('john.doe@example.com')
     })
 
     it('reuses existing customer for same email', async () => {
@@ -95,7 +95,7 @@ describe('saveCustomerInfo', () => {
       if (!checkout1.success) return
 
       const result1 = await saveCustomerInfo({
-        checkoutId: checkout1.checkout.id,
+        checkoutId: checkout1.checkout!.id,
         email: 'repeat@example.com',
       })
       expect(result1.success).toBe(true)
@@ -109,14 +109,14 @@ describe('saveCustomerInfo', () => {
       if (!checkout2.success) return
 
       const result2 = await saveCustomerInfo({
-        checkoutId: checkout2.checkout.id,
+        checkoutId: checkout2.checkout!.id,
         email: 'repeat@example.com',
       })
       expect(result2.success).toBe(true)
       if (!result2.success) return
 
       // Should reuse same customer ID
-      expect(result2.checkout.customerId).toBe(result1.checkout.customerId)
+      expect(result2.checkout!.customerId).toBe(result1.checkout!.customerId)
     })
   })
 
@@ -182,23 +182,23 @@ describe('saveCustomerInfo', () => {
 
       // First email
       await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'first@example.com',
       })
 
       // Update email
       const result = await saveCustomerInfo({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         email: 'second@example.com',
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.email).toBe('second@example.com')
+      expect(result.checkout!.email).toBe('second@example.com')
 
       // Verify in database
-      const savedCheckout = await getCheckout(createResult.checkout.id)
+      const savedCheckout = await getCheckout(createResult.checkout!.id)
       expect(savedCheckout.email).toBe('second@example.com')
     })
   })

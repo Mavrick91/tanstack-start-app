@@ -99,7 +99,7 @@ export interface FNFormProps {
   renderBeforeSubmit?: (values: Record<string, unknown>) => React.ReactNode
 }
 
-function getAllFields(formDefinition: FormDefinition): FieldDefinition[] {
+const getAllFields = (formDefinition: FormDefinition) => {
   const fields: FieldDefinition[] = []
   if (formDefinition.fields) {
     fields.push(...formDefinition.fields)
@@ -112,7 +112,7 @@ function getAllFields(formDefinition: FormDefinition): FieldDefinition[] {
   return fields
 }
 
-export function FNForm({
+export const FNForm = ({
   formDefinition,
   onSubmit,
   defaultValues = {},
@@ -123,7 +123,7 @@ export function FNForm({
   className,
   renderSubmitButton,
   renderBeforeSubmit,
-}: FNFormProps) {
+}: FNFormProps) => {
   const allFields = getAllFields(formDefinition)
 
   const form = useForm({
@@ -295,7 +295,7 @@ interface FormFieldProps {
   onFieldChange: (name: string, value: unknown) => void
 }
 
-function FormField({ field, fieldApi, onFieldChange }: FormFieldProps) {
+const FormField = ({ field, fieldApi, onFieldChange }: FormFieldProps) => {
   const { state, handleChange: apiHandleChange, handleBlur } = fieldApi
   const errors = state.meta.errors.filter(Boolean) as string[]
   const hasError = errors.length > 0

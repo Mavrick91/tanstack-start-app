@@ -26,20 +26,15 @@ const searchSchema = z.object({
 
 type SortKey = 'name' | 'productCount' | 'createdAt'
 
-export const Route = createFileRoute('/admin/_authed/collections/')({
-  component: CollectionsPage,
-  validateSearch: searchSchema,
-})
-
 // Fetcher using server function
-async function fetchCollections(state: {
+const fetchCollections = async (state: {
   search: string
   page: number
   limit: number
   sortKey: string
   sortOrder: string
   filters: Record<string, string | undefined>
-}) {
+}) => {
   const result = await getCollectionsFn({
     data: {
       page: state.page,
@@ -62,7 +57,7 @@ async function fetchCollections(state: {
   }
 }
 
-function CollectionsPage() {
+const CollectionsPage = () => {
   const { t } = useTranslation()
   const searchParams = Route.useSearch()
 
@@ -212,7 +207,12 @@ function CollectionsPage() {
   )
 }
 
-function EmptyState() {
+export const Route = createFileRoute('/admin/_authed/collections/')({
+  component: CollectionsPage,
+  validateSearch: searchSchema,
+})
+
+const EmptyState = () => {
   const { t } = useTranslation()
   return (
     <div className="text-center py-24 bg-card border border-border/50 rounded-3xl shadow-sm">
@@ -237,7 +237,7 @@ function EmptyState() {
   )
 }
 
-function NoResults({ onClear }: { onClear: () => void }) {
+const NoResults = ({ onClear }: { onClear: () => void }) => {
   const { t } = useTranslation()
   return (
     <div className="text-center py-20 bg-card border border-border/50 rounded-3xl shadow-sm">

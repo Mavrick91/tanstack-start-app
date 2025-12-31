@@ -58,6 +58,35 @@ export default tseslint.config(
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
 
+      // Prefer arrow functions (const fn = () => {}) over function declarations
+      'func-style': ['error', 'expression'],
+
+      // Forbid explicit return types - let TypeScript infer them
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'FunctionDeclaration[returnType]',
+          message:
+            'Do not use explicit return types. Let TypeScript infer them.',
+        },
+        {
+          selector: 'ArrowFunctionExpression[returnType]',
+          message:
+            'Do not use explicit return types. Let TypeScript infer them.',
+        },
+        {
+          selector: 'FunctionExpression[returnType]',
+          message:
+            'Do not use explicit return types. Let TypeScript infer them.',
+        },
+        {
+          selector:
+            "CallExpression[callee.name='t'][arguments.0.type!='Literal'][arguments.0.type!='TemplateLiteral']",
+          message:
+            'The t() function must be called with a string literal to support static analysis. For dynamic keys, use the td() helper instead.',
+        },
+      ],
+
       // Import rules - disabled no-unresolved temporarily due to resolver issues
       'import/order': [
         'error',

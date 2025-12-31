@@ -503,7 +503,7 @@ describe('FNForm', () => {
         fields: [{ name: 'username', type: 'text', label: 'Username' }],
       }
 
-      function TestComponent() {
+      const TestComponent = () => {
         const formRef = useRef<FNFormRef | null>(null)
         return (
           <>
@@ -535,7 +535,7 @@ describe('FNForm', () => {
         fields: [{ name: 'username', type: 'text', label: 'Username' }],
       }
 
-      function TestComponent() {
+      const TestComponent = () => {
         const formRef = useRef<FNFormRef | null>(null)
         return (
           <>

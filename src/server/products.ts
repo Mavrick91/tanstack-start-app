@@ -55,16 +55,19 @@ export interface ProductInput {
 }
 
 // Helper: Generate all variant combinations from options
-export function generateVariantCombinations(
+export const generateVariantCombinations = (
   options: ProductOptionInput[],
-): SelectedOption[][] {
+): SelectedOption[][] => {
   if (options.length === 0) return [[]]
 
   const [first, ...rest] = options
-  const restCombinations = generateVariantCombinations(rest)
+  const restCombinations: SelectedOption[][] = generateVariantCombinations(rest)
 
-  return first.values.flatMap((value) =>
-    restCombinations.map((combo) => [{ name: first.name, value }, ...combo]),
+  return first.values.flatMap((value: string) =>
+    restCombinations.map((combo: SelectedOption[]) => [
+      { name: first.name, value },
+      ...combo,
+    ]),
   )
 }
 
@@ -216,9 +219,9 @@ export const createProductFn = createServerFn({ method: 'POST' })
         // Auto-generate variants from options
         const combinations = generateVariantCombinations(options)
         await tx.insert(productVariants).values(
-          combinations.map((combo, index) => ({
+          combinations.map((combo: SelectedOption[], index: number) => ({
             productId: newProduct.id,
-            title: combo.map((o) => o.value).join(' / '),
+            title: combo.map((o: SelectedOption) => o.value).join(' / '),
             selectedOptions: combo,
             price: price || '0',
             compareAtPrice: emptyToNull(compareAtPrice),
@@ -400,7 +403,7 @@ export const updateProductStatusFn = createServerFn({ method: 'POST' })
   })
 
 // Helper to require admin auth
-async function requireAdmin() {
+const requireAdmin = async () => {
   const user = await getMeFn()
   if (!user || user.role !== 'admin') {
     throw new Error('Unauthorized')

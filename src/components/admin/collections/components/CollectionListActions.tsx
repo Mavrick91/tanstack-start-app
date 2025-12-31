@@ -17,12 +17,12 @@ interface CollectionListActionsProps {
   status: 'active' | 'draft' | 'archived'
 }
 
-export function CollectionListActions({
+export const CollectionListActions = ({
   collectionId,
   handle,
   name,
   status,
-}: CollectionListActionsProps) {
+}: CollectionListActionsProps) => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 

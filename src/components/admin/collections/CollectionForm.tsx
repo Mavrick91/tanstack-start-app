@@ -26,10 +26,10 @@ import { Textarea } from '../../ui/textarea'
 
 import type { CollectionFormProps, Product } from './types'
 
-export function CollectionForm({
+export const CollectionForm = ({
   collection,
   isEdit = false,
-}: CollectionFormProps) {
+}: CollectionFormProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 

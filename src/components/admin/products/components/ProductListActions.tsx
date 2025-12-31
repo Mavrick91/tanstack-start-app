@@ -16,12 +16,12 @@ interface ProductListActionsProps {
   status: 'draft' | 'active' | 'archived'
 }
 
-export function ProductListActions({
+export const ProductListActions = ({
   productId,
   productName,
   handle,
   status,
-}: ProductListActionsProps) {
+}: ProductListActionsProps) => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 

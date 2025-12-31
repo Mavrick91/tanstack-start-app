@@ -18,13 +18,6 @@ import { useEffect } from 'react'
 import { Button } from '../components/ui/button'
 import { useAuthStore } from '../hooks/useAuth'
 
-export const Route = createFileRoute('/admin')({
-  beforeLoad: ({ location }) => {
-    if (location.pathname === '/admin/login') return
-  },
-  component: AdminLayout,
-})
-
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { label: 'Orders', path: '/admin/orders', icon: ShoppingCart },
@@ -32,7 +25,7 @@ const navItems = [
   { label: 'Collections', path: '/admin/collections', icon: FolderOpen },
 ]
 
-function AdminLayout() {
+const AdminLayout = () => {
   const router = useRouter()
   const { location } = useRouterState()
   const { user, logout, isAuthenticated, isLoading, checkSession } =
@@ -142,3 +135,10 @@ function AdminLayout() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin')({
+  beforeLoad: ({ location }) => {
+    if (location.pathname === '/admin/login') return
+  },
+  component: AdminLayout,
+})

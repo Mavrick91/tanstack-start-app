@@ -24,7 +24,7 @@ i18n.use(initReactI18next).init({
   },
 })
 
-export const changeLanguage = (lang: string) => {
+export const changeLanguage = (lang: string): void => {
   if (i18n.language !== lang) {
     i18n.changeLanguage(lang)
   }

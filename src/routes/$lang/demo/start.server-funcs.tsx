@@ -18,7 +18,7 @@ const loggedServerFunction = createServerFn({ method: "GET" }).middleware([
 
 const TODOS_FILE = 'todos.json'
 
-async function readTodos() {
+const readTodos = async () => {
   return JSON.parse(
     await fs.promises.readFile(TODOS_FILE, 'utf-8').catch(() =>
       JSON.stringify(
@@ -46,12 +46,7 @@ const addTodo = createServerFn({ method: 'POST' })
     return todos
   })
 
-export const Route = createFileRoute('/$lang/demo/start/server-funcs')({
-  component: Home,
-  loader: async () => await getTodos(),
-})
-
-function Home() {
+const Home = () => {
   const router = useRouter()
   const todos = Route.useLoaderData()
 
@@ -108,3 +103,8 @@ function Home() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/demo/start/server-funcs')({
+  component: Home,
+  loader: async () => await getTodos(),
+})

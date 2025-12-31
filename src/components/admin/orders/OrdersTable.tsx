@@ -27,13 +27,13 @@ type OrdersTableProps = {
   isUpdating?: boolean
 }
 
-export function OrdersTable({
+export const OrdersTable = ({
   orders,
   selectedIds = new Set(),
   onSelectionChange,
   onQuickStatusChange,
   isUpdating = false,
-}: OrdersTableProps) {
+}: OrdersTableProps) => {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',

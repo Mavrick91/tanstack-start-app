@@ -7,10 +7,10 @@ interface UseProductPickerOptions {
   allProducts: Product[]
 }
 
-export function useProductPicker({
+export const useProductPicker = ({
   localProducts,
   allProducts,
-}: UseProductPickerOptions) {
+}: UseProductPickerOptions) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [search, setSearch] = useState('')

@@ -34,11 +34,7 @@ import { formatCurrency } from '../../../lib/format'
 
 import type { AddressFormData } from '../../../lib/checkout-schemas'
 
-export const Route = createFileRoute('/$lang/checkout/information')({
-  component: CheckoutInformationPage,
-})
-
-function CheckoutInformationPage() {
+const CheckoutInformationPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -304,3 +300,7 @@ function CheckoutInformationPage() {
     </CheckoutLayout>
   )
 }
+
+export const Route = createFileRoute('/$lang/checkout/information')({
+  component: CheckoutInformationPage,
+})

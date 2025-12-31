@@ -16,22 +16,7 @@ import { formatCurrency } from '../../../lib/format'
 
 import type { ProductVariant } from '../../../types/store'
 
-export const Route = createFileRoute('/$lang/products/$productId')({
-  loader: ({ params }) =>
-    getProductBySlug({ data: { slug: params.productId, lang: params.lang } }),
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData
-          ? `${loaderData.name} | FineNail Season`
-          : 'Product | FineNail Season',
-      },
-    ],
-  }),
-  component: ProductDetailPage,
-})
-
-function ProductDetailPage() {
+const ProductDetailPage = () => {
   const { lang } = Route.useParams()
   const { t } = useTranslation()
   const product = Route.useLoaderData()
@@ -105,17 +90,6 @@ function ProductDetailPage() {
           )}
 
           <div className="space-y-6">
-            {product.features && (
-              <ul className="space-y-2">
-                {product.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    <div className="w-1 h-1 rounded-full bg-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            )}
-
             <div className="flex flex-col gap-4 pt-4">
               <div className="flex items-center gap-4">
                 <div className="flex items-center border border-border rounded-lg overflow-hidden h-12">
@@ -175,3 +149,18 @@ function ProductDetailPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/products/$productId')({
+  loader: ({ params }) =>
+    getProductBySlug({ data: { slug: params.productId, lang: params.lang } }),
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData
+          ? `${loaderData.name} | FineNail Season`
+          : 'Product | FineNail Season',
+      },
+    ],
+  }),
+  component: ProductDetailPage,
+})

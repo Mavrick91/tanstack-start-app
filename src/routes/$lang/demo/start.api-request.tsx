@@ -1,17 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
-function getNames() {
+const getNames = () => {
   return fetch('/demo/api/names').then(
     (res) => res.json() as Promise<Array<string>>,
   )
 }
 
-export const Route = createFileRoute('/$lang/demo/start/api-request')({
-  component: Home,
-})
-
-function Home() {
+const Home = () => {
   const [names, setNames] = useState<Array<string>>([])
 
   useEffect(() => {
@@ -43,3 +39,7 @@ function Home() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/demo/start/api-request')({
+  component: Home,
+})

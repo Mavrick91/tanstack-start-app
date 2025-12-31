@@ -32,7 +32,7 @@ import type { CheckoutServiceDeps } from './checkout.service'
 /**
  * Creates a mock database for checkout service tests.
  */
-function createMockDb(
+const createMockDb = (
   options: {
     checkout?: ReturnType<typeof createCheckout> | null
     insertError?: Error
@@ -46,7 +46,7 @@ function createMockDb(
       paymentStatus: string
     } | null
   } = {},
-) {
+): ReturnType<typeof vi.fn> => {
   const mockTransaction = vi.fn().mockImplementation(async (callback) => {
     if (options.insertError) {
       throw options.insertError
@@ -76,7 +76,7 @@ function createMockDb(
     return callback(tx)
   })
 
-  return {
+  const mockDb = {
     select: vi.fn().mockReturnValue({
       from: vi.fn().mockImplementation((table) => {
         const tableName = table?._.name ?? 'unknown'
@@ -105,18 +105,19 @@ function createMockDb(
     }),
     transaction: mockTransaction,
   }
+  return mockDb as unknown as ReturnType<typeof vi.fn>
 }
 
 /**
  * Creates mock Stripe functions.
  */
-function createMockStripe(
+const createMockStripe = (
   options: {
     status?: string
     amount?: number
     error?: Error
   } = {},
-) {
+): ReturnType<typeof vi.fn> => {
   if (options.error) {
     return vi.fn().mockRejectedValue(options.error)
   }
@@ -130,13 +131,13 @@ function createMockStripe(
 /**
  * Creates mock PayPal functions.
  */
-function createMockPayPal(
+const createMockPayPal = (
   options: {
     status?: string
     capturedAmount?: string
     error?: Error
   } = {},
-) {
+): ReturnType<typeof vi.fn> => {
   if (options.error) {
     return vi.fn().mockRejectedValue(options.error)
   }
@@ -372,7 +373,7 @@ describe('Checkout Service', () => {
         expect(result.success).toBe(true)
         expect(mockStripe).toHaveBeenCalledWith('pi_123')
         if (result.success) {
-          expect(result.order.paymentStatus).toBe('paid')
+          expect(result.order!.paymentStatus).toBe('paid')
         }
       })
 
@@ -587,7 +588,7 @@ describe('Checkout Service', () => {
         expect(result.success).toBe(true)
         if (result.success) {
           expect(result.idempotent).toBe(true)
-          expect(result.order.id).toBe('existing-order')
+          expect(result.order!.id).toBe('existing-order')
         }
       })
     })

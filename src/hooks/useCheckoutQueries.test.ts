@@ -41,7 +41,7 @@ const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
 // Create wrapper with QueryClient
-function createWrapper() {
+const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -52,13 +52,15 @@ function createWrapper() {
       },
     },
   })
-  return function Wrapper({ children }: { children: React.ReactNode }) {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => {
     return React.createElement(
       QueryClientProvider,
       { client: queryClient },
       children,
     )
   }
+  Wrapper.displayName = 'QueryClientWrapper'
+  return Wrapper
 }
 
 const MOCK_CHECKOUT = {
@@ -460,7 +462,7 @@ describe('useCompleteCheckout', () => {
       wrapper,
     })
 
-    let data: { order: { id: string; orderNumber: number } } | undefined
+    let data: { order?: { id: string; orderNumber: number } } | undefined
     await act(async () => {
       data = await result.current.mutateAsync({
         paymentProvider: 'stripe',
@@ -468,7 +470,7 @@ describe('useCompleteCheckout', () => {
       })
     })
 
-    expect(data?.order.orderNumber).toBe(1001)
+    expect(data?.order?.orderNumber).toBe(1001)
     expect(completeCheckoutFn).toHaveBeenCalledWith({
       data: {
         checkoutId: 'checkout-123',

@@ -6,7 +6,7 @@ import { sessions } from '../../../db/schema'
 import { errorResponse } from '../../../lib/api'
 
 // Helper to parse cookies from request
-function getCookie(request: Request, name: string): string | undefined {
+const getCookie = (request: Request, name: string): string | undefined => {
   const cookieHeader = request.headers.get('Cookie')
   if (!cookieHeader) return undefined
 

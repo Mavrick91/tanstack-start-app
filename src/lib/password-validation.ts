@@ -3,7 +3,7 @@ export interface PasswordValidationResult {
   error?: string
 }
 
-export function validatePassword(password: string): PasswordValidationResult {
+export const validatePassword = (password: string) => {
   if (!password || password.length < 8) {
     return { valid: false, error: 'Password must be at least 8 characters' }
   }

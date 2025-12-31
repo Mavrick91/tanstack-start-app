@@ -6,7 +6,7 @@ import { getCsrfTokenFromRequest } from './csrf'
 import { db } from '../db'
 import { checkouts } from '../db/schema'
 
-function getCheckoutSecret(): string {
+const getCheckoutSecret = (): string => {
   const secret = process.env.CHECKOUT_SECRET
   if (!secret) {
     throw new Error('CHECKOUT_SECRET environment variable is required')
@@ -20,24 +20,24 @@ export interface CheckoutAccessResult {
   error?: string
 }
 
-export function generateCheckoutToken(checkoutId: string): string {
+export const generateCheckoutToken = (checkoutId: string): string => {
   const hmac = createHmac('sha256', getCheckoutSecret())
   hmac.update(checkoutId)
   return hmac.digest('hex')
 }
 
-export function verifyCheckoutToken(
+export const verifyCheckoutToken = (
   checkoutId: string,
   token: string,
-): boolean {
+): boolean => {
   const expectedToken = generateCheckoutToken(checkoutId)
   return token === expectedToken
 }
 
-export async function validateCheckoutAccess(
+export const validateCheckoutAccess = async (
   checkoutId: string,
   request: Request,
-): Promise<CheckoutAccessResult> {
+): Promise<CheckoutAccessResult> => {
   const [checkout] = await db
     .select()
     .from(checkouts)
@@ -89,7 +89,7 @@ export async function validateCheckoutAccess(
   return { valid: true, checkout }
 }
 
-function timingSafeCompare(a: string, b: string): boolean {
+const timingSafeCompare = (a: string, b: string): boolean => {
   if (a.length !== b.length) return false
   try {
     return timingSafeEqual(Buffer.from(a), Buffer.from(b))
@@ -98,7 +98,7 @@ function timingSafeCompare(a: string, b: string): boolean {
   }
 }
 
-export function createCheckoutSessionCookie(checkoutId: string): string {
+export const createCheckoutSessionCookie = (checkoutId: string): string => {
   const token = generateCheckoutToken(checkoutId)
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const isProduction = process.env.NODE_ENV === 'production'

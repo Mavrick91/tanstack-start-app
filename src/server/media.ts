@@ -14,7 +14,7 @@ cloudinary.config({
 })
 
 // Helper to require admin access
-async function requireAdmin() {
+const requireAdmin = async () => {
   const user = await getMeFn()
   if (!user || user.role !== 'admin') {
     throw new Error('Unauthorized')

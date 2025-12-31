@@ -44,7 +44,7 @@ export interface DataListDropdownProps {
   isStatusPending?: boolean
 }
 
-export function DataListDropdown({
+export const DataListDropdown = ({
   itemName,
   status,
   editUrl,
@@ -54,7 +54,7 @@ export function DataListDropdown({
   onStatusChange,
   isDuplicatePending,
   isStatusPending,
-}: DataListDropdownProps) {
+}: DataListDropdownProps) => {
   const { t } = useTranslation()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 

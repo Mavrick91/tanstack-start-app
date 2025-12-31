@@ -32,7 +32,7 @@ const SIZE_PRESETS: Record<ImageSize, CloudinaryUrlOptions> = {
 /**
  * Extracts the public ID from a Cloudinary URL
  */
-export function getPublicIdFromUrl(url: string): string | null {
+export const getPublicIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/v\d+\/(.+)\.\w+$/)
   return match ? match[1] : null
 }
@@ -47,10 +47,10 @@ export function getPublicIdFromUrl(url: string): string | null {
  * // Get a custom-sized image
  * getOptimizedImageUrl('https://res.cloudinary.com/.../image.jpg', { width: 600, height: 400 })
  */
-export function getOptimizedImageUrl(
+export const getOptimizedImageUrl = (
   originalUrl: string,
   sizeOrOptions: ImageSize | CloudinaryUrlOptions = 'medium',
-): string {
+): string => {
   // Handle local blob URLs (return as-is for preview)
   if (originalUrl.startsWith('blob:')) {
     return originalUrl
@@ -104,7 +104,7 @@ export function getOptimizedImageUrl(
  *   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
  * />
  */
-export function getResponsiveSrcSet(originalUrl: string): string {
+export const getResponsiveSrcSet = (originalUrl: string): string => {
   if (
     originalUrl.startsWith('blob:') ||
     !originalUrl.includes('res.cloudinary.com')
@@ -130,7 +130,7 @@ export function getResponsiveSrcSet(originalUrl: string): string {
 /**
  * Generates blur placeholder data URL for progressive loading
  */
-export function getBlurPlaceholder(originalUrl: string): string {
+export const getBlurPlaceholder = (originalUrl: string): string => {
   if (
     originalUrl.startsWith('blob:') ||
     !originalUrl.includes('res.cloudinary.com')
@@ -151,9 +151,9 @@ export function getBlurPlaceholder(originalUrl: string): string {
  * Deletes images from Cloudinary by their URLs
  * Skips non-Cloudinary URLs silently
  */
-export async function deleteImagesFromCloudinary(
+export const deleteImagesFromCloudinary = async (
   urls: string[],
-): Promise<void> {
+): Promise<void> => {
   const cloudinaryUrls = urls.filter((url) =>
     url.includes('res.cloudinary.com'),
   )

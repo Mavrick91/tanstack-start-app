@@ -9,17 +9,7 @@ import {
 } from '../../components/ui/fn-form'
 import { useAuthStore } from '../../hooks/useAuth'
 
-export const Route = createFileRoute('/admin/login')({
-  beforeLoad: () => {
-    const { isAuthenticated } = useAuthStore.getState()
-    if (isAuthenticated) {
-      throw redirect({ to: '/admin' })
-    }
-  },
-  component: LoginPage,
-})
-
-function LoginPage() {
+const LoginPage = (): React.ReactNode => {
   const router = useRouter()
   const login = useAuthStore((state) => state.login)
   const formRef = useRef<FNFormRef | null>(null)
@@ -35,7 +25,7 @@ function LoginPage() {
         validateOnChange: true,
         inputClassName:
           'w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500',
-        validate: (value) => {
+        validate: (value): string | undefined => {
           const email = String(value || '')
           if (!email) return 'Email is required'
           if (!/^\S+@\S+\.\S+$/.test(email)) return 'Invalid email format'
@@ -51,7 +41,7 @@ function LoginPage() {
         validateOnChange: true,
         inputClassName:
           'w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-pink-500',
-        validate: (value) => {
+        validate: (value): string | undefined => {
           const password = String(value || '')
           if (!password) return 'Password is required'
           if (password.length < 6)
@@ -62,7 +52,9 @@ function LoginPage() {
     ],
   }
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
+  const handleSubmit = async (
+    values: Record<string, unknown>,
+  ): Promise<void> => {
     const email = String(values.email || '')
     const password = String(values.password || '')
 
@@ -106,3 +98,13 @@ function LoginPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/login')({
+  beforeLoad: () => {
+    const { isAuthenticated } = useAuthStore.getState()
+    if (isAuthenticated) {
+      throw redirect({ to: '/admin' })
+    }
+  },
+  component: LoginPage,
+})

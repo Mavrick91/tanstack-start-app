@@ -16,7 +16,6 @@ import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
-import { Route as ApiProductsIndexRouteImport } from './routes/api/products/index'
 import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
 import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
@@ -28,14 +27,11 @@ import { Route as LangAccountIndexRouteImport } from './routes/$lang/account/ind
 import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as ApiWebhooksPaypalRouteImport } from './routes/api/webhooks/paypal'
 import { Route as ApiProductsStatsRouteImport } from './routes/api/products/stats'
-import { Route as ApiProductsBulkRouteImport } from './routes/api/products/bulk'
-import { Route as ApiProductsProductIdRouteImport } from './routes/api/products/$productId'
 import { Route as ApiOrdersStatsRouteImport } from './routes/api/orders/stats'
 import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiCustomersRegisterRouteImport } from './routes/api/customers/register'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
-import { Route as ApiCheckoutCreateRouteImport } from './routes/api/checkout/create'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
@@ -47,21 +43,11 @@ import { Route as LangCheckoutInformationRouteImport } from './routes/$lang/chec
 import { Route as LangCheckoutConfirmationRouteImport } from './routes/$lang/checkout/confirmation'
 import { Route as LangAccountOrdersRouteImport } from './routes/$lang/account/orders'
 import { Route as LangAccountAddressesRouteImport } from './routes/$lang/account/addresses'
-import { Route as ApiCustomersMeIndexRouteImport } from './routes/api/customers/me/index'
-import { Route as ApiCheckoutCheckoutIdIndexRouteImport } from './routes/api/checkout/$checkoutId/index'
 import { Route as AdminAuthedProductsIndexRouteImport } from './routes/admin/_authed/products/index'
 import { Route as AdminAuthedOrdersIndexRouteImport } from './routes/admin/_authed/orders/index'
 import { Route as AdminAuthedCollectionsIndexRouteImport } from './routes/admin/_authed/collections/index'
-import { Route as ApiProductsProductIdImagesRouteImport } from './routes/api/products/$productId/images'
 import { Route as ApiOrdersOrderIdRefundRouteImport } from './routes/api/orders/$orderId/refund'
 import { Route as ApiOrdersOrderIdHistoryRouteImport } from './routes/api/orders/$orderId/history'
-import { Route as ApiCustomersMeOrdersRouteImport } from './routes/api/customers/me/orders'
-import { Route as ApiCustomersMeAddressesRouteImport } from './routes/api/customers/me/addresses'
-import { Route as ApiCheckoutCheckoutIdShippingRatesRouteImport } from './routes/api/checkout/$checkoutId/shipping-rates'
-import { Route as ApiCheckoutCheckoutIdShippingMethodRouteImport } from './routes/api/checkout/$checkoutId/shipping-method'
-import { Route as ApiCheckoutCheckoutIdShippingAddressRouteImport } from './routes/api/checkout/$checkoutId/shipping-address'
-import { Route as ApiCheckoutCheckoutIdCustomerRouteImport } from './routes/api/checkout/$checkoutId/customer'
-import { Route as ApiCheckoutCheckoutIdCompleteRouteImport } from './routes/api/checkout/$checkoutId/complete'
 import { Route as AdminAuthedProductsNewRouteImport } from './routes/admin/_authed/products/new'
 import { Route as AdminAuthedProductsProductIdRouteImport } from './routes/admin/_authed/products/$productId'
 import { Route as AdminAuthedOrdersOrderIdRouteImport } from './routes/admin/_authed/orders/$orderId'
@@ -112,11 +98,6 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AdminAuthedRoute = AdminAuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => AdminRoute,
-} as any)
-const ApiProductsIndexRoute = ApiProductsIndexRouteImport.update({
-  id: '/api/products/',
-  path: '/api/products/',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOrdersIndexRoute = ApiOrdersIndexRouteImport.update({
   id: '/api/orders/',
@@ -173,16 +154,6 @@ const ApiProductsStatsRoute = ApiProductsStatsRouteImport.update({
   path: '/api/products/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiProductsBulkRoute = ApiProductsBulkRouteImport.update({
-  id: '/api/products/bulk',
-  path: '/api/products/bulk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProductsProductIdRoute = ApiProductsProductIdRouteImport.update({
-  id: '/api/products/$productId',
-  path: '/api/products/$productId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiOrdersStatsRoute = ApiOrdersStatsRouteImport.update({
   id: '/api/orders/stats',
   path: '/api/orders/stats',
@@ -206,11 +177,6 @@ const ApiCustomersRegisterRoute = ApiCustomersRegisterRouteImport.update({
 const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
   id: '/api/cron/cleanup-checkouts',
   path: '/api/cron/cleanup-checkouts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCheckoutCreateRoute = ApiCheckoutCreateRouteImport.update({
-  id: '/api/checkout/create',
-  path: '/api/checkout/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
@@ -269,17 +235,6 @@ const LangAccountAddressesRoute = LangAccountAddressesRouteImport.update({
   path: '/account/addresses',
   getParentRoute: () => LangRoute,
 } as any)
-const ApiCustomersMeIndexRoute = ApiCustomersMeIndexRouteImport.update({
-  id: '/api/customers/me/',
-  path: '/api/customers/me/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCheckoutCheckoutIdIndexRoute =
-  ApiCheckoutCheckoutIdIndexRouteImport.update({
-    id: '/api/checkout/$checkoutId/',
-    path: '/api/checkout/$checkoutId/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AdminAuthedProductsIndexRoute =
   AdminAuthedProductsIndexRouteImport.update({
     id: '/products/',
@@ -297,12 +252,6 @@ const AdminAuthedCollectionsIndexRoute =
     path: '/collections/',
     getParentRoute: () => AdminAuthedRoute,
   } as any)
-const ApiProductsProductIdImagesRoute =
-  ApiProductsProductIdImagesRouteImport.update({
-    id: '/images',
-    path: '/images',
-    getParentRoute: () => ApiProductsProductIdRoute,
-  } as any)
 const ApiOrdersOrderIdRefundRoute = ApiOrdersOrderIdRefundRouteImport.update({
   id: '/refund',
   path: '/refund',
@@ -313,46 +262,6 @@ const ApiOrdersOrderIdHistoryRoute = ApiOrdersOrderIdHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => ApiOrdersOrderIdRoute,
 } as any)
-const ApiCustomersMeOrdersRoute = ApiCustomersMeOrdersRouteImport.update({
-  id: '/api/customers/me/orders',
-  path: '/api/customers/me/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCustomersMeAddressesRoute = ApiCustomersMeAddressesRouteImport.update({
-  id: '/api/customers/me/addresses',
-  path: '/api/customers/me/addresses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCheckoutCheckoutIdShippingRatesRoute =
-  ApiCheckoutCheckoutIdShippingRatesRouteImport.update({
-    id: '/api/checkout/$checkoutId/shipping-rates',
-    path: '/api/checkout/$checkoutId/shipping-rates',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCheckoutCheckoutIdShippingMethodRoute =
-  ApiCheckoutCheckoutIdShippingMethodRouteImport.update({
-    id: '/api/checkout/$checkoutId/shipping-method',
-    path: '/api/checkout/$checkoutId/shipping-method',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCheckoutCheckoutIdShippingAddressRoute =
-  ApiCheckoutCheckoutIdShippingAddressRouteImport.update({
-    id: '/api/checkout/$checkoutId/shipping-address',
-    path: '/api/checkout/$checkoutId/shipping-address',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCheckoutCheckoutIdCustomerRoute =
-  ApiCheckoutCheckoutIdCustomerRouteImport.update({
-    id: '/api/checkout/$checkoutId/customer',
-    path: '/api/checkout/$checkoutId/customer',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCheckoutCheckoutIdCompleteRoute =
-  ApiCheckoutCheckoutIdCompleteRouteImport.update({
-    id: '/api/checkout/$checkoutId/complete',
-    path: '/api/checkout/$checkoutId/complete',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AdminAuthedProductsNewRoute = AdminAuthedProductsNewRouteImport.update({
   id: '/products/new',
   path: '/products/new',
@@ -462,14 +371,11 @@ export interface FileRoutesByFullPath {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/checkout/create': typeof ApiCheckoutCreateRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
-  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -481,7 +387,6 @@ export interface FileRoutesByFullPath {
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/api/orders': typeof ApiOrdersIndexRoute
-  '/api/products': typeof ApiProductsIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -491,21 +396,11 @@ export interface FileRoutesByFullPath {
   '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
-  '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
-  '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
-  '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
-  '/api/checkout/$checkoutId/shipping-method': typeof ApiCheckoutCheckoutIdShippingMethodRoute
-  '/api/checkout/$checkoutId/shipping-rates': typeof ApiCheckoutCheckoutIdShippingRatesRoute
-  '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
-  '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
-  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
-  '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
-  '/api/customers/me': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -531,14 +426,11 @@ export interface FileRoutesByTo {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/checkout/create': typeof ApiCheckoutCreateRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
-  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -549,7 +441,6 @@ export interface FileRoutesByTo {
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/api/orders': typeof ApiOrdersIndexRoute
-  '/api/products': typeof ApiProductsIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -559,21 +450,11 @@ export interface FileRoutesByTo {
   '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
-  '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
-  '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
-  '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
-  '/api/checkout/$checkoutId/shipping-method': typeof ApiCheckoutCheckoutIdShippingMethodRoute
-  '/api/checkout/$checkoutId/shipping-rates': typeof ApiCheckoutCheckoutIdShippingRatesRoute
-  '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
-  '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
-  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
-  '/api/checkout/$checkoutId': typeof ApiCheckoutCheckoutIdIndexRoute
-  '/api/customers/me': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -602,14 +483,11 @@ export interface FileRoutesById {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/checkout/create': typeof ApiCheckoutCreateRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
-  '/api/products/$productId': typeof ApiProductsProductIdRouteWithChildren
-  '/api/products/bulk': typeof ApiProductsBulkRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -621,7 +499,6 @@ export interface FileRoutesById {
   '/api/collections/': typeof ApiCollectionsIndexRoute
   '/api/media/': typeof ApiMediaIndexRoute
   '/api/orders/': typeof ApiOrdersIndexRoute
-  '/api/products/': typeof ApiProductsIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -631,21 +508,11 @@ export interface FileRoutesById {
   '/admin/_authed/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/_authed/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/_authed/products/new': typeof AdminAuthedProductsNewRoute
-  '/api/checkout/$checkoutId/complete': typeof ApiCheckoutCheckoutIdCompleteRoute
-  '/api/checkout/$checkoutId/customer': typeof ApiCheckoutCheckoutIdCustomerRoute
-  '/api/checkout/$checkoutId/shipping-address': typeof ApiCheckoutCheckoutIdShippingAddressRoute
-  '/api/checkout/$checkoutId/shipping-method': typeof ApiCheckoutCheckoutIdShippingMethodRoute
-  '/api/checkout/$checkoutId/shipping-rates': typeof ApiCheckoutCheckoutIdShippingRatesRoute
-  '/api/customers/me/addresses': typeof ApiCustomersMeAddressesRoute
-  '/api/customers/me/orders': typeof ApiCustomersMeOrdersRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
-  '/api/products/$productId/images': typeof ApiProductsProductIdImagesRoute
   '/admin/_authed/collections/': typeof AdminAuthedCollectionsIndexRoute
   '/admin/_authed/orders/': typeof AdminAuthedOrdersIndexRoute
   '/admin/_authed/products/': typeof AdminAuthedProductsIndexRoute
-  '/api/checkout/$checkoutId/': typeof ApiCheckoutCheckoutIdIndexRoute
-  '/api/customers/me/': typeof ApiCustomersMeIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -674,14 +541,11 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/checkout/create'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
-    | '/api/products/$productId'
-    | '/api/products/bulk'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -693,7 +557,6 @@ export interface FileRouteTypes {
     | '/api/collections'
     | '/api/media'
     | '/api/orders'
-    | '/api/products'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -703,21 +566,11 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
-    | '/api/checkout/$checkoutId/complete'
-    | '/api/checkout/$checkoutId/customer'
-    | '/api/checkout/$checkoutId/shipping-address'
-    | '/api/checkout/$checkoutId/shipping-method'
-    | '/api/checkout/$checkoutId/shipping-rates'
-    | '/api/customers/me/addresses'
-    | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
-    | '/api/products/$productId/images'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
-    | '/api/checkout/$checkoutId'
-    | '/api/customers/me'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -743,14 +596,11 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/checkout/create'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
-    | '/api/products/$productId'
-    | '/api/products/bulk'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -761,7 +611,6 @@ export interface FileRouteTypes {
     | '/api/collections'
     | '/api/media'
     | '/api/orders'
-    | '/api/products'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -771,21 +620,11 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
-    | '/api/checkout/$checkoutId/complete'
-    | '/api/checkout/$checkoutId/customer'
-    | '/api/checkout/$checkoutId/shipping-address'
-    | '/api/checkout/$checkoutId/shipping-method'
-    | '/api/checkout/$checkoutId/shipping-rates'
-    | '/api/customers/me/addresses'
-    | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
-    | '/api/products/$productId/images'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
-    | '/api/checkout/$checkoutId'
-    | '/api/customers/me'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -813,14 +652,11 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/checkout/create'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
-    | '/api/products/$productId'
-    | '/api/products/bulk'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -832,7 +668,6 @@ export interface FileRouteTypes {
     | '/api/collections/'
     | '/api/media/'
     | '/api/orders/'
-    | '/api/products/'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -842,21 +677,11 @@ export interface FileRouteTypes {
     | '/admin/_authed/orders/$orderId'
     | '/admin/_authed/products/$productId'
     | '/admin/_authed/products/new'
-    | '/api/checkout/$checkoutId/complete'
-    | '/api/checkout/$checkoutId/customer'
-    | '/api/checkout/$checkoutId/shipping-address'
-    | '/api/checkout/$checkoutId/shipping-method'
-    | '/api/checkout/$checkoutId/shipping-rates'
-    | '/api/customers/me/addresses'
-    | '/api/customers/me/orders'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
-    | '/api/products/$productId/images'
     | '/admin/_authed/collections/'
     | '/admin/_authed/orders/'
     | '/admin/_authed/products/'
-    | '/api/checkout/$checkoutId/'
-    | '/api/customers/me/'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -874,30 +699,17 @@ export interface RootRouteChildren {
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
-  ApiCheckoutCreateRoute: typeof ApiCheckoutCreateRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
   ApiCustomersRegisterRoute: typeof ApiCustomersRegisterRoute
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
   ApiOrdersBulkRoute: typeof ApiOrdersBulkRoute
   ApiOrdersStatsRoute: typeof ApiOrdersStatsRoute
-  ApiProductsProductIdRoute: typeof ApiProductsProductIdRouteWithChildren
-  ApiProductsBulkRoute: typeof ApiProductsBulkRoute
   ApiProductsStatsRoute: typeof ApiProductsStatsRoute
   ApiWebhooksPaypalRoute: typeof ApiWebhooksPaypalRoute
   ApiWebhooksStripeRoute: typeof ApiWebhooksStripeRoute
   ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
   ApiMediaIndexRoute: typeof ApiMediaIndexRoute
   ApiOrdersIndexRoute: typeof ApiOrdersIndexRoute
-  ApiProductsIndexRoute: typeof ApiProductsIndexRoute
-  ApiCheckoutCheckoutIdCompleteRoute: typeof ApiCheckoutCheckoutIdCompleteRoute
-  ApiCheckoutCheckoutIdCustomerRoute: typeof ApiCheckoutCheckoutIdCustomerRoute
-  ApiCheckoutCheckoutIdShippingAddressRoute: typeof ApiCheckoutCheckoutIdShippingAddressRoute
-  ApiCheckoutCheckoutIdShippingMethodRoute: typeof ApiCheckoutCheckoutIdShippingMethodRoute
-  ApiCheckoutCheckoutIdShippingRatesRoute: typeof ApiCheckoutCheckoutIdShippingRatesRoute
-  ApiCustomersMeAddressesRoute: typeof ApiCustomersMeAddressesRoute
-  ApiCustomersMeOrdersRoute: typeof ApiCustomersMeOrdersRoute
-  ApiCheckoutCheckoutIdIndexRoute: typeof ApiCheckoutCheckoutIdIndexRoute
-  ApiCustomersMeIndexRoute: typeof ApiCustomersMeIndexRoute
   ApiCheckoutCheckoutIdPaymentPaypalRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
   ApiCheckoutCheckoutIdPaymentStripeRoute: typeof ApiCheckoutCheckoutIdPaymentStripeRoute
 }
@@ -952,13 +764,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AdminAuthedRouteImport
       parentRoute: typeof AdminRoute
-    }
-    '/api/products/': {
-      id: '/api/products/'
-      path: '/api/products'
-      fullPath: '/api/products'
-      preLoaderRoute: typeof ApiProductsIndexRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/orders/': {
       id: '/api/orders/'
@@ -1037,20 +842,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProductsStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/products/bulk': {
-      id: '/api/products/bulk'
-      path: '/api/products/bulk'
-      fullPath: '/api/products/bulk'
-      preLoaderRoute: typeof ApiProductsBulkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/products/$productId': {
-      id: '/api/products/$productId'
-      path: '/api/products/$productId'
-      fullPath: '/api/products/$productId'
-      preLoaderRoute: typeof ApiProductsProductIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/orders/stats': {
       id: '/api/orders/stats'
       path: '/api/orders/stats'
@@ -1084,13 +875,6 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/cleanup-checkouts'
       fullPath: '/api/cron/cleanup-checkouts'
       preLoaderRoute: typeof ApiCronCleanupCheckoutsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/create': {
-      id: '/api/checkout/create'
-      path: '/api/checkout/create'
-      fullPath: '/api/checkout/create'
-      preLoaderRoute: typeof ApiCheckoutCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/me': {
@@ -1170,20 +954,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangAccountAddressesRouteImport
       parentRoute: typeof LangRoute
     }
-    '/api/customers/me/': {
-      id: '/api/customers/me/'
-      path: '/api/customers/me'
-      fullPath: '/api/customers/me'
-      preLoaderRoute: typeof ApiCustomersMeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/': {
-      id: '/api/checkout/$checkoutId/'
-      path: '/api/checkout/$checkoutId'
-      fullPath: '/api/checkout/$checkoutId'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/_authed/products/': {
       id: '/admin/_authed/products/'
       path: '/products'
@@ -1205,13 +975,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthedCollectionsIndexRouteImport
       parentRoute: typeof AdminAuthedRoute
     }
-    '/api/products/$productId/images': {
-      id: '/api/products/$productId/images'
-      path: '/images'
-      fullPath: '/api/products/$productId/images'
-      preLoaderRoute: typeof ApiProductsProductIdImagesRouteImport
-      parentRoute: typeof ApiProductsProductIdRoute
-    }
     '/api/orders/$orderId/refund': {
       id: '/api/orders/$orderId/refund'
       path: '/refund'
@@ -1225,55 +988,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$orderId/history'
       preLoaderRoute: typeof ApiOrdersOrderIdHistoryRouteImport
       parentRoute: typeof ApiOrdersOrderIdRoute
-    }
-    '/api/customers/me/orders': {
-      id: '/api/customers/me/orders'
-      path: '/api/customers/me/orders'
-      fullPath: '/api/customers/me/orders'
-      preLoaderRoute: typeof ApiCustomersMeOrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/customers/me/addresses': {
-      id: '/api/customers/me/addresses'
-      path: '/api/customers/me/addresses'
-      fullPath: '/api/customers/me/addresses'
-      preLoaderRoute: typeof ApiCustomersMeAddressesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/shipping-rates': {
-      id: '/api/checkout/$checkoutId/shipping-rates'
-      path: '/api/checkout/$checkoutId/shipping-rates'
-      fullPath: '/api/checkout/$checkoutId/shipping-rates'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdShippingRatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/shipping-method': {
-      id: '/api/checkout/$checkoutId/shipping-method'
-      path: '/api/checkout/$checkoutId/shipping-method'
-      fullPath: '/api/checkout/$checkoutId/shipping-method'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdShippingMethodRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/shipping-address': {
-      id: '/api/checkout/$checkoutId/shipping-address'
-      path: '/api/checkout/$checkoutId/shipping-address'
-      fullPath: '/api/checkout/$checkoutId/shipping-address'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdShippingAddressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/customer': {
-      id: '/api/checkout/$checkoutId/customer'
-      path: '/api/checkout/$checkoutId/customer'
-      fullPath: '/api/checkout/$checkoutId/customer'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdCustomerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checkout/$checkoutId/complete': {
-      id: '/api/checkout/$checkoutId/complete'
-      path: '/api/checkout/$checkoutId/complete'
-      fullPath: '/api/checkout/$checkoutId/complete'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdCompleteRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/admin/_authed/products/new': {
       id: '/admin/_authed/products/new'
@@ -1503,17 +1217,6 @@ const ApiOrdersOrderIdRouteChildren: ApiOrdersOrderIdRouteChildren = {
 const ApiOrdersOrderIdRouteWithChildren =
   ApiOrdersOrderIdRoute._addFileChildren(ApiOrdersOrderIdRouteChildren)
 
-interface ApiProductsProductIdRouteChildren {
-  ApiProductsProductIdImagesRoute: typeof ApiProductsProductIdImagesRoute
-}
-
-const ApiProductsProductIdRouteChildren: ApiProductsProductIdRouteChildren = {
-  ApiProductsProductIdImagesRoute: ApiProductsProductIdImagesRoute,
-}
-
-const ApiProductsProductIdRouteWithChildren =
-  ApiProductsProductIdRoute._addFileChildren(ApiProductsProductIdRouteChildren)
-
 interface ApiCheckoutCheckoutIdPaymentPaypalRouteChildren {
   ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute
 }
@@ -1537,33 +1240,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
-  ApiCheckoutCreateRoute: ApiCheckoutCreateRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
   ApiCustomersRegisterRoute: ApiCustomersRegisterRoute,
   ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,
   ApiOrdersBulkRoute: ApiOrdersBulkRoute,
   ApiOrdersStatsRoute: ApiOrdersStatsRoute,
-  ApiProductsProductIdRoute: ApiProductsProductIdRouteWithChildren,
-  ApiProductsBulkRoute: ApiProductsBulkRoute,
   ApiProductsStatsRoute: ApiProductsStatsRoute,
   ApiWebhooksPaypalRoute: ApiWebhooksPaypalRoute,
   ApiWebhooksStripeRoute: ApiWebhooksStripeRoute,
   ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
   ApiMediaIndexRoute: ApiMediaIndexRoute,
   ApiOrdersIndexRoute: ApiOrdersIndexRoute,
-  ApiProductsIndexRoute: ApiProductsIndexRoute,
-  ApiCheckoutCheckoutIdCompleteRoute: ApiCheckoutCheckoutIdCompleteRoute,
-  ApiCheckoutCheckoutIdCustomerRoute: ApiCheckoutCheckoutIdCustomerRoute,
-  ApiCheckoutCheckoutIdShippingAddressRoute:
-    ApiCheckoutCheckoutIdShippingAddressRoute,
-  ApiCheckoutCheckoutIdShippingMethodRoute:
-    ApiCheckoutCheckoutIdShippingMethodRoute,
-  ApiCheckoutCheckoutIdShippingRatesRoute:
-    ApiCheckoutCheckoutIdShippingRatesRoute,
-  ApiCustomersMeAddressesRoute: ApiCustomersMeAddressesRoute,
-  ApiCustomersMeOrdersRoute: ApiCustomersMeOrdersRoute,
-  ApiCheckoutCheckoutIdIndexRoute: ApiCheckoutCheckoutIdIndexRoute,
-  ApiCustomersMeIndexRoute: ApiCustomersMeIndexRoute,
   ApiCheckoutCheckoutIdPaymentPaypalRoute:
     ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren,
   ApiCheckoutCheckoutIdPaymentStripeRoute:

@@ -14,9 +14,9 @@ interface CollectionSortProps {
   currentSort?: string
 }
 
-export function CollectionSort({
+export const CollectionSort = ({
   currentSort = 'manual',
-}: CollectionSortProps) {
+}: CollectionSortProps) => {
   const { t } = useTranslation()
   const router = useRouter()
 

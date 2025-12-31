@@ -14,7 +14,7 @@ type ProductCardProps = {
   product: Product
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export const ProductCard = ({ product }: ProductCardProps) => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const { t } = useTranslation()
   const currentLang = lang || 'en'

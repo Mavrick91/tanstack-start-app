@@ -33,14 +33,14 @@ interface OrderRowActionsProps {
   isLoading?: boolean
 }
 
-export function OrderRowActions({
+export const OrderRowActions = ({
   orderId,
   orderNumber: _orderNumber,
   currentStatus,
   currentFulfillmentStatus,
   onStatusChange,
   isLoading = false,
-}: OrderRowActionsProps) {
+}: OrderRowActionsProps) => {
   const isCancelled = currentStatus === 'cancelled'
 
   const statusOptions: {

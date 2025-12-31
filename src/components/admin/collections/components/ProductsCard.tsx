@@ -34,7 +34,7 @@ interface PackageIconProps {
   className?: string
 }
 
-function PackageIcon({ className }: PackageIconProps) {
+const PackageIcon = ({ className }: PackageIconProps) => {
   return (
     <svg
       className={className}
@@ -55,13 +55,13 @@ function PackageIcon({ className }: PackageIconProps) {
   )
 }
 
-function SortableProductItem({
+const SortableProductItem = ({
   product,
   onRemove,
 }: {
   product: Product
   onRemove: (id: string) => void
-}) {
+}) => {
   const {
     attributes,
     listeners,
@@ -136,12 +136,12 @@ interface ProductsCardProps {
   onAddClick: () => void
 }
 
-export function ProductsCard({
+export const ProductsCard = ({
   products,
   onReorder,
   onRemove,
   onAddClick,
-}: ProductsCardProps) {
+}: ProductsCardProps) => {
   const { t } = useTranslation()
 
   const sensors = useSensors(

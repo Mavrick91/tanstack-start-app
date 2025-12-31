@@ -106,12 +106,12 @@ export class CheckoutError extends Error {
 /**
  * Verifies payment with the appropriate provider.
  */
-async function verifyPayment(
+const verifyPayment = async (
   paymentProvider: PaymentProvider,
   paymentId: string,
   expectedAmount: number,
   deps: CheckoutServiceDeps,
-): Promise<void> {
+) => {
   if (paymentProvider === 'stripe') {
     const paymentIntent = await deps.retrievePaymentIntent(paymentId)
     const expectedCents = dollarsToCents(expectedAmount)
@@ -122,7 +122,10 @@ async function verifyPayment(
     )
 
     if (!result.valid) {
-      throw new CheckoutError(result.error, result.status)
+      throw new CheckoutError(
+        result.error ?? 'Payment validation failed',
+        result.status ?? 400,
+      )
     }
   } else if (paymentProvider === 'paypal') {
     const paypalOrder = await deps.getPayPalOrder(paymentId)
@@ -143,7 +146,10 @@ async function verifyPayment(
     )
 
     if (!result.valid) {
-      throw new CheckoutError(result.error, result.status)
+      throw new CheckoutError(
+        result.error ?? 'Payment validation failed',
+        result.status ?? 400,
+      )
     }
   }
 }
@@ -151,13 +157,13 @@ async function verifyPayment(
 /**
  * Creates order and order items in a transaction.
  */
-async function createOrder(
+const createOrder = async (
   checkout: CheckoutRecord,
   cartItems: CheckoutCartItem[],
   paymentProvider: PaymentProvider,
   paymentId: string,
   deps: CheckoutServiceDeps,
-): Promise<OrderResult> {
+) => {
   return await deps.db.transaction(async (tx) => {
     const [newOrder] = await tx
       .insert(orders)
@@ -219,10 +225,10 @@ async function createOrder(
 /**
  * Handles duplicate order (idempotency).
  */
-async function findExistingOrder(
+const findExistingOrder = async (
   paymentId: string,
   deps: CheckoutServiceDeps,
-): Promise<OrderResult | null> {
+) => {
   const [existingOrder] = await deps.db
     .select()
     .from(orders)
@@ -260,11 +266,11 @@ async function findExistingOrder(
  * )
  * ```
  */
-export async function completeCheckout(
+export const completeCheckout = async (
   checkoutId: string,
   paymentInput: { paymentProvider?: string; paymentId?: string },
   deps: CheckoutServiceDeps = defaultDeps,
-): Promise<CompleteCheckoutResult> {
+) => {
   // 1. Validate payment input
   const paymentValidation = validatePaymentInput(paymentInput)
   if (!paymentValidation.valid) {

@@ -24,6 +24,9 @@ export const Route = createFileRoute('/api/orders/$orderId')({
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           // Only admin can access order details
           if (auth.user.role !== 'admin') {
@@ -112,6 +115,9 @@ export const Route = createFileRoute('/api/orders/$orderId')({
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           // Only admin can update orders
           if (auth.user.role !== 'admin') {

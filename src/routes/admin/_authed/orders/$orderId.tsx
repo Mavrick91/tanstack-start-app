@@ -20,11 +20,7 @@ import type {
 } from '../../../../types/checkout'
 import type { Order } from '../../../../types/order'
 
-export const Route = createFileRoute('/admin/_authed/orders/$orderId')({
-  component: AdminOrderDetailPage,
-})
-
-function AdminOrderDetailPage() {
+const AdminOrderDetailPage = () => {
   const { t } = useTranslation()
   const { orderId } = Route.useParams()
   const [order, setOrder] = useState<Order | null>(null)
@@ -175,3 +171,7 @@ function AdminOrderDetailPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/admin/_authed/orders/$orderId')({
+  component: AdminOrderDetailPage,
+})

@@ -2,7 +2,7 @@ import { useForm } from '@tanstack/react-form'
 
 import type { Collection, CollectionFormValues } from '../types'
 
-function generateHandle(name: string): string {
+const generateHandle = (name: string) => {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -15,11 +15,11 @@ interface UseCollectionFormOptions {
   onSubmit: (values: CollectionFormValues) => void
 }
 
-export function useCollectionForm({
+export const useCollectionForm = ({
   collection,
   isEdit,
   onSubmit,
-}: UseCollectionFormOptions) {
+}: UseCollectionFormOptions) => {
   const form = useForm({
     defaultValues: {
       nameEn: collection?.name?.en || '',

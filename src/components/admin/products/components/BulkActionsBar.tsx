@@ -12,11 +12,11 @@ interface BulkActionsBarProps {
   onClearSelection: () => void
 }
 
-export function BulkActionsBar({
+export const BulkActionsBar = ({
   selectedCount,
   selectedIds,
   onClearSelection,
-}: BulkActionsBarProps) {
+}: BulkActionsBarProps) => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 

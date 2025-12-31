@@ -55,7 +55,7 @@ export interface RefundResult {
  * Safely convert decimal string to number preserving precision
  * Uses fixed-point arithmetic to avoid floating-point errors
  */
-export function parseDecimal(value: string): number {
+export const parseDecimal = (value: string) => {
   // Parse as string, then convert to number with fixed precision
   const parsed = parseFloat(value)
   // Round to 2 decimal places to avoid floating-point representation issues
@@ -65,7 +65,7 @@ export function parseDecimal(value: string): number {
 /**
  * Format number to decimal string for database storage
  */
-export function toDecimalString(value: number): string {
+export const toDecimalString = (value: number) => {
   return value.toFixed(2)
 }
 
@@ -77,9 +77,7 @@ export function toDecimalString(value: number): string {
  * Get item counts for multiple orders in a single query
  * Fixes N+1 query problem in order listing
  */
-export async function getOrderItemCounts(
-  orderIds: string[],
-): Promise<Map<string, number>> {
+export const getOrderItemCounts = async (orderIds: string[]) => {
   if (orderIds.length === 0) {
     return new Map()
   }
@@ -112,9 +110,7 @@ export async function getOrderItemCounts(
  * Get all items for multiple orders in a single query
  * Fixes N+1 query problem in customer orders listing
  */
-export async function getOrderItemsByOrderIds(
-  orderIds: string[],
-): Promise<Map<string, (typeof orderItems.$inferSelect)[]>> {
+export const getOrderItemsByOrderIds = async (orderIds: string[]) => {
   if (orderIds.length === 0) {
     return new Map()
   }
@@ -141,9 +137,7 @@ export async function getOrderItemsByOrderIds(
 }
 
 // Record an order status change in the audit trail
-export async function recordStatusChange(
-  change: OrderStatusChange,
-): Promise<void> {
+export const recordStatusChange = async (change: OrderStatusChange) => {
   await db.insert(orderStatusHistory).values({
     orderId: change.orderId,
     field: change.field,
@@ -156,9 +150,7 @@ export async function recordStatusChange(
 }
 
 // Get audit trail for an order
-export async function getOrderAuditTrail(
-  orderId: string,
-): Promise<OrderStatusChange[]> {
+export const getOrderAuditTrail = async (orderId: string) => {
   const history = await db
     .select()
     .from(orderStatusHistory)
@@ -177,7 +169,7 @@ export async function getOrderAuditTrail(
 }
 
 // Clear audit trail (for testing only)
-export async function clearAuditTrail(): Promise<void> {}
+export const clearAuditTrail = async () => {}
 
 // ============================================
 // PAYMENT STATUS VALIDATION
@@ -187,12 +179,12 @@ export async function clearAuditTrail(): Promise<void> {}
  * Validate if manual payment status change to 'paid' is allowed
  * Manual changes to 'paid' require justification and are logged
  */
-export function validateManualPaymentStatusChange(
+export const validateManualPaymentStatusChange = (
   currentStatus: PaymentStatus,
   newStatus: PaymentStatus,
   hasPaymentId: boolean,
   reason?: string,
-): { allowed: boolean; error?: string; requiresConfirmation?: boolean } {
+) => {
   // Allow changes that don't set to 'paid'
   if (newStatus !== 'paid') {
     return { allowed: true }
@@ -231,7 +223,7 @@ const PAYPAL_API_BASE =
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com'
 
-async function getPayPalAccessToken(): Promise<string> {
+const getPayPalAccessToken = async () => {
   const clientId = process.env.PAYPAL_CLIENT_ID
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET
 
@@ -261,9 +253,7 @@ async function getPayPalAccessToken(): Promise<string> {
 /**
  * Process refund for Stripe payment
  */
-export async function refundStripePayment(
-  paymentId: string,
-): Promise<RefundResult> {
+export const refundStripePayment = async (paymentId: string) => {
   try {
     const refund = await stripe.refunds.create({
       payment_intent: paymentId,
@@ -284,9 +274,7 @@ export async function refundStripePayment(
 /**
  * Process refund for PayPal payment
  */
-export async function refundPayPalPayment(
-  paymentId: string,
-): Promise<RefundResult> {
+export const refundPayPalPayment = async (paymentId: string) => {
   try {
     const accessToken = await getPayPalAccessToken()
 
@@ -347,10 +335,10 @@ export async function refundPayPalPayment(
 /**
  * Process refund based on payment provider
  */
-export async function processRefund(
+export const processRefund = async (
   paymentProvider: string | null,
   paymentId: string | null,
-): Promise<RefundResult> {
+) => {
   if (!paymentProvider || !paymentId) {
     return {
       success: false,
@@ -384,11 +372,11 @@ export interface CancellationResult {
 /**
  * Process order cancellation with automatic refund if payment was made
  */
-export async function cancelOrderWithRefund(
+export const cancelOrderWithRefund = async (
   orderId: string,
   changedBy: string,
   reason?: string,
-): Promise<CancellationResult> {
+) => {
   // Get order details
   const [order] = await db
     .select()
@@ -464,7 +452,7 @@ export async function cancelOrderWithRefund(
 // ============================================
 
 // Helper to require admin auth
-async function requireAdmin() {
+const requireAdmin = async () => {
   const user = await getMeFn()
   if (!user || user.role !== 'admin') {
     throw new Error('Unauthorized')

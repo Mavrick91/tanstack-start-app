@@ -45,17 +45,17 @@ describe('saveShippingAddress', () => {
       if (!createResult.success) return
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingAddress).toEqual(validAddress)
+      expect(result.checkout!.shippingAddress).toEqual(validAddress)
 
       // Verify in database
-      const savedCheckout = await getCheckout(createResult.checkout.id)
+      const savedCheckout = await getCheckout(createResult.checkout!.id)
       expect(savedCheckout.shippingAddress).toEqual(validAddress)
     })
 
@@ -78,15 +78,15 @@ describe('saveShippingAddress', () => {
       }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: minimalAddress,
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingAddress.firstName).toBe('Jane')
-      expect(result.checkout.shippingAddress.city).toBe('Los Angeles')
+      expect(result.checkout!.shippingAddress!.firstName).toBe('Jane')
+      expect(result.checkout!.shippingAddress!.city).toBe('Los Angeles')
     })
 
     it('allows updating shipping address', async () => {
@@ -99,7 +99,7 @@ describe('saveShippingAddress', () => {
 
       // First address
       await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: validAddress,
       })
 
@@ -111,15 +111,15 @@ describe('saveShippingAddress', () => {
       }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: newAddress,
       })
 
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.shippingAddress.address1).toBe('789 New Street')
-      expect(result.checkout.shippingAddress.city).toBe('Chicago')
+      expect(result.checkout!.shippingAddress!.address1).toBe('789 New Street')
+      expect(result.checkout!.shippingAddress!.city).toBe('Chicago')
     })
   })
 
@@ -182,7 +182,7 @@ describe('saveShippingAddress', () => {
       const invalidAddress = { ...validAddress, firstName: '' }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: invalidAddress,
       })
 
@@ -204,7 +204,7 @@ describe('saveShippingAddress', () => {
       const invalidAddress = { ...validAddress, lastName: '' }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: invalidAddress,
       })
 
@@ -225,7 +225,7 @@ describe('saveShippingAddress', () => {
       const invalidAddress = { ...validAddress, address1: '' }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: invalidAddress,
       })
 
@@ -246,7 +246,7 @@ describe('saveShippingAddress', () => {
       const invalidAddress = { ...validAddress, city: '' }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: invalidAddress,
       })
 
@@ -267,7 +267,7 @@ describe('saveShippingAddress', () => {
       const invalidAddress = { ...validAddress, zip: '' }
 
       const result = await saveShippingAddress({
-        checkoutId: createResult.checkout.id,
+        checkoutId: createResult.checkout!.id,
         address: invalidAddress,
       })
 

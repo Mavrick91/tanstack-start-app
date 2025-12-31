@@ -7,10 +7,10 @@ interface CollectionThumbnailProps {
   className?: string
 }
 
-export function CollectionThumbnail({
+export const CollectionThumbnail = ({
   images,
   className,
-}: CollectionThumbnailProps) {
+}: CollectionThumbnailProps) => {
   const validImages = images.filter((img): img is string => !!img).slice(0, 4)
   const count = validImages.length
 

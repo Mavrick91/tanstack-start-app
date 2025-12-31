@@ -7,7 +7,7 @@ import { ReactElement } from 'react'
  * Create a fresh QueryClient for each test.
  * This ensures no state leaks between tests.
  */
-function createTestQueryClient() {
+const createTestQueryClient = () => {
   return new QueryClient({
     defaultOptions: {
       queries: {
@@ -25,7 +25,7 @@ function createTestQueryClient() {
  * Default wrapper component with common providers.
  * Includes QueryClientProvider by default.
  */
-function AllProviders({ children }: { children: React.ReactNode }) {
+const AllProviders = ({ children }: { children: React.ReactNode }) => {
   const queryClient = createTestQueryClient()
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -58,7 +58,7 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
  * })
  * ```
  */
-function customRender(ui: ReactElement, options?: CustomRenderOptions) {
+const customRender = (ui: ReactElement, options?: CustomRenderOptions) => {
   const { wrapper: CustomWrapper, ...restOptions } = options || {}
 
   // Compose wrappers if custom wrapper is provided

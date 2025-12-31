@@ -12,11 +12,11 @@ interface VariantSelectorProps {
   onVariantChange: (variant: ProductVariant | null) => void
 }
 
-export function VariantSelector({
+export const VariantSelector = ({
   options,
   variants,
   onVariantChange,
-}: VariantSelectorProps) {
+}: VariantSelectorProps) => {
   const { t } = useTranslation()
 
   // Track selected value for each option

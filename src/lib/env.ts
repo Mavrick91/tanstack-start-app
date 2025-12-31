@@ -27,7 +27,7 @@ const optionalEnvVars = [
  * Validate that all required environment variables are set
  * Call this on application startup
  */
-export function validateEnv(): void {
+export const validateEnv = () => {
   const missing: string[] = []
 
   for (const envVar of requiredEnvVars) {
@@ -63,17 +63,14 @@ export function validateEnv(): void {
 /**
  * Get an environment variable with an optional default
  */
-export function getEnvVar(
-  name: string,
-  defaultValue?: string,
-): string | undefined {
+export const getEnvVar = (name: string, defaultValue?: string) => {
   return process.env[name] ?? defaultValue
 }
 
 /**
  * Get a required environment variable, throwing if not set
  */
-export function requireEnvVar(name: string): string {
+export const requireEnvVar = (name: string) => {
   const value = process.env[name]
   if (!value) {
     throw new Error(`Required environment variable ${name} is not set`)

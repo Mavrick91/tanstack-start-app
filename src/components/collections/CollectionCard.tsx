@@ -16,7 +16,7 @@ type CollectionCardProps = {
   }
 }
 
-export function CollectionCard({ collection }: CollectionCardProps) {
+export const CollectionCard = ({ collection }: CollectionCardProps) => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const { t } = useTranslation()
   const currentLang = lang || 'en'

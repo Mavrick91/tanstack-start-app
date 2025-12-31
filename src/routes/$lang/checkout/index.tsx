@@ -5,11 +5,7 @@ import { useEffect } from 'react'
 import { useCartStore } from '../../../hooks/useCart'
 import { useCheckoutStore } from '../../../hooks/useCheckout'
 
-export const Route = createFileRoute('/$lang/checkout/')({
-  component: CheckoutIndexPage,
-})
-
-function CheckoutIndexPage() {
+const CheckoutIndexPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { checkoutId } = useCheckoutStore()
@@ -38,3 +34,7 @@ function CheckoutIndexPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/checkout/')({
+  component: CheckoutIndexPage,
+})

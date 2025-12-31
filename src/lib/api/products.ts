@@ -55,9 +55,9 @@ export interface FetchProductsResult {
   totalPages: number
 }
 
-export async function fetchProducts(
+export const fetchProducts = async (
   state: FetchProductsState,
-): Promise<FetchProductsResult> {
+): Promise<FetchProductsResult> => {
   const result = await getProductsListFn({
     data: {
       page: state.page,

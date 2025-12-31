@@ -122,7 +122,7 @@ type ProductFormProps = {
   onBack?: () => void
 }
 
-export function ProductForm({ product, onBack }: ProductFormProps) {
+export const ProductForm = ({ product, onBack }: ProductFormProps) => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const isEditMode = !!product

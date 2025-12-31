@@ -40,15 +40,15 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.id).toBeDefined()
-      expect(result.checkout.cartItems).toHaveLength(1)
-      expect(result.checkout.cartItems[0].productId).toBe(product.id)
-      expect(result.checkout.cartItems[0].variantId).toBe(variant.id)
-      expect(result.checkout.cartItems[0].quantity).toBe(2)
-      expect(result.checkout.cartItems[0].price).toBe(49.99)
+      expect(result.checkout!.id).toBeDefined()
+      expect(result.checkout!.cartItems).toHaveLength(1)
+      expect(result.checkout!.cartItems[0].productId).toBe(product.id)
+      expect(result.checkout!.cartItems[0].variantId).toBe(variant.id)
+      expect(result.checkout!.cartItems[0].quantity).toBe(2)
+      expect(result.checkout!.cartItems[0].price).toBe(49.99)
 
       // Verify checkout was created in database
-      const savedCheckout = await getCheckout(result.checkout.id)
+      const savedCheckout = await getCheckout(result.checkout!.id)
       expect(savedCheckout).toBeDefined()
       expect(savedCheckout.total).toBeDefined()
     })
@@ -71,7 +71,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.cartItems[0].variantId).toBe(variant.id)
+      expect(result.checkout!.cartItems[0].variantId).toBe(variant.id)
     })
 
     it('includes product image URL when available', async () => {
@@ -87,7 +87,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.cartItems[0].imageUrl).toContain('example.com')
+      expect(result.checkout!.cartItems[0].imageUrl).toContain('example.com')
     })
   })
 
@@ -112,7 +112,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.subtotal).toBe(96.5)
+      expect(result.checkout!.subtotal).toBe(96.5)
     })
 
     it('includes tax in total', async () => {
@@ -128,9 +128,9 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.subtotal).toBe(100.0)
-      expect(result.checkout.taxTotal).toBeGreaterThan(0)
-      expect(result.checkout.total).toBeGreaterThan(result.checkout.subtotal)
+      expect(result.checkout!.subtotal).toBe(100.0)
+      expect(result.checkout!.taxTotal).toBeGreaterThan(0)
+      expect(result.checkout!.total).toBeGreaterThan(result.checkout!.subtotal)
     })
 
     it('calculates correct total with quantity > 1', async () => {
@@ -146,7 +146,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.subtotal).toBe(50.0)
+      expect(result.checkout!.subtotal).toBe(50.0)
     })
   })
 
@@ -209,7 +209,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.currency).toBe('USD')
+      expect(result.checkout!.currency).toBe('USD')
     })
 
     it('accepts custom currency', async () => {
@@ -223,7 +223,7 @@ describe('createCheckout', () => {
       expect(result.success).toBe(true)
       if (!result.success) return
 
-      expect(result.checkout.currency).toBe('EUR')
+      expect(result.checkout!.currency).toBe('EUR')
     })
   })
 
@@ -240,7 +240,7 @@ describe('createCheckout', () => {
       if (!result.success) return
 
       const after = Date.now()
-      const expiresAt = result.checkout.expiresAt.getTime()
+      const expiresAt = result.checkout!.expiresAt.getTime()
 
       // Should be approximately 24 hours from now
       const expectedMin = before + 24 * 60 * 60 * 1000 - 1000

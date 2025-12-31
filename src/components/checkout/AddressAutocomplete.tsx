@@ -66,16 +66,16 @@ type AddressAutocompleteProps = {
 let googleMapsLoaded = false
 const listeners = new Set<() => void>()
 
-function subscribeToGoogleMaps(callback: () => void) {
+const subscribeToGoogleMaps = (callback: () => void) => {
   listeners.add(callback)
   return () => listeners.delete(callback)
 }
 
-function getGoogleMapsSnapshot() {
+const getGoogleMapsSnapshot = () => {
   return googleMapsLoaded || !!window.google?.maps?.places
 }
 
-function loadGoogleMapsScript() {
+const loadGoogleMapsScript = () => {
   if (googleMapsLoaded || window.google?.maps?.places) {
     googleMapsLoaded = true
     listeners.forEach((l) => l())
@@ -105,14 +105,14 @@ function loadGoogleMapsScript() {
   document.head.appendChild(script)
 }
 
-export function AddressAutocomplete({
+export const AddressAutocomplete = ({
   value,
   onChange,
   onAddressSelect,
   placeholder = 'Start typing an address...',
   className,
   disabled,
-}: AddressAutocompleteProps) {
+}: AddressAutocompleteProps) => {
   const isScriptLoaded = useSyncExternalStore(
     subscribeToGoogleMaps,
     getGoogleMapsSnapshot,

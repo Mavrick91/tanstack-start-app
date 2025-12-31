@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import {
   errorResponse,
   requireAuth,
+  simpleErrorResponse,
   successResponse,
 } from '../../../../lib/api'
 import { getOrderAuditTrail } from '../../../../server/orders'
@@ -14,6 +15,9 @@ export const Route = createFileRoute('/api/orders/$orderId/history')({
         try {
           const auth = await requireAuth(request)
           if (!auth.success) return auth.response
+          if (!auth.user) {
+            return simpleErrorResponse('Unauthorized', 401)
+          }
 
           // Only admin can access order history
           if (auth.user.role !== 'admin') {

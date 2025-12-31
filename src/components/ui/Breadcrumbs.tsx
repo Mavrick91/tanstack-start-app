@@ -16,7 +16,7 @@ interface BreadcrumbsProps {
   lang: string
 }
 
-export function Breadcrumbs({ items, className, lang }: BreadcrumbsProps) {
+export const Breadcrumbs = ({ items, className, lang }: BreadcrumbsProps) => {
   const { t } = useTranslation()
 
   return (

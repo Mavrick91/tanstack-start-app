@@ -50,7 +50,7 @@ export interface MockDbOptions {
  * expect(db.insert).toHaveBeenCalled()
  * ```
  */
-export function createMockDb(options: MockDbOptions = {}) {
+export const createMockDb = (options: MockDbOptions = {}) => {
   const data = options.data ?? {}
   const error = options.error ?? new Error('Database error')
 
@@ -268,7 +268,7 @@ export const dbScenarios = {
  * vi.mock('../../db', () => mockDbModule({ data: { checkouts: [checkout] } }))
  * ```
  */
-export function mockDbModule(options: MockDbOptions = {}) {
+export const mockDbModule = (options: MockDbOptions = {}) => {
   return {
     db: createMockDb(options),
   }

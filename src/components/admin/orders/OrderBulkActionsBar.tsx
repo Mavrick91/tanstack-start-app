@@ -11,12 +11,12 @@ interface OrderBulkActionsBarProps {
   isLoading?: boolean
 }
 
-export function OrderBulkActionsBar({
+export const OrderBulkActionsBar = ({
   selectedCount,
   onClearSelection,
   onBulkAction,
   isLoading = false,
-}: OrderBulkActionsBarProps) {
+}: OrderBulkActionsBarProps) => {
   const { t } = useTranslation()
 
   if (selectedCount === 0) return null

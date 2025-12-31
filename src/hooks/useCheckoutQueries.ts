@@ -35,19 +35,19 @@ export const useCheckoutIdStore = create<CheckoutIdStore>()(
 )
 
 // API functions using server functions
-async function createCheckoutApi(
+const createCheckoutApi = async (
   items: Array<{ productId: string; variantId?: string; quantity: number }>,
-): Promise<Checkout> {
+) => {
   const result = await createCheckoutFn({ data: { items } })
   return result.checkout as Checkout
 }
 
-async function getCheckoutApi(checkoutId: string): Promise<Checkout> {
+const getCheckoutApi = async (checkoutId: string) => {
   const result = await getCheckoutFn({ data: { checkoutId } })
   return result.checkout as Checkout
 }
 
-async function saveCustomerInfoApi(
+const saveCustomerInfoApi = async (
   checkoutId: string,
   data: {
     email: string
@@ -56,7 +56,7 @@ async function saveCustomerInfoApi(
     createAccount?: boolean
     password?: string
   },
-): Promise<Checkout> {
+) => {
   const result = await saveCustomerInfoFn({
     data: {
       checkoutId,
@@ -68,6 +68,9 @@ async function saveCustomerInfoApi(
     },
   })
   // Return the updated checkout with email
+  if (!result.checkout) {
+    throw new Error('Failed to save customer info')
+  }
   return {
     id: result.checkout.id,
     email: result.checkout.email,
@@ -75,10 +78,10 @@ async function saveCustomerInfoApi(
   } as Checkout
 }
 
-async function saveShippingAddressApi(
+const saveShippingAddressApi = async (
   checkoutId: string,
   address: AddressInput & { saveAddress?: boolean },
-): Promise<Checkout> {
+) => {
   const { saveAddress, ...addressData } = address
   const result = await saveShippingAddressFn({
     data: {
@@ -90,28 +93,26 @@ async function saveShippingAddressApi(
   return result.checkout as Checkout
 }
 
-async function getShippingRatesApi(
-  checkoutId: string,
-): Promise<ShippingRate[]> {
+const getShippingRatesApi = async (checkoutId: string) => {
   const result = await getShippingRatesFn({ data: { checkoutId } })
   return result.shippingRates as ShippingRate[]
 }
 
-async function saveShippingMethodApi(
+const saveShippingMethodApi = async (
   checkoutId: string,
   shippingRateId: string,
-): Promise<Checkout> {
+) => {
   const result = await saveShippingMethodFn({
     data: { checkoutId, shippingRateId },
   })
   return result.checkout as Checkout
 }
 
-async function completeCheckoutApi(
+const completeCheckoutApi = async (
   checkoutId: string,
   paymentProvider: 'stripe' | 'paypal',
   paymentId: string,
-) {
+) => {
   const result = await completeCheckoutFn({
     data: { checkoutId, paymentProvider, paymentId },
   })
@@ -127,7 +128,7 @@ export const checkoutKeys = {
 }
 
 // React Query hooks
-export function useCheckout(checkoutId: string | null) {
+export const useCheckout = (checkoutId: string | null) => {
   return useQuery({
     queryKey: checkoutId
       ? checkoutKeys.detail(checkoutId)
@@ -138,7 +139,7 @@ export function useCheckout(checkoutId: string | null) {
   })
 }
 
-export function useShippingRates(checkoutId: string | null) {
+export const useShippingRates = (checkoutId: string | null) => {
   return useQuery({
     queryKey: checkoutId
       ? checkoutKeys.shippingRates(checkoutId)
@@ -149,7 +150,7 @@ export function useShippingRates(checkoutId: string | null) {
   })
 }
 
-export function useCreateCheckout() {
+export const useCreateCheckout = () => {
   const queryClient = useQueryClient()
   const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
 
@@ -162,7 +163,7 @@ export function useCreateCheckout() {
   })
 }
 
-export function useSaveCustomerInfo(checkoutId: string) {
+export const useSaveCustomerInfo = (checkoutId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -202,7 +203,7 @@ export function useSaveCustomerInfo(checkoutId: string) {
   })
 }
 
-export function useSaveShippingAddress(checkoutId: string) {
+export const useSaveShippingAddress = (checkoutId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -255,7 +256,7 @@ export function useSaveShippingAddress(checkoutId: string) {
   })
 }
 
-export function useSaveShippingMethod(checkoutId: string) {
+export const useSaveShippingMethod = (checkoutId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -297,7 +298,7 @@ export function useSaveShippingMethod(checkoutId: string) {
 
 // Stripe payment intent - still uses fetch because it needs special handling
 // for returning client secret to the browser
-async function createStripePaymentIntentApi(checkoutId: string) {
+const createStripePaymentIntentApi = async (checkoutId: string) => {
   const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -312,13 +313,13 @@ async function createStripePaymentIntentApi(checkoutId: string) {
   return await response.json()
 }
 
-export function useCreateStripePaymentIntent(checkoutId: string) {
+export const useCreateStripePaymentIntent = (checkoutId: string) => {
   return useMutation({
     mutationFn: () => createStripePaymentIntentApi(checkoutId),
   })
 }
 
-export function useCompleteCheckout(checkoutId: string) {
+export const useCompleteCheckout = (checkoutId: string) => {
   const queryClient = useQueryClient()
   const clearCheckoutId = useCheckoutIdStore((s) => s.clearCheckoutId)
 

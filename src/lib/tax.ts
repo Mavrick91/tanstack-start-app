@@ -1,7 +1,7 @@
 const DEFAULT_TAX_RATE = 0.1
 
 // Get tax rate from environment (supports 0.10 or 10 format)
-export function getTaxRate(): number {
+export const getTaxRate = (): number => {
   const envRate = process.env.TAX_RATE
   if (!envRate) return DEFAULT_TAX_RATE
 
@@ -12,12 +12,12 @@ export function getTaxRate(): number {
 }
 
 // Calculate tax amount, rounded to 2 decimal places
-export function calculateTax(subtotal: number, rate?: number): number {
+export const calculateTax = (subtotal: number, rate?: number): number => {
   const taxRate = rate ?? getTaxRate()
   return Math.round(subtotal * taxRate * 100) / 100
 }
 
 // Format tax amount for database storage
-export function formatTaxAmount(amount: number): string {
+export const formatTaxAmount = (amount: number): string => {
   return amount.toFixed(2)
 }

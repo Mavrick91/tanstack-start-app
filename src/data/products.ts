@@ -97,19 +97,19 @@ const MOCK_PRODUCTS: Array<Product> = [
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-export async function getProducts() {
+export const getProducts = async () => {
   await sleep(500)
   return MOCK_PRODUCTS
 }
 
-export async function getProductBySlug(slug: string) {
+export const getProductBySlug = async (slug: string) => {
   await sleep(200)
   const product = MOCK_PRODUCTS.find((p) => p.slug === slug)
   if (!product) throw new Error('Product not found')
   return product
 }
 
-export async function getFeaturedProducts() {
+export const getFeaturedProducts = async () => {
   await sleep(100)
   return MOCK_PRODUCTS.filter((p) => p.isFeatured)
 }

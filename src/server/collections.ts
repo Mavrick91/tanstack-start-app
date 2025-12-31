@@ -43,7 +43,7 @@ export interface CollectionsState {
   sortOrder?: 'asc' | 'desc'
 }
 
-async function requireAuth() {
+const requireAuth = async () => {
   const request = getRequest()
   if (!request) throw new Error('No request found')
   const auth = await validateSession(request)

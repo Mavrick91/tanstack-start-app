@@ -44,12 +44,12 @@ type SortableImageProps = {
   onAltTextChange: (id: string, altText: string) => void
 }
 
-function SortableImage({
+const SortableImage = ({
   image,
   index,
   onRemove,
   onAltTextChange,
-}: SortableImageProps) {
+}: SortableImageProps) => {
   const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useSortable({ id: image.id })
@@ -129,7 +129,7 @@ type ImageUploaderProps = {
   onChange: (images: ImageItem[]) => void
 }
 
-export function ImageUploader({ images, onChange }: ImageUploaderProps) {
+export const ImageUploader = ({ images, onChange }: ImageUploaderProps) => {
   const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeId, setActiveId] = useState<string | null>(null)

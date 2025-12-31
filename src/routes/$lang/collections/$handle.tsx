@@ -10,34 +10,7 @@ const collectionSearchSchema = z.object({
   sort: z.string().optional(),
 })
 
-export const Route = createFileRoute('/$lang/collections/$handle')({
-  validateSearch: collectionSearchSchema,
-  loaderDeps: ({ search }) => ({ sort: search.sort }),
-  loader: ({ params, deps }) =>
-    getCollectionByHandle({
-      data: {
-        handle: params.handle,
-        lang: params.lang,
-        sort: deps.sort,
-      },
-    }),
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData
-          ? `${loaderData.name} | FineNail Season`
-          : 'Collection | FineNail Season',
-      },
-      {
-        name: 'description',
-        content: loaderData?.description || 'Browse our collection',
-      },
-    ],
-  }),
-  component: CollectionPage,
-})
-
-function CollectionPage() {
+const CollectionPage = () => {
   const collection = Route.useLoaderData()
   const { sort } = Route.useSearch()
   const { t } = useTranslation()
@@ -110,3 +83,30 @@ function CollectionPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/collections/$handle')({
+  validateSearch: collectionSearchSchema,
+  loaderDeps: ({ search }) => ({ sort: search.sort }),
+  loader: ({ params, deps }) =>
+    getCollectionByHandle({
+      data: {
+        handle: params.handle,
+        lang: params.lang,
+        sort: deps.sort,
+      },
+    }),
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData
+          ? `${loaderData.name} | FineNail Season`
+          : 'Collection | FineNail Season',
+      },
+      {
+        name: 'description',
+        content: loaderData?.description || 'Browse our collection',
+      },
+    ],
+  }),
+  component: CollectionPage,
+})

@@ -11,7 +11,7 @@ type CheckoutProgressProps = {
 
 const STEPS: Step[] = ['information', 'shipping', 'payment']
 
-export function CheckoutProgress({ currentStep }: CheckoutProgressProps) {
+export const CheckoutProgress = ({ currentStep }: CheckoutProgressProps) => {
   const { t } = useTranslation()
 
   const getStepIndex = (step: Step | 'confirmation') => {

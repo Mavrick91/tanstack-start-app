@@ -26,7 +26,7 @@ export const cspHeader: Record<string, string> = {
 /**
  * Apply security headers to a response
  */
-export function applySecurityHeaders(response: Response): Response {
+export const applySecurityHeaders = (response: Response) => {
   const headers = new Headers(response.headers)
 
   for (const [key, value] of Object.entries(securityHeaders)) {
@@ -43,7 +43,7 @@ export function applySecurityHeaders(response: Response): Response {
 /**
  * Apply security headers with CSP to a response (for HTML pages)
  */
-export function applySecurityHeadersWithCsp(response: Response): Response {
+export const applySecurityHeadersWithCsp = (response: Response) => {
   const headers = new Headers(response.headers)
 
   for (const [key, value] of Object.entries(securityHeaders)) {

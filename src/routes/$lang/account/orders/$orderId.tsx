@@ -49,11 +49,7 @@ type OrderDetail = {
   }>
 }
 
-export const Route = createFileRoute('/$lang/account/orders/$orderId')({
-  component: AccountOrderDetailPage,
-})
-
-function AccountOrderDetailPage() {
+const AccountOrderDetailPage = (): React.ReactNode => {
   const { lang, orderId } = useParams({ strict: false }) as {
     lang: string
     orderId: string
@@ -97,7 +93,7 @@ function AccountOrderDetailPage() {
     }
   }, [authLoading, isAuthenticated, orderId, lang, navigate])
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -310,3 +306,7 @@ function AccountOrderDetailPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/account/orders/$orderId')({
+  component: AccountOrderDetailPage,
+})

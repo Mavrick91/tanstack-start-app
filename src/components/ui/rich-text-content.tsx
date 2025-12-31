@@ -9,7 +9,7 @@ type RichTextContentProps = {
  * Renders HTML content safely with proper styling.
  * Used for displaying rich text editor content on the storefront.
  */
-export function RichTextContent({ html, className }: RichTextContentProps) {
+export const RichTextContent = ({ html, className }: RichTextContentProps) => {
   if (!html || html === '<p></p>') {
     return null
   }

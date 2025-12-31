@@ -30,11 +30,11 @@ interface ProductOptionsProps {
   disabled?: boolean
 }
 
-export function ProductOptions({
+export const ProductOptions = ({
   options,
   onChange,
   disabled = false,
-}: ProductOptionsProps) {
+}: ProductOptionsProps) => {
   const { t } = useTranslation()
   const [newValueInputs, setNewValueInputs] = useState<Record<number, string>>(
     {},

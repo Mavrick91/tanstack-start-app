@@ -3,12 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { getPunkSongs } from '@/data/demo.punk-songs'
 
-export const Route = createFileRoute('/$lang/demo/start/ssr/spa-mode')({
-  ssr: false,
-  component: RouteComponent,
-})
-
-function RouteComponent() {
+const RouteComponent = () => {
   const [punkSongs, setPunkSongs] = useState<
     Awaited<ReturnType<typeof getPunkSongs>>
   >([])
@@ -46,3 +41,8 @@ function RouteComponent() {
     </div>
   )
 }
+
+export const Route = createFileRoute('/$lang/demo/start/ssr/spa-mode')({
+  ssr: false,
+  component: RouteComponent,
+})

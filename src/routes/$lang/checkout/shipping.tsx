@@ -28,11 +28,7 @@ import {
 } from '../../../hooks/useCheckoutQueries'
 import { formatCurrency } from '../../../lib/format'
 
-export const Route = createFileRoute('/$lang/checkout/shipping')({
-  component: CheckoutShippingPage,
-})
-
-function CheckoutShippingPage() {
+const CheckoutShippingPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -233,3 +229,7 @@ function CheckoutShippingPage() {
     </CheckoutLayout>
   )
 }
+
+export const Route = createFileRoute('/$lang/checkout/shipping')({
+  component: CheckoutShippingPage,
+})

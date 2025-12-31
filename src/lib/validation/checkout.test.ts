@@ -14,9 +14,9 @@ import type { CheckoutForValidation } from './checkout'
  * Helper to create a valid checkout for validation tests.
  * Uses minimal structure needed for validation.
  */
-function createCheckoutForValidation(
+const createCheckoutForValidation = (
   overrides: Partial<CheckoutForValidation> = {},
-): CheckoutForValidation {
+): CheckoutForValidation => {
   return {
     id: 'checkout-123',
     email: 'test@example.com',

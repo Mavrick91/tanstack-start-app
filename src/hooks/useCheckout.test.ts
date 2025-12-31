@@ -316,7 +316,7 @@ describe('Checkout API Functions', () => {
           password: undefined,
         },
       })
-      expect(result.checkout.email).toBe('test@example.com')
+      expect(result.checkout!.email).toBe('test@example.com')
     })
   })
 
@@ -339,7 +339,7 @@ describe('Checkout API Functions', () => {
       const result = await saveShippingAddress('checkout-123', validAddress)
 
       expect(saveShippingAddressFn).toHaveBeenCalled()
-      expect(result.checkout.shippingAddress).toEqual(validAddress)
+      expect(result.checkout!.shippingAddress).toEqual(validAddress)
     })
   })
 
@@ -378,7 +378,7 @@ describe('Checkout API Functions', () => {
       expect(saveShippingMethodFn).toHaveBeenCalledWith({
         data: { checkoutId: 'checkout-123', shippingRateId: 'standard' },
       })
-      expect(result.checkout.shippingRateId).toBe('standard')
+      expect(result.checkout!.shippingRateId).toBe('standard')
     })
   })
 
@@ -440,7 +440,7 @@ describe('Checkout API Functions', () => {
           paymentId: 'pi_123',
         },
       })
-      expect(result.order.orderNumber).toBe(1001)
+      expect(result.order!.orderNumber).toBe(1001)
     })
 
     it('should complete checkout with PayPal', async () => {
@@ -466,7 +466,7 @@ describe('Checkout API Functions', () => {
           paymentId: 'paypal-order-123',
         },
       })
-      expect(result.order.orderNumber).toBe(1002)
+      expect(result.order!.orderNumber).toBe(1002)
     })
   })
 })

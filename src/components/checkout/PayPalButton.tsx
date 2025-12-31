@@ -8,11 +8,11 @@ type PayPalButtonProps = {
   onError: (error: string) => void
 }
 
-export function PayPalButton({
+export const PayPalButton = ({
   checkoutId,
   onSuccess,
   onError,
-}: PayPalButtonProps) {
+}: PayPalButtonProps) => {
   const { t } = useTranslation()
   const [{ isPending, isRejected }] = usePayPalScriptReducer()
 

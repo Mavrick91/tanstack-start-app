@@ -21,10 +21,10 @@ export interface RateLimitResult {
   retryAfter?: number
 }
 
-export async function checkRateLimit(
+export const checkRateLimit = async (
   limiter: LimiterType,
   key: string,
-): Promise<RateLimitResult> {
+): Promise<RateLimitResult> => {
   const config = limiterConfigs[limiter]
   const compositeKey = `${limiter}:${key}`
   const now = new Date()
@@ -76,7 +76,7 @@ export async function checkRateLimit(
   }
 }
 
-export function getRateLimitKey(request: Request): string {
+export const getRateLimitKey = (request: Request): string => {
   const forwardedFor = request.headers.get('x-forwarded-for')
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim()
@@ -84,12 +84,12 @@ export function getRateLimitKey(request: Request): string {
   return request.headers.get('x-real-ip') || 'unknown'
 }
 
-export async function resetRateLimiter(limiter: LimiterType): Promise<void> {
+export const resetRateLimiter = async (limiter: LimiterType): Promise<void> => {
   const prefix = `${limiter}:`
   await db.delete(rateLimits).where(sql`${rateLimits.key} LIKE ${prefix + '%'}`)
 }
 
-export async function cleanupExpiredRateLimits(): Promise<number> {
+export const cleanupExpiredRateLimits = async (): Promise<number> => {
   const result = await db
     .delete(rateLimits)
     .where(gt(sql`NOW()`, rateLimits.expiresAt))
@@ -98,7 +98,7 @@ export async function cleanupExpiredRateLimits(): Promise<number> {
   return result.length
 }
 
-export function rateLimitResponse(retryAfter: number): Response {
+export const rateLimitResponse = (retryAfter: number): Response => {
   return new Response('Too many requests', {
     status: 429,
     headers: { 'Retry-After': String(retryAfter) },

@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { getMeFn } from './auth'
 import { getOrderItemsByOrderIds, parseDecimal } from './orders'
 import { db } from '../db'
-import { customers, addresses, orders } from '../db/schema'
+import { customers, addresses, orders, orderItems } from '../db/schema'
 
 // ============================================
 // TYPES
@@ -44,7 +44,7 @@ export type CustomerAddress = {
 // ============================================
 
 // Get customer profile for the authenticated user
-async function getCustomerForUser(userId: string) {
+const getCustomerForUser = async (userId: string) => {
   const [customer] = await db
     .select()
     .from(customers)
@@ -54,7 +54,7 @@ async function getCustomerForUser(userId: string) {
 }
 
 // Require authenticated user with customer profile
-async function requireCustomer() {
+const requireCustomer = async () => {
   const user = await getMeFn()
   if (!user) {
     throw new Error('Unauthorized')
@@ -338,15 +338,17 @@ export const getCustomerOrdersFn = createServerFn()
       shippingMethod: order.shippingMethod,
       shippingAddress: order.shippingAddress,
       createdAt: order.createdAt,
-      items: (itemsByOrderId.get(order.id) || []).map((item) => ({
-        id: item.id,
-        title: item.title,
-        variantTitle: item.variantTitle,
-        quantity: item.quantity,
-        price: parseDecimal(item.price),
-        total: parseDecimal(item.total),
-        imageUrl: item.imageUrl,
-      })),
+      items: (itemsByOrderId.get(order.id) || []).map(
+        (item: typeof orderItems.$inferSelect) => ({
+          id: item.id,
+          title: item.title,
+          variantTitle: item.variantTitle,
+          quantity: item.quantity,
+          price: parseDecimal(item.price),
+          total: parseDecimal(item.total),
+          imageUrl: item.imageUrl,
+        }),
+      ),
     }))
 
     return {

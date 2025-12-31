@@ -31,9 +31,7 @@ export type ValidationResult<T = undefined> =
  * }
  * ```
  */
-export function validateCheckoutForPayment(
-  checkout: CheckoutForValidation,
-): ValidationResult {
+export const validateCheckoutForPayment = (checkout: CheckoutForValidation) => {
   if (!checkout.email) {
     return { valid: false, error: 'Customer email is required', status: 400 }
   }
@@ -52,9 +50,9 @@ export function validateCheckoutForPayment(
 /**
  * Validates checkout state (not completed, not expired).
  */
-export function validateCheckoutState(
+export const validateCheckoutState = (
   checkout: CheckoutForValidation | null,
-): ValidationResult {
+) => {
   if (!checkout) {
     return { valid: false, error: 'Checkout not found', status: 404 }
   }
@@ -73,9 +71,9 @@ export function validateCheckoutState(
 /**
  * Validates cart has items.
  */
-export function validateCartNotEmpty(
+export const validateCartNotEmpty = (
   cartItems: unknown[] | null | undefined,
-): ValidationResult {
+) => {
   if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
     return { valid: false, error: 'Cart is empty', status: 400 }
   }
@@ -87,9 +85,9 @@ export function validateCartNotEmpty(
  * Full checkout validation - combines all checks.
  * Use this for a single comprehensive validation.
  */
-export function validateCheckoutComplete(
+export const validateCheckoutComplete = (
   checkout: CheckoutForValidation | null,
-): ValidationResult {
+) => {
   // Check checkout exists
   const stateResult = validateCheckoutState(checkout)
   if (!stateResult.valid) {

@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
 
-function getCsrfSecret(): string {
+const getCsrfSecret = (): string => {
   const secret = process.env.CHECKOUT_SECRET
   if (!secret) {
     throw new Error('CHECKOUT_SECRET required for CSRF protection')
@@ -11,7 +11,7 @@ function getCsrfSecret(): string {
 /**
  * Generate a cryptographically secure CSRF token
  */
-export function generateCsrfToken(): string {
+export const generateCsrfToken = (): string => {
   return randomBytes(32).toString('hex')
 }
 
@@ -19,7 +19,7 @@ export function generateCsrfToken(): string {
  * Generate a CSRF token tied to a session ID
  * Uses HMAC so we don't need to store it in the database
  */
-export function generateSessionCsrfToken(sessionId: string): string {
+export const generateSessionCsrfToken = (sessionId: string): string => {
   const hmac = createHmac('sha256', getCsrfSecret())
   hmac.update(`csrf:${sessionId}`)
   return hmac.digest('hex')
@@ -28,10 +28,10 @@ export function generateSessionCsrfToken(sessionId: string): string {
 /**
  * Verify a CSRF token against a session ID
  */
-export function verifySessionCsrfToken(
+export const verifySessionCsrfToken = (
   token: string | undefined,
   sessionId: string,
-): boolean {
+): boolean => {
   if (!token) return false
   const expectedToken = generateSessionCsrfToken(sessionId)
   return validateCsrfToken(token, expectedToken)
@@ -41,10 +41,10 @@ export function verifySessionCsrfToken(
  * Validate a CSRF token against an expected token
  * Uses timing-safe comparison to prevent timing attacks
  */
-export function validateCsrfToken(
+export const validateCsrfToken = (
   token: string | undefined,
   expectedToken: string | undefined,
-): boolean {
+): boolean => {
   if (
     !token ||
     !expectedToken ||
@@ -72,7 +72,9 @@ export function validateCsrfToken(
  * Extract CSRF token from request
  * Checks header first, then cookie
  */
-export function getCsrfTokenFromRequest(request: Request): string | undefined {
+export const getCsrfTokenFromRequest = (
+  request: Request,
+): string | undefined => {
   // Check header first (preferred for API requests)
   const headerToken = request.headers.get('x-csrf-token')
   if (headerToken) {
@@ -94,7 +96,7 @@ export function getCsrfTokenFromRequest(request: Request): string | undefined {
 /**
  * Create a Set-Cookie header for the CSRF token
  */
-export function createCsrfCookie(token: string): string {
+export const createCsrfCookie = (token: string): string => {
   // CSRF cookies should be:
   // - HttpOnly: not accessible by JavaScript
   // - SameSite=Strict: only sent with same-site requests
@@ -106,10 +108,10 @@ export function createCsrfCookie(token: string): string {
 /**
  * Middleware helper to validate CSRF for state-changing requests
  */
-export function validateCsrfForRequest(
+export const validateCsrfForRequest = (
   request: Request,
   sessionToken: string,
-): { valid: boolean; error?: string } {
+): { valid: boolean; error?: string } => {
   // Only validate for state-changing methods
   const method = request.method.toUpperCase()
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
@@ -132,10 +134,10 @@ export function validateCsrfForRequest(
  * Validate CSRF token against a session ID
  * Returns error response if invalid, undefined if valid
  */
-export function validateCsrf(
+export const validateCsrf = (
   request: Request,
   sessionId: string | undefined,
-): Response | undefined {
+): Response | undefined => {
   // Skip for safe methods
   const method = request.method.toUpperCase()
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {

@@ -7,7 +7,7 @@ interface ProductStatsProps {
   stats: ProductStatsData
 }
 
-export function ProductStats({ stats }: ProductStatsProps) {
+export const ProductStats = ({ stats }: ProductStatsProps) => {
   const { t } = useTranslation()
   const total = stats.totalProducts
   const active = stats.activeCount

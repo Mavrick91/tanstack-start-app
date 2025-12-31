@@ -6,9 +6,9 @@ import type { CustomerAddress } from '../../../types/order'
  * Creates a valid AddressSnapshot with sensible defaults.
  * Use overrides to customize specific fields for your test case.
  */
-export function createAddress(
+export const createAddress = (
   overrides: Partial<AddressSnapshot> = {},
-): AddressSnapshot {
+): AddressSnapshot => {
   return {
     firstName: 'John',
     lastName: 'Doe',
@@ -26,9 +26,9 @@ export function createAddress(
 /**
  * Creates a valid AddressInput for form submissions.
  */
-export function createAddressInput(
+export const createAddressInput = (
   overrides: Partial<AddressInput> = {},
-): AddressInput {
+): AddressInput => {
   return {
     firstName: 'John',
     lastName: 'Doe',
@@ -46,9 +46,9 @@ export function createAddressInput(
 /**
  * Creates a CustomerAddress with database fields.
  */
-export function createCustomerAddress(
+export const createCustomerAddress = (
   overrides: Partial<CustomerAddress> = {},
-): CustomerAddress {
+): CustomerAddress => {
   return {
     id: 'addr-123',
     customerId: 'cust-123',
@@ -73,10 +73,10 @@ export function createCustomerAddress(
  */
 export const addressVariants = {
   /** US address (default) */
-  us: () => createAddress(),
+  us: (): AddressSnapshot => createAddress(),
 
   /** Canadian address */
-  canada: () =>
+  canada: (): AddressSnapshot =>
     createAddress({
       address1: '456 Maple Avenue',
       city: 'Toronto',
@@ -88,7 +88,7 @@ export const addressVariants = {
     }),
 
   /** UK address */
-  uk: () =>
+  uk: (): AddressSnapshot =>
     createAddress({
       address1: '10 Downing Street',
       city: 'London',
@@ -100,19 +100,19 @@ export const addressVariants = {
     }),
 
   /** Address with company */
-  withCompany: () =>
+  withCompany: (): AddressSnapshot =>
     createAddress({
       company: 'Acme Corporation',
     }),
 
   /** Address with apartment/suite */
-  withApartment: () =>
+  withApartment: (): AddressSnapshot =>
     createAddress({
       address2: 'Apt 4B',
     }),
 
   /** Minimal valid address (no optional fields) */
-  minimal: () =>
+  minimal: (): AddressSnapshot =>
     createAddress({
       company: undefined,
       address2: undefined,

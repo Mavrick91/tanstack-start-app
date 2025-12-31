@@ -12,7 +12,7 @@ const redisConfig = {
 // Singleton Redis connection
 let redis: Redis | null = null
 
-export function getRedisConnection(): Redis {
+export const getRedisConnection = () => {
   if (!redis) {
     redis = new Redis(redisConfig)
   }
@@ -20,7 +20,7 @@ export function getRedisConnection(): Redis {
 }
 
 // Check if Redis is configured and available
-export async function isQueueAvailable(): Promise<boolean> {
+export const isQueueAvailable = async () => {
   if (!process.env.REDIS_HOST) {
     return false
   }
@@ -37,7 +37,7 @@ export async function isQueueAvailable(): Promise<boolean> {
 // Email queue with exponential backoff
 let emailQueue: Queue | null = null
 
-export function getEmailQueue(): Queue {
+export const getEmailQueue = () => {
   if (!emailQueue) {
     emailQueue = new Queue('email', {
       connection: getRedisConnection(),
@@ -101,7 +101,7 @@ export interface ShippingUpdateEmailJob {
 export type EmailJob = OrderConfirmationEmailJob | ShippingUpdateEmailJob
 
 // Add email job to queue
-export async function queueEmail(job: EmailJob): Promise<string> {
+export const queueEmail = async (job: EmailJob) => {
   const queue = getEmailQueue()
   const queueJob = await queue.add(job.type, job, {
     jobId: `${job.type}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -110,7 +110,7 @@ export async function queueEmail(job: EmailJob): Promise<string> {
 }
 
 // Graceful shutdown
-export async function closeQueue(): Promise<void> {
+export const closeQueue = async () => {
   if (emailQueue) {
     await emailQueue.close()
     emailQueue = null

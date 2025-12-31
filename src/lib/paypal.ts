@@ -16,7 +16,7 @@ let tokenCache: TokenCache | null = null
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000 // 5 minutes buffer before expiry
 
 // Get PayPal access token with caching
-async function getAccessToken(): Promise<string> {
+const getAccessToken = async () => {
   // Check if we have a valid cached token
   if (
     tokenCache &&
@@ -61,7 +61,7 @@ async function getAccessToken(): Promise<string> {
 }
 
 // Clear the token cache (useful for testing or on auth errors)
-export function clearPayPalTokenCache(): void {
+export const clearPayPalTokenCache = () => {
   tokenCache = null
 }
 
@@ -79,7 +79,7 @@ export interface PayPalShippingAddress {
 }
 
 // Create a PayPal order
-export async function createPayPalOrder({
+export const createPayPalOrder = async ({
   amount,
   currency = 'USD',
   description,
@@ -93,7 +93,7 @@ export async function createPayPalOrder({
   checkoutId: string
   email?: string
   shippingAddress?: PayPalShippingAddress
-}) {
+}) => {
   const accessToken = await getAccessToken()
 
   // Build purchase unit with optional shipping
@@ -174,7 +174,7 @@ export async function createPayPalOrder({
 }
 
 // Capture a PayPal order (after customer approval)
-export async function capturePayPalOrder(orderId: string) {
+export const capturePayPalOrder = async (orderId: string) => {
   const accessToken = await getAccessToken()
 
   const response = await fetch(
@@ -212,7 +212,7 @@ export async function capturePayPalOrder(orderId: string) {
 }
 
 // Get PayPal order details
-export async function getPayPalOrder(orderId: string) {
+export const getPayPalOrder = async (orderId: string) => {
   const accessToken = await getAccessToken()
 
   const response = await fetch(
@@ -235,12 +235,12 @@ export async function getPayPalOrder(orderId: string) {
 }
 
 // Get PayPal client ID for frontend
-export function getPayPalClientId(): string {
+export const getPayPalClientId = () => {
   return process.env.PAYPAL_CLIENT_ID || ''
 }
 
 // Verify PayPal webhook signature
-export async function verifyWebhookSignature({
+export const verifyWebhookSignature = async ({
   body,
   headers,
   webhookId,
@@ -248,7 +248,7 @@ export async function verifyWebhookSignature({
   body: string
   headers: Record<string, string>
   webhookId: string
-}) {
+}) => {
   const accessToken = await getAccessToken()
 
   const response = await fetch(

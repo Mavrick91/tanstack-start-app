@@ -31,7 +31,18 @@ export interface MockStripeOptions {
 /**
  * Creates a mock PaymentIntent object.
  */
-export function createMockPaymentIntent(options: MockStripeOptions = {}) {
+export const createMockPaymentIntent = (
+  options: MockStripeOptions = {},
+): {
+  id: string
+  object: string
+  amount: number
+  currency: string
+  status: string
+  client_secret: string
+  created: number
+  metadata: Record<string, unknown>
+} => {
   return {
     id: options.paymentIntentId ?? 'pi_test_123',
     object: 'payment_intent',
@@ -58,7 +69,13 @@ export function createMockPaymentIntent(options: MockStripeOptions = {}) {
  * expect(stripe.paymentIntents.retrieve).toHaveBeenCalledWith('pi_123')
  * ```
  */
-export function createMockStripe(options: MockStripeOptions = {}) {
+export const createMockStripe = (
+  options: MockStripeOptions = {},
+): {
+  paymentIntents: Record<string, ReturnType<typeof vi.fn>>
+  refunds: { create: ReturnType<typeof vi.fn> }
+  webhooks: { constructEvent: ReturnType<typeof vi.fn> }
+} => {
   const mockPaymentIntent = createMockPaymentIntent(options)
 
   return {
@@ -107,10 +124,16 @@ export function createMockStripe(options: MockStripeOptions = {}) {
 /**
  * Creates a mock Stripe webhook event.
  */
-export function createMockStripeEvent(
+export const createMockStripeEvent = (
   type: string,
   data: Record<string, unknown> = {},
-) {
+): {
+  id: string
+  object: string
+  type: string
+  data: { object: Record<string, unknown> }
+  created: number
+} => {
   return {
     id: 'evt_test_123',
     object: 'event',
@@ -175,7 +198,17 @@ export const stripeScenarios = {
  * vi.mock('../../lib/stripe', () => mockStripeModule({ paymentStatus: 'succeeded' }))
  * ```
  */
-export function mockStripeModule(options: MockStripeOptions = {}) {
+export const mockStripeModule = (
+  options: MockStripeOptions = {},
+): {
+  stripe: ReturnType<typeof createMockStripe>
+  createPaymentIntent: ReturnType<typeof vi.fn>
+  retrievePaymentIntent: ReturnType<typeof vi.fn>
+  constructWebhookEvent: ReturnType<typeof vi.fn>
+  dollarsToCents: ReturnType<typeof vi.fn>
+  centsToDollars: ReturnType<typeof vi.fn>
+  getStripePublishableKey: ReturnType<typeof vi.fn>
+} => {
   const mockStripe = createMockStripe(options)
   const mockPaymentIntent = createMockPaymentIntent(options)
 

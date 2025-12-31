@@ -6,13 +6,7 @@ import { CollectionForm } from '../../../../components/admin/collections/Collect
 import { Button } from '../../../../components/ui/button'
 import { getCollectionFn } from '../../../../server/collections'
 
-export const Route = createFileRoute(
-  '/admin/_authed/collections/$collectionId',
-)({
-  component: EditCollectionPage,
-})
-
-function EditCollectionPage() {
+const EditCollectionPage = () => {
   const { t } = useTranslation()
   const { collectionId } = Route.useParams()
 
@@ -52,3 +46,9 @@ function EditCollectionPage() {
     />
   )
 }
+
+export const Route = createFileRoute(
+  '/admin/_authed/collections/$collectionId',
+)({
+  component: EditCollectionPage,
+})
