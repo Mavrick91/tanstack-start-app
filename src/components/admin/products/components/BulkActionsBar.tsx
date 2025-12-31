@@ -3,6 +3,7 @@ import { Archive, CheckCircle2, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { bulkUpdateProductsFn } from '../../../../server/products'
 import { Button } from '../../../ui/button'
 
 interface BulkActionsBarProps {
@@ -31,18 +32,14 @@ export function BulkActionsBar({
     }: {
       action: 'delete' | 'archive' | 'activate'
     }) => {
-      const res = await fetch('/api/products/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
+      const result = await bulkUpdateProductsFn({
+        data: {
           action,
           ids: Array.from(selectedIds),
-        }),
+        },
       })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error || 'Bulk operation failed')
-      return { action, result: json }
+      if (!result.success) throw new Error('Bulk operation failed')
+      return { action, result }
     },
     onSuccess: ({ action }) => {
       handleSuccess()

@@ -2,6 +2,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import {
+  createCheckoutFn,
+  getCheckoutFn,
+  getShippingRatesFn,
+  saveCustomerInfoFn,
+  saveShippingAddressFn,
+  saveShippingMethodFn,
+  completeCheckoutFn,
+} from '../server/checkout'
+
 import type { Checkout, AddressInput, ShippingRate } from '../types/checkout'
 
 // Zustand store for checkout ID persistence
@@ -24,38 +34,17 @@ export const useCheckoutIdStore = create<CheckoutIdStore>()(
   ),
 )
 
-// API functions
+// API functions using server functions
 async function createCheckoutApi(
   items: Array<{ productId: string; variantId?: string; quantity: number }>,
 ): Promise<Checkout> {
-  const response = await fetch('/api/checkout/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ items }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to create checkout')
-  }
-
-  const data = await response.json()
-  return data.checkout
+  const result = await createCheckoutFn({ data: { items } })
+  return result.checkout as Checkout
 }
 
 async function getCheckoutApi(checkoutId: string): Promise<Checkout> {
-  const response = await fetch(`/api/checkout/${checkoutId}`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to fetch checkout')
-  }
-
-  const data = await response.json()
-  return data.checkout
+  const result = await getCheckoutFn({ data: { checkoutId } })
+  return result.checkout as Checkout
 }
 
 async function saveCustomerInfoApi(
@@ -68,91 +57,54 @@ async function saveCustomerInfoApi(
     password?: string
   },
 ): Promise<Checkout> {
-  const response = await fetch(`/api/checkout/${checkoutId}/customer`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
+  const result = await saveCustomerInfoFn({
+    data: {
+      checkoutId,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      createAccount: data.createAccount,
+      password: data.password,
+    },
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to save customer info')
-  }
-
-  const result = await response.json()
-  return result.checkout
+  // Return the updated checkout with email
+  return {
+    id: result.checkout.id,
+    email: result.checkout.email,
+    customerId: result.checkout.customerId,
+  } as Checkout
 }
 
 async function saveShippingAddressApi(
   checkoutId: string,
   address: AddressInput & { saveAddress?: boolean },
 ): Promise<Checkout> {
-  const response = await fetch(`/api/checkout/${checkoutId}/shipping-address`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(address),
+  const { saveAddress, ...addressData } = address
+  const result = await saveShippingAddressFn({
+    data: {
+      checkoutId,
+      address: addressData,
+      saveAddress,
+    },
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to save shipping address')
-  }
-
-  const result = await response.json()
-  return result.checkout
+  return result.checkout as Checkout
 }
 
 async function getShippingRatesApi(
   checkoutId: string,
 ): Promise<ShippingRate[]> {
-  const response = await fetch(`/api/checkout/${checkoutId}/shipping-rates`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to fetch shipping rates')
-  }
-
-  const data = await response.json()
-  return data.shippingRates
+  const result = await getShippingRatesFn({ data: { checkoutId } })
+  return result.shippingRates as ShippingRate[]
 }
 
 async function saveShippingMethodApi(
   checkoutId: string,
   shippingRateId: string,
 ): Promise<Checkout> {
-  const response = await fetch(`/api/checkout/${checkoutId}/shipping-method`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ shippingRateId }),
+  const result = await saveShippingMethodFn({
+    data: { checkoutId, shippingRateId },
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to save shipping method')
-  }
-
-  const result = await response.json()
-  return result.checkout
-}
-
-async function createStripePaymentIntentApi(checkoutId: string) {
-  const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to create payment intent')
-  }
-
-  return await response.json()
+  return result.checkout as Checkout
 }
 
 async function completeCheckoutApi(
@@ -160,19 +112,10 @@ async function completeCheckoutApi(
   paymentProvider: 'stripe' | 'paypal',
   paymentId: string,
 ) {
-  const response = await fetch(`/api/checkout/${checkoutId}/complete`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ paymentProvider, paymentId }),
+  const result = await completeCheckoutFn({
+    data: { checkoutId, paymentProvider, paymentId },
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to complete checkout')
-  }
-
-  return await response.json()
+  return result
 }
 
 // Query keys
@@ -350,6 +293,23 @@ export function useSaveShippingMethod(checkoutId: string) {
       })
     },
   })
+}
+
+// Stripe payment intent - still uses fetch because it needs special handling
+// for returning client secret to the browser
+async function createStripePaymentIntentApi(checkoutId: string) {
+  const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to create payment intent')
+  }
+
+  return await response.json()
 }
 
 export function useCreateStripePaymentIntent(checkoutId: string) {

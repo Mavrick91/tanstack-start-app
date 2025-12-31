@@ -1,22 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { fetchProducts, productsResponseSchema } from './products'
+import { getProductsListFn } from '../../server/products'
 
-// Mock fetch
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+// Mock the server function
+vi.mock('../../server/products', () => ({
+  getProductsListFn: vi.fn(),
+}))
 
 describe('fetchProducts', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.mocked(getProductsListFn).mockReset()
   })
 
-  it('should throw error when response is not ok (e.g., 401)', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: () => Promise.resolve({ error: 'Unauthorized' }),
-    })
+  it('should throw error when server function throws', async () => {
+    vi.mocked(getProductsListFn).mockRejectedValue(new Error('Unauthorized'))
 
     await expect(
       fetchProducts({
@@ -27,59 +25,17 @@ describe('fetchProducts', () => {
         sortOrder: 'desc',
         filters: {},
       }),
-    ).rejects.toThrow('HTTP error 401')
-  })
-
-  it('should throw error when response is 500', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: () => Promise.resolve({ error: 'Server error' }),
-    })
-
-    await expect(
-      fetchProducts({
-        search: '',
-        page: 1,
-        limit: 10,
-        sortKey: 'createdAt',
-        sortOrder: 'desc',
-        filters: {},
-      }),
-    ).rejects.toThrow('HTTP error 500')
-  })
-
-  it('should throw error when API returns success: false', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ success: false, error: 'Database error' }),
-    })
-
-    await expect(
-      fetchProducts({
-        search: '',
-        page: 1,
-        limit: 10,
-        sortKey: 'createdAt',
-        sortOrder: 'desc',
-        filters: {},
-      }),
-    ).rejects.toThrow('Database error')
+    ).rejects.toThrow('Unauthorized')
   })
 
   it('should throw validation error when response shape is invalid', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: 'invalid', // should be array
-          total: 0,
-          page: 1,
-          limit: 10,
-          totalPages: 0,
-        }),
-    })
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: 'invalid', // should be array
+      total: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 0,
+    } as never)
 
     await expect(
       fetchProducts({
@@ -94,32 +50,27 @@ describe('fetchProducts', () => {
   })
 
   it('should throw validation error when product has invalid status', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: [
-            {
-              id: '1',
-              handle: 'test',
-              name: { en: 'Test' },
-              status: 'invalid_status', // invalid
-              vendor: null,
-              productType: null,
-              price: '10.00',
-              compareAtPrice: null,
-              sku: null,
-              createdAt: '2024-01-01T00:00:00Z',
-              firstImageUrl: null,
-            },
-          ],
-          total: 1,
-          page: 1,
-          limit: 10,
-          totalPages: 1,
-        }),
-    })
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: [
+        {
+          id: '1',
+          handle: 'test',
+          name: { en: 'Test' },
+          status: 'invalid_status', // invalid
+          vendor: null,
+          productType: null,
+          price: '10.00',
+          compareAtPrice: null,
+          sku: null,
+          createdAt: '2024-01-01T00:00:00Z',
+          firstImageUrl: null,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 10,
+      totalPages: 1,
+    } as never)
 
     await expect(
       fetchProducts({
@@ -138,27 +89,26 @@ describe('fetchProducts', () => {
       id: '1',
       handle: 'test-product',
       name: { en: 'Test Product' },
-      status: 'active',
+      status: 'active' as const,
       vendor: null,
       productType: null,
       price: '10.00',
-      compareAtPrice: null,
-      sku: null,
-      createdAt: '2024-01-01T00:00:00Z',
+      createdAt: new Date('2024-01-01T00:00:00Z'),
+      updatedAt: new Date('2024-01-01T00:00:00Z'),
       firstImageUrl: null,
+      description: null,
+      metaTitle: null,
+      metaDescription: null,
+      tags: [],
+      publishedAt: null,
     }
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: [mockProduct],
-          total: 25,
-          page: 1,
-          limit: 10,
-          totalPages: 3,
-        }),
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: [mockProduct],
+      total: 25,
+      page: 1,
+      limit: 10,
+      totalPages: 3,
     })
 
     const result = await fetchProducts({
@@ -176,18 +126,13 @@ describe('fetchProducts', () => {
     expect(result.totalPages).toBe(3)
   })
 
-  it('should build correct URL params for search', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: [],
-          total: 0,
-          page: 1,
-          limit: 10,
-          totalPages: 0,
-        }),
+  it('should pass correct params to server function', async () => {
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: [],
+      total: 0,
+      page: 2,
+      limit: 20,
+      totalPages: 0,
     })
 
     await fetchProducts({
@@ -199,67 +144,44 @@ describe('fetchProducts', () => {
       filters: { status: 'active' },
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('q=test+query'),
-      expect.any(Object),
-    )
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('page=2'),
-      expect.any(Object),
-    )
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('limit=20'),
-      expect.any(Object),
-    )
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('sort=name'),
-      expect.any(Object),
-    )
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('order=asc'),
-      expect.any(Object),
-    )
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('status=active'),
-      expect.any(Object),
-    )
+    expect(getProductsListFn).toHaveBeenCalledWith({
+      data: {
+        page: 2,
+        limit: 20,
+        search: 'test query',
+        status: 'active',
+        sortKey: 'name',
+        sortOrder: 'asc',
+      },
+    })
   })
 
   it('should accept products with extra fields from API (passthrough)', async () => {
-    // The API returns the full product object from the database which has
-    // additional fields like description, tags, metaTitle, etc.
     const mockProductWithExtraFields = {
       id: '1',
       handle: 'test-product',
       name: { en: 'Test Product' },
-      status: 'active',
+      status: 'active' as const,
       vendor: null,
       productType: null,
       price: '10.00',
-      compareAtPrice: null,
-      sku: null,
-      createdAt: '2024-01-01T00:00:00Z',
+      createdAt: new Date('2024-01-01T00:00:00Z'),
+      updatedAt: new Date('2024-01-01T00:00:00Z'),
       firstImageUrl: null,
-      // Extra fields from database that aren't in Product type
+      // Extra fields from database
       description: { en: 'A test product description' },
       metaTitle: null,
       metaDescription: null,
       tags: ['test', 'sample'],
       publishedAt: null,
-      updatedAt: '2024-01-01T00:00:00Z',
     }
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: [mockProductWithExtraFields],
-          total: 1,
-          page: 1,
-          limit: 10,
-          totalPages: 1,
-        }),
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: [mockProductWithExtraFields],
+      total: 1,
+      page: 1,
+      limit: 10,
+      totalPages: 1,
     })
 
     const result = await fetchProducts({
@@ -276,18 +198,13 @@ describe('fetchProducts', () => {
     expect(result.data[0].handle).toBe('test-product')
   })
 
-  it('should not include status param when filter is "all"', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          success: true,
-          products: [],
-          total: 0,
-          page: 1,
-          limit: 10,
-          totalPages: 0,
-        }),
+  it('should not include status when filter is "all"', async () => {
+    vi.mocked(getProductsListFn).mockResolvedValue({
+      products: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 0,
     })
 
     await fetchProducts({
@@ -299,15 +216,22 @@ describe('fetchProducts', () => {
       filters: { status: 'all' },
     })
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string
-    expect(calledUrl).not.toContain('status=')
+    expect(getProductsListFn).toHaveBeenCalledWith({
+      data: {
+        page: 1,
+        limit: 10,
+        search: undefined,
+        status: undefined,
+        sortKey: 'createdAt',
+        sortOrder: 'desc',
+      },
+    })
   })
 })
 
 describe('productsResponseSchema', () => {
   it('should validate correct response shape', () => {
     const validResponse = {
-      success: true,
       products: [
         {
           id: '1',
@@ -335,7 +259,6 @@ describe('productsResponseSchema', () => {
 
   it('should reject invalid product status', () => {
     const invalidResponse = {
-      success: true,
       products: [
         {
           id: '1',
@@ -363,7 +286,6 @@ describe('productsResponseSchema', () => {
 
   it('should reject when products is not an array', () => {
     const invalidResponse = {
-      success: true,
       products: 'not-an-array',
       total: 1,
       page: 1,
@@ -375,23 +297,8 @@ describe('productsResponseSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('should reject when success is false', () => {
-    const invalidResponse = {
-      success: false,
-      products: [],
-      total: 0,
-      page: 1,
-      limit: 10,
-      totalPages: 0,
-    }
-
-    const result = productsResponseSchema.safeParse(invalidResponse)
-    expect(result.success).toBe(false)
-  })
-
   it('should reject missing required fields', () => {
     const invalidResponse = {
-      success: true,
       products: [],
       // missing total, page, limit, totalPages
     }
@@ -402,7 +309,6 @@ describe('productsResponseSchema', () => {
 
   it('should accept products with extra fields (passthrough)', () => {
     const responseWithExtraFields = {
-      success: true,
       products: [
         {
           id: '1',
@@ -437,7 +343,6 @@ describe('productsResponseSchema', () => {
 
   it('should accept products with null description (common case)', () => {
     const responseWithNullDescription = {
-      success: true,
       products: [
         {
           id: '1',
@@ -471,9 +376,7 @@ describe('productsResponseSchema', () => {
   })
 
   it('should accept products without compareAtPrice and sku fields (undefined)', () => {
-    // The API may not return compareAtPrice and sku if they don't exist on the variant
     const responseWithoutOptionalFields = {
-      success: true,
       products: [
         {
           id: '1',
@@ -501,9 +404,7 @@ describe('productsResponseSchema', () => {
   })
 
   it('should accept products with Date objects for timestamps', () => {
-    // The API might return Date objects instead of strings for timestamps
     const responseWithDates = {
-      success: true,
       products: [
         {
           id: '1',

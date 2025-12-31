@@ -25,7 +25,11 @@ import {
 import { ImageUploader, type ImageItem } from './ImageUploader'
 import { cn } from '../../../lib/utils'
 import { generateProductDetailsFn } from '../../../server/ai'
-import { createProductFn } from '../../../server/products'
+import {
+  createProductFn,
+  updateProductFn,
+  updateProductImagesFn,
+} from '../../../server/products'
 import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import {
@@ -177,15 +181,13 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
 
   const updateProduct = useMutation({
     mutationFn: async (updateData: Partial<ProductFormData>) => {
-      const res = await fetch(`/api/products/${product!.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updateData),
+      const result = await updateProductFn({
+        data: {
+          productId: product!.id,
+          ...updateData,
+        },
       })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.product
+      return result.product
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -350,14 +352,12 @@ export function ProductForm({ product, onBack }: ProductFormProps) {
           )
 
           // Save images to DB
-          const res = await fetch(`/api/products/${product!.id}/images`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ images: uploadedImages }),
+          await updateProductImagesFn({
+            data: {
+              productId: product!.id,
+              images: uploadedImages,
+            },
           })
-          const json = await res.json()
-          if (!json.success) throw new Error(json.error)
 
           // Sync local state with uploaded URLs
           setImages(

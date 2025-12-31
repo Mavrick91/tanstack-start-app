@@ -12,6 +12,7 @@ import { OrderStatusBadge } from '../../../../components/admin/orders/OrderStatu
 import { Separator } from '../../../../components/ui/separator'
 import { useAuthStore } from '../../../../hooks/useAuth'
 import { formatCurrency } from '../../../../lib/format'
+import { getCustomerOrdersFn } from '../../../../server/customers'
 
 type OrderDetail = {
   id: string
@@ -80,12 +81,11 @@ function AccountOrderDetailPage() {
     }
 
     if (isAuthenticated && orderId) {
-      fetch('/api/customers/me/orders', { credentials: 'include' })
-        .then((res) => res.json())
+      getCustomerOrdersFn({ data: { page: 1, limit: 100 } })
         .then((data) => {
-          const foundOrder = data.orders.find(
-            (o: OrderDetail) => o.id === orderId,
-          )
+          const foundOrder = data.orders.find((o) => o.id === orderId) as
+            | OrderDetail
+            | undefined
           if (foundOrder) {
             setOrder(foundOrder)
           } else {

@@ -6,6 +6,7 @@ import {
   ProductForm,
   type Product,
 } from '../../../../components/admin/products/ProductForm'
+import { getProductByIdFn } from '../../../../server/products'
 
 export const Route = createFileRoute('/admin/_authed/products/$productId')({
   component: EditProductPage,
@@ -19,12 +20,8 @@ function EditProductPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['product', productId],
     queryFn: async () => {
-      const res = await fetch(`/api/products/${productId}`, {
-        credentials: 'include',
-      })
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.product as Product
+      const result = await getProductByIdFn({ data: { productId } })
+      return result.product as Product
     },
   })
 

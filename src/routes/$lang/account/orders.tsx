@@ -12,6 +12,7 @@ import { OrderStatusBadge } from '../../../components/admin/orders/OrderStatusBa
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../hooks/useAuth'
 import { formatCurrency } from '../../../lib/format'
+import { getCustomerOrdersFn } from '../../../server/customers'
 
 type OrderListItem = {
   id: string
@@ -21,30 +22,18 @@ type OrderListItem = {
   status: string
   paymentStatus: string
   fulfillmentStatus: string
-  createdAt: string
+  createdAt: Date | string
   items: Array<{
     id: string
     title: string
     quantity: number
-    imageUrl?: string
+    imageUrl?: string | null
   }>
 }
 
 export const Route = createFileRoute('/$lang/account/orders')({
   component: AccountOrdersPage,
 })
-
-async function fetchOrders() {
-  const response = await fetch('/api/customers/me/orders', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch orders')
-  }
-
-  return await response.json()
-}
 
 function AccountOrdersPage() {
   const { lang } = useParams({ strict: false }) as { lang: string }
@@ -70,15 +59,16 @@ function AccountOrdersPage() {
     }
 
     if (isAuthenticated) {
-      fetchOrders()
-        .then((data) => setOrders(data.orders))
+      getCustomerOrdersFn({ data: { page: 1, limit: 50 } })
+        .then((data) => setOrders(data.orders as OrderListItem[]))
         .catch(console.error)
         .finally(() => setIsLoading(false))
     }
   }, [authLoading, isAuthenticated, lang, navigate])
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    const d = typeof date === 'string' ? new Date(date) : date
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

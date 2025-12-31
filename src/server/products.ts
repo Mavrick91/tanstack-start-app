@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { asc, count, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, inArray, SQL } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { getMeFn } from './auth'
@@ -498,4 +498,433 @@ export const deleteProductsBulkFn = createServerFn({ method: 'POST' })
 
     await db.delete(products).where(inArray(products.id, data.ids))
     return { success: true, deletedCount: data.ids.length }
+  })
+
+// Bulk update products (delete, archive, activate)
+export const bulkUpdateProductsFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        action: z.enum(['delete', 'archive', 'activate']),
+        ids: z.array(z.string().uuid()),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const { action, ids } = data
+
+    if (ids.length === 0) {
+      throw new Error('No items selected')
+    }
+
+    if (action === 'delete') {
+      // Get images for cleanup
+      const images = await db
+        .select({ url: productImages.url })
+        .from(productImages)
+        .where(inArray(productImages.productId, ids))
+
+      if (images.length > 0) {
+        const { deleteImagesFromCloudinary } = await import('../lib/cloudinary')
+        await deleteImagesFromCloudinary(images.map((img) => img.url))
+      }
+
+      await db.delete(products).where(inArray(products.id, ids))
+    } else if (action === 'archive') {
+      await db
+        .update(products)
+        .set({ status: 'archived', updatedAt: new Date() })
+        .where(inArray(products.id, ids))
+    } else if (action === 'activate') {
+      await db
+        .update(products)
+        .set({ status: 'active', updatedAt: new Date() })
+        .where(inArray(products.id, ids))
+    }
+
+    return { success: true, count: ids.length }
+  })
+
+// Get single product by ID with all related data
+export const getProductByIdFn = createServerFn()
+  .inputValidator((data: unknown) =>
+    z.object({ productId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const [product] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, data.productId))
+
+    if (!product) {
+      throw new Error('Product not found')
+    }
+
+    const images = await db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.productId, data.productId))
+      .orderBy(asc(productImages.position))
+
+    const options = await db
+      .select()
+      .from(productOptions)
+      .where(eq(productOptions.productId, data.productId))
+      .orderBy(asc(productOptions.position))
+
+    const variants = await db
+      .select()
+      .from(productVariants)
+      .where(eq(productVariants.productId, data.productId))
+      .orderBy(asc(productVariants.position))
+
+    return {
+      product: { ...product, images, options, variants },
+    }
+  })
+
+// Update product
+export const updateProductFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        productId: z.string().uuid(),
+        name: z
+          .object({
+            en: z.string(),
+            fr: z.string().optional(),
+            id: z.string().optional(),
+          })
+          .optional(),
+        handle: z.string().optional(),
+        description: z
+          .object({
+            en: z.string(),
+            fr: z.string().optional(),
+            id: z.string().optional(),
+          })
+          .optional()
+          .nullable(),
+        status: z.enum(['draft', 'active', 'archived']).optional(),
+        vendor: z.string().optional().nullable(),
+        productType: z.string().optional().nullable(),
+        tags: z.array(z.string()).optional(),
+        metaTitle: z
+          .object({
+            en: z.string(),
+            fr: z.string().optional(),
+            id: z.string().optional(),
+          })
+          .optional()
+          .nullable(),
+        metaDescription: z
+          .object({
+            en: z.string(),
+            fr: z.string().optional(),
+            id: z.string().optional(),
+          })
+          .optional()
+          .nullable(),
+        options: z
+          .array(
+            z.object({
+              name: z.string(),
+              values: z.array(z.string()),
+            }),
+          )
+          .optional(),
+        variants: z
+          .array(
+            z.object({
+              title: z.string().optional(),
+              selectedOptions: z
+                .array(z.object({ name: z.string(), value: z.string() }))
+                .optional(),
+              price: z.string(),
+              compareAtPrice: z.string().optional().nullable(),
+              sku: z.string().optional().nullable(),
+              barcode: z.string().optional().nullable(),
+              weight: z.string().optional().nullable(),
+              available: z.boolean().optional(),
+            }),
+          )
+          .optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const {
+      productId,
+      name,
+      description,
+      handle,
+      status,
+      vendor,
+      productType,
+      tags,
+      metaTitle,
+      metaDescription,
+      options,
+      variants,
+    } = data
+
+    // Update product
+    const updateData: Record<string, unknown> = { updatedAt: new Date() }
+    if (name !== undefined) updateData.name = name
+    if (description !== undefined) updateData.description = description
+    if (handle !== undefined) updateData.handle = handle
+    if (status !== undefined) updateData.status = status
+    if (vendor !== undefined) updateData.vendor = emptyToNull(vendor)
+    if (productType !== undefined)
+      updateData.productType = emptyToNull(productType)
+    if (tags !== undefined) updateData.tags = tags
+    if (metaTitle !== undefined) updateData.metaTitle = metaTitle
+    if (metaDescription !== undefined)
+      updateData.metaDescription = metaDescription
+
+    const [updated] = await db
+      .update(products)
+      .set(updateData)
+      .where(eq(products.id, productId))
+      .returning()
+
+    if (!updated) {
+      throw new Error('Product not found')
+    }
+
+    // Update options if provided
+    if (options !== undefined) {
+      await db
+        .delete(productOptions)
+        .where(eq(productOptions.productId, productId))
+
+      if (options.length > 0) {
+        await db.insert(productOptions).values(
+          options.map((opt, index) => ({
+            productId,
+            name: opt.name,
+            values: opt.values,
+            position: index,
+          })),
+        )
+      }
+    }
+
+    // Update variants if provided
+    if (variants !== undefined) {
+      await db
+        .delete(productVariants)
+        .where(eq(productVariants.productId, productId))
+
+      if (variants.length > 0) {
+        await db.insert(productVariants).values(
+          variants.map((v, index) => ({
+            productId,
+            title: v.title || 'Default Title',
+            selectedOptions: v.selectedOptions || [],
+            price: v.price,
+            compareAtPrice: emptyToNull(v.compareAtPrice),
+            sku: emptyToNull(v.sku),
+            barcode: emptyToNull(v.barcode),
+            weight: emptyToNull(v.weight),
+            available: v.available !== false ? 1 : 0,
+            position: index,
+          })),
+        )
+      }
+    }
+
+    // Fetch updated data
+    const updatedOptions = await db
+      .select()
+      .from(productOptions)
+      .where(eq(productOptions.productId, productId))
+      .orderBy(asc(productOptions.position))
+
+    const updatedVariants = await db
+      .select()
+      .from(productVariants)
+      .where(eq(productVariants.productId, productId))
+      .orderBy(asc(productVariants.position))
+
+    return {
+      product: {
+        ...updated,
+        options: updatedOptions,
+        variants: updatedVariants,
+      },
+    }
+  })
+
+// Update product images
+export const updateProductImagesFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        productId: z.string().uuid(),
+        images: z.array(
+          z.object({
+            url: z.string(),
+            altText: z
+              .object({
+                en: z.string(),
+                fr: z.string().optional(),
+                id: z.string().optional(),
+              })
+              .optional(),
+            position: z.number(),
+          }),
+        ),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const { productId, images } = data
+
+    // Get existing images for cleanup
+    const existingImages = await db
+      .select({ url: productImages.url })
+      .from(productImages)
+      .where(eq(productImages.productId, productId))
+
+    const existingUrls = new Set(existingImages.map((i) => i.url))
+    const newUrls = new Set(images.map((i) => i.url))
+
+    // Find removed images and delete from Cloudinary
+    const removedUrls = [...existingUrls].filter((url) => !newUrls.has(url))
+    if (removedUrls.length > 0) {
+      const { deleteImagesFromCloudinary } = await import('../lib/cloudinary')
+      await deleteImagesFromCloudinary(removedUrls)
+    }
+
+    // Delete all existing images
+    await db.delete(productImages).where(eq(productImages.productId, productId))
+
+    // Insert new images
+    if (images.length > 0) {
+      await db.insert(productImages).values(
+        images.map((img) => ({
+          productId,
+          url: img.url,
+          altText: img.altText,
+          position: img.position,
+        })),
+      )
+    }
+
+    return { success: true }
+  })
+
+// Get paginated products list for admin
+export const getProductsListFn = createServerFn()
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(10),
+        search: z.string().optional(),
+        status: z.enum(['active', 'draft', 'archived', 'all']).optional(),
+        sortKey: z.string().optional(),
+        sortOrder: z.enum(['asc', 'desc']).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const { page, limit, search, status, sortKey, sortOrder } = data
+
+    const conditions: SQL[] = []
+    if (status && status !== 'all') {
+      conditions.push(eq(products.status, status))
+    }
+    if (search) {
+      conditions.push(ilike(products.handle, `%${search}%`) as SQL)
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Sorting
+    const sortColumn =
+      {
+        name: products.name,
+        status: products.status,
+        createdAt: products.createdAt,
+      }[sortKey || 'createdAt'] || products.createdAt
+
+    const orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
+
+    // Get total count
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(products)
+      .where(whereClause)
+
+    // Get paginated products
+    const offset = (page - 1) * limit
+    const paginatedProducts = await db
+      .select()
+      .from(products)
+      .where(whereClause)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset)
+
+    // Get images for all products
+    const productIds = paginatedProducts.map((p) => p.id)
+    const images =
+      productIds.length > 0
+        ? await db
+            .select()
+            .from(productImages)
+            .orderBy(asc(productImages.position))
+        : []
+
+    const imagesByProductId = new Map<string, string>()
+    for (const img of images) {
+      if (!imagesByProductId.has(img.productId)) {
+        imagesByProductId.set(img.productId, img.url)
+      }
+    }
+
+    // Get first variant for each product (for price display)
+    const allVariants =
+      productIds.length > 0
+        ? await db
+            .select()
+            .from(productVariants)
+            .orderBy(asc(productVariants.position))
+        : []
+
+    const variantsByProductId = new Map<string, (typeof allVariants)[0]>()
+    for (const v of allVariants) {
+      if (!variantsByProductId.has(v.productId)) {
+        variantsByProductId.set(v.productId, v)
+      }
+    }
+
+    const productsWithData = paginatedProducts.map((product) => {
+      const firstVariant = variantsByProductId.get(product.id)
+      return {
+        ...product,
+        firstImageUrl: imagesByProductId.get(product.id) || null,
+        price: firstVariant?.price || null,
+      }
+    })
+
+    return {
+      products: productsWithData,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }
   })

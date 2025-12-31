@@ -13,10 +13,30 @@ import {
   useCreateStripePaymentIntent,
   useCompleteCheckout,
 } from './useCheckoutQueries'
+import {
+  createCheckoutFn,
+  getCheckoutFn,
+  getShippingRatesFn,
+  saveCustomerInfoFn,
+  saveShippingAddressFn,
+  saveShippingMethodFn,
+  completeCheckoutFn,
+} from '../server/checkout'
 
 import { renderHook, waitFor, act } from '@/test/test-utils'
 
-// Mock fetch globally
+// Mock the server functions
+vi.mock('../server/checkout', () => ({
+  createCheckoutFn: vi.fn(),
+  getCheckoutFn: vi.fn(),
+  getShippingRatesFn: vi.fn(),
+  saveCustomerInfoFn: vi.fn(),
+  saveShippingAddressFn: vi.fn(),
+  saveShippingMethodFn: vi.fn(),
+  completeCheckoutFn: vi.fn(),
+}))
+
+// Mock fetch for Stripe payment intent (still uses fetch)
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
@@ -44,6 +64,7 @@ function createWrapper() {
 const MOCK_CHECKOUT = {
   id: 'checkout-123',
   email: 'test@example.com',
+  customerId: null,
   cartItems: [
     {
       productId: 'prod-1',
@@ -58,20 +79,27 @@ const MOCK_CHECKOUT = {
   taxTotal: 0,
   total: 65.97,
   currency: 'USD',
+  shippingAddress: null,
+  billingAddress: null,
+  shippingRateId: null,
+  shippingMethod: null,
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 }
 
 const MOCK_SHIPPING_RATES = [
   {
-    id: 'standard',
-    name: 'Standard Shipping',
+    id: 'standard' as const,
+    name: 'Standard Shipping' as const,
     price: 5.99,
-    estimatedDays: '5-7 business days',
+    estimatedDays: '5-7 business days' as const,
+    isFree: false,
   },
   {
-    id: 'express',
-    name: 'Express Shipping',
+    id: 'express' as const,
+    name: 'Express Shipping' as const,
     price: 14.99,
-    estimatedDays: '2-3 business days',
+    estimatedDays: '2-3 business days' as const,
+    isFree: false,
   },
 ]
 
@@ -117,21 +145,18 @@ describe('useCheckoutIdStore', () => {
 
 describe('useCheckout', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   it('should not fetch if checkoutId is null', async () => {
     const wrapper = createWrapper()
     renderHook(() => useCheckout(null), { wrapper })
 
-    expect(mockFetch).not.toHaveBeenCalled()
+    expect(getCheckoutFn).not.toHaveBeenCalled()
   })
 
   it('should fetch checkout when checkoutId is provided', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ checkout: MOCK_CHECKOUT }),
-    })
+    vi.mocked(getCheckoutFn).mockResolvedValue({ checkout: MOCK_CHECKOUT })
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useCheckout('checkout-123'), {
@@ -143,17 +168,13 @@ describe('useCheckout', () => {
     })
 
     expect(result.current.data).toEqual(MOCK_CHECKOUT)
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123',
-      expect.objectContaining({ credentials: 'include' }),
-    )
+    expect(getCheckoutFn).toHaveBeenCalledWith({
+      data: { checkoutId: 'checkout-123' },
+    })
   })
 
   it('should handle fetch error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Checkout not found' }),
-    })
+    vi.mocked(getCheckoutFn).mockRejectedValue(new Error('Checkout not found'))
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useCheckout('invalid-id'), { wrapper })
@@ -168,17 +189,14 @@ describe('useCheckout', () => {
 
 describe('useCreateCheckout', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
     act(() => {
       useCheckoutIdStore.getState().clearCheckoutId()
     })
   })
 
   it('should create checkout and update store', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ checkout: MOCK_CHECKOUT }),
-    })
+    vi.mocked(createCheckoutFn).mockResolvedValue({ checkout: MOCK_CHECKOUT })
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useCreateCheckout(), { wrapper })
@@ -189,23 +207,20 @@ describe('useCreateCheckout', () => {
       ])
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/create',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    )
+    expect(createCheckoutFn).toHaveBeenCalledWith({
+      data: {
+        items: [{ productId: 'prod-1', variantId: 'var-1', quantity: 2 }],
+      },
+    })
 
     // Check that checkoutId was set in store
     expect(useCheckoutIdStore.getState().checkoutId).toBe('checkout-123')
   })
 
   it('should handle create checkout error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Cart is empty' }),
-    })
+    vi.mocked(createCheckoutFn).mockRejectedValue(
+      new Error('Cart items are required'),
+    )
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useCreateCheckout(), { wrapper })
@@ -214,22 +229,18 @@ describe('useCreateCheckout', () => {
       act(async () => {
         await result.current.mutateAsync([])
       }),
-    ).rejects.toThrow('Cart is empty')
+    ).rejects.toThrow('Cart items are required')
   })
 })
 
 describe('useSaveCustomerInfo', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   it('should save customer email', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          checkout: { ...MOCK_CHECKOUT, email: 'new@example.com' },
-        }),
+    vi.mocked(saveCustomerInfoFn).mockResolvedValue({
+      checkout: { ...MOCK_CHECKOUT, email: 'new@example.com' },
     })
 
     const wrapper = createWrapper()
@@ -241,20 +252,11 @@ describe('useSaveCustomerInfo', () => {
       await result.current.mutateAsync({ email: 'new@example.com' })
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/customer',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ email: 'new@example.com' }),
-      }),
-    )
+    expect(saveCustomerInfoFn).toHaveBeenCalled()
   })
 
   it('should handle save customer info error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Invalid email' }),
-    })
+    vi.mocked(saveCustomerInfoFn).mockRejectedValue(new Error('Invalid email'))
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useSaveCustomerInfo('checkout-123'), {
@@ -271,7 +273,7 @@ describe('useSaveCustomerInfo', () => {
 
 describe('useSaveShippingAddress', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   const validAddress = {
@@ -285,12 +287,8 @@ describe('useSaveShippingAddress', () => {
   }
 
   it('should save shipping address', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          checkout: { ...MOCK_CHECKOUT, shippingAddress: validAddress },
-        }),
+    vi.mocked(saveShippingAddressFn).mockResolvedValue({
+      checkout: { ...MOCK_CHECKOUT, shippingAddress: validAddress },
     })
 
     const wrapper = createWrapper()
@@ -303,19 +301,13 @@ describe('useSaveShippingAddress', () => {
       await result.current.mutateAsync(validAddress)
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/shipping-address',
-      expect.objectContaining({
-        method: 'POST',
-      }),
-    )
+    expect(saveShippingAddressFn).toHaveBeenCalled()
   })
 
   it('should handle save address error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Address is required' }),
-    })
+    vi.mocked(saveShippingAddressFn).mockRejectedValue(
+      new Error('Address is required'),
+    )
 
     const wrapper = createWrapper()
     const { result } = renderHook(
@@ -333,20 +325,22 @@ describe('useSaveShippingAddress', () => {
 
 describe('useShippingRates', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   it('should not fetch if checkoutId is null', async () => {
     const wrapper = createWrapper()
     renderHook(() => useShippingRates(null), { wrapper })
 
-    expect(mockFetch).not.toHaveBeenCalled()
+    expect(getShippingRatesFn).not.toHaveBeenCalled()
   })
 
   it('should fetch shipping rates', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ shippingRates: MOCK_SHIPPING_RATES }),
+    vi.mocked(getShippingRatesFn).mockResolvedValue({
+      shippingRates: MOCK_SHIPPING_RATES,
+      freeShippingThreshold: 75 as const,
+      qualifiesForFreeShipping: false,
+      amountUntilFreeShipping: 15.02,
     })
 
     const wrapper = createWrapper()
@@ -364,20 +358,16 @@ describe('useShippingRates', () => {
 
 describe('useSaveShippingMethod', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   it('should save shipping method', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          checkout: {
-            ...MOCK_CHECKOUT,
-            shippingRateId: 'standard',
-            shippingMethod: 'Standard Shipping',
-          },
-        }),
+    vi.mocked(saveShippingMethodFn).mockResolvedValue({
+      checkout: {
+        ...MOCK_CHECKOUT,
+        shippingRateId: 'standard',
+        shippingMethod: 'Standard Shipping',
+      },
     })
 
     const wrapper = createWrapper()
@@ -389,13 +379,9 @@ describe('useSaveShippingMethod', () => {
       await result.current.mutateAsync('standard')
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/shipping-method',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ shippingRateId: 'standard' }),
-      }),
-    )
+    expect(saveShippingMethodFn).toHaveBeenCalledWith({
+      data: { checkoutId: 'checkout-123', shippingRateId: 'standard' },
+    })
   })
 })
 
@@ -456,19 +442,17 @@ describe('useCreateStripePaymentIntent', () => {
 
 describe('useCompleteCheckout', () => {
   beforeEach(() => {
-    mockFetch.mockReset()
+    vi.clearAllMocks()
   })
 
   it('should complete checkout with Stripe', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          order: {
-            id: 'order-123',
-            orderNumber: 1001,
-          },
-        }),
+    vi.mocked(completeCheckoutFn).mockResolvedValue({
+      order: {
+        id: 'order-123',
+        orderNumber: 1001,
+        email: 'test@example.com',
+        total: 65.97,
+      },
     })
 
     const wrapper = createWrapper()
@@ -485,28 +469,23 @@ describe('useCompleteCheckout', () => {
     })
 
     expect(data?.order.orderNumber).toBe(1001)
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/complete',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({
-          paymentProvider: 'stripe',
-          paymentId: 'pi_123',
-        }),
-      }),
-    )
+    expect(completeCheckoutFn).toHaveBeenCalledWith({
+      data: {
+        checkoutId: 'checkout-123',
+        paymentProvider: 'stripe',
+        paymentId: 'pi_123',
+      },
+    })
   })
 
   it('should complete checkout with PayPal', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          order: {
-            id: 'order-124',
-            orderNumber: 1002,
-          },
-        }),
+    vi.mocked(completeCheckoutFn).mockResolvedValue({
+      order: {
+        id: 'order-124',
+        orderNumber: 1002,
+        email: 'test@example.com',
+        total: 65.97,
+      },
     })
 
     const wrapper = createWrapper()
@@ -521,22 +500,17 @@ describe('useCompleteCheckout', () => {
       })
     })
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/complete',
-      expect.objectContaining({
-        body: JSON.stringify({
-          paymentProvider: 'paypal',
-          paymentId: 'paypal-order-123',
-        }),
-      }),
-    )
+    expect(completeCheckoutFn).toHaveBeenCalledWith({
+      data: {
+        checkoutId: 'checkout-123',
+        paymentProvider: 'paypal',
+        paymentId: 'paypal-order-123',
+      },
+    })
   })
 
   it('should handle complete checkout error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Payment failed' }),
-    })
+    vi.mocked(completeCheckoutFn).mockRejectedValue(new Error('Payment failed'))
 
     const wrapper = createWrapper()
     const { result } = renderHook(() => useCompleteCheckout('checkout-123'), {

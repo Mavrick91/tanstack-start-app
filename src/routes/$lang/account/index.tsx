@@ -17,22 +17,11 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../hooks/useAuth'
+import { getCustomerMeFn } from '../../../server/customers'
 
 export const Route = createFileRoute('/$lang/account/')({
   component: AccountPage,
 })
-
-async function fetchCustomer() {
-  const response = await fetch('/api/customers/me', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch customer')
-  }
-
-  return await response.json()
-}
 
 function AccountPage() {
   const { lang } = useParams({ strict: false }) as { lang: string }
@@ -48,8 +37,8 @@ function AccountPage() {
   const [customer, setCustomer] = useState<{
     id: string
     email: string
-    firstName?: string
-    lastName?: string
+    firstName: string | null
+    lastName: string | null
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -64,7 +53,7 @@ function AccountPage() {
     }
 
     if (isAuthenticated) {
-      fetchCustomer()
+      getCustomerMeFn()
         .then((data) => setCustomer(data.customer))
         .catch(console.error)
         .finally(() => setIsLoading(false))

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { getProductsListFn } from '../../server/products'
+
 import type { Product } from '../../components/admin/products/types'
 
 // Zod schema for validating API response
@@ -27,7 +29,6 @@ const productSchema = z
   .passthrough()
 
 export const productsResponseSchema = z.object({
-  success: z.literal(true),
   products: z.array(productSchema),
   total: z.number(),
   page: z.number(),
@@ -57,34 +58,22 @@ export interface FetchProductsResult {
 export async function fetchProducts(
   state: FetchProductsState,
 ): Promise<FetchProductsResult> {
-  const params = new URLSearchParams()
-  params.set('page', String(state.page))
-  params.set('limit', String(state.limit))
-  if (state.search) params.set('q', state.search)
-  if (state.filters.status && state.filters.status !== 'all') {
-    params.set('status', state.filters.status)
-  }
-  if (state.sortKey) params.set('sort', state.sortKey)
-  if (state.sortOrder) params.set('order', state.sortOrder)
-
-  const res = await fetch(`/api/products?${params.toString()}`, {
-    credentials: 'include',
+  const result = await getProductsListFn({
+    data: {
+      page: state.page,
+      limit: state.limit,
+      search: state.search || undefined,
+      status:
+        state.filters.status && state.filters.status !== 'all'
+          ? (state.filters.status as 'active' | 'draft' | 'archived')
+          : undefined,
+      sortKey: state.sortKey || undefined,
+      sortOrder: (state.sortOrder as 'asc' | 'desc') || undefined,
+    },
   })
 
-  // Check HTTP response status first
-  if (!res.ok) {
-    throw new Error(`HTTP error ${res.status}`)
-  }
-
-  const json = await res.json()
-
-  // Check for API-level errors
-  if (!json.success) {
-    throw new Error(json.error || 'Unknown API error')
-  }
-
   // Validate response shape with zod
-  const parsed = productsResponseSchema.safeParse(json)
+  const parsed = productsResponseSchema.safeParse(result)
   if (!parsed.success) {
     throw new Error(`Invalid API response: ${parsed.error.message}`)
   }

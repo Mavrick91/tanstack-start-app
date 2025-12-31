@@ -1,9 +1,11 @@
 /**
- * Checkout service - business logic for checkout operations.
- * Extracted from route handlers to enable testing.
+ * Checkout server functions and business logic.
+ * Provides type-safe server functions for checkout operations.
  */
 
+import { createServerFn } from '@tanstack/react-start'
 import { asc, eq, inArray } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { db } from '../db'
 import {
@@ -594,3 +596,226 @@ export async function completeCheckout(
     },
   }
 }
+
+// =============================================================================
+// Server Functions
+// =============================================================================
+
+// Input schemas
+const cartItemSchema = z.object({
+  productId: z.string(),
+  variantId: z.string().optional(),
+  quantity: z.number().min(1),
+})
+
+const createCheckoutInputSchema = z.object({
+  items: z.array(cartItemSchema).min(1),
+  currency: z.string().default('USD'),
+})
+
+const checkoutIdSchema = z.object({
+  checkoutId: z.string().uuid(),
+})
+
+const saveCustomerInputSchema = z.object({
+  checkoutId: z.string().uuid(),
+  email: z.string().email(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  createAccount: z.boolean().optional(),
+  password: z.string().min(8).optional(),
+})
+
+const addressSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  company: z.string().optional(),
+  address1: z.string().min(1),
+  address2: z.string().optional(),
+  city: z.string().min(1),
+  province: z.string().optional(),
+  provinceCode: z.string().optional(),
+  country: z.string().min(1),
+  countryCode: z.string().min(1),
+  zip: z.string().min(1),
+  phone: z.string().optional(),
+})
+
+const saveShippingAddressInputSchema = z.object({
+  checkoutId: z.string().uuid(),
+  address: addressSchema,
+  saveAddress: z.boolean().optional(),
+})
+
+const saveShippingMethodInputSchema = z.object({
+  checkoutId: z.string().uuid(),
+  shippingRateId: z.string(),
+})
+
+const completeCheckoutInputSchema = z.object({
+  checkoutId: z.string().uuid(),
+  paymentProvider: z.enum(['stripe', 'paypal']),
+  paymentId: z.string(),
+})
+
+// Create checkout server function
+export const createCheckoutFn = createServerFn({ method: 'POST' })
+  .inputValidator(createCheckoutInputSchema.parse)
+  .handler(async ({ data }) => {
+    const result = await createCheckout(data)
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+    return { checkout: result.checkout }
+  })
+
+// Get checkout server function
+export const getCheckoutFn = createServerFn()
+  .inputValidator(checkoutIdSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId } = data
+
+    const [checkout] = await db
+      .select()
+      .from(checkouts)
+      .where(eq(checkouts.id, checkoutId))
+      .limit(1)
+
+    if (!checkout) {
+      throw new Error('Checkout not found')
+    }
+
+    if (checkout.completedAt) {
+      throw new Error('Checkout already completed')
+    }
+
+    if (checkout.expiresAt < new Date()) {
+      throw new Error('Checkout expired')
+    }
+
+    return {
+      checkout: {
+        id: checkout.id,
+        email: checkout.email,
+        customerId: checkout.customerId,
+        cartItems: checkout.cartItems as CheckoutCartItem[],
+        subtotal: parseFloat(checkout.subtotal),
+        shippingTotal: parseFloat(checkout.shippingTotal || '0'),
+        taxTotal: parseFloat(checkout.taxTotal || '0'),
+        total: parseFloat(checkout.total),
+        currency: checkout.currency,
+        shippingAddress: checkout.shippingAddress,
+        billingAddress: checkout.billingAddress,
+        shippingRateId: checkout.shippingRateId,
+        shippingMethod: checkout.shippingMethod,
+        expiresAt: checkout.expiresAt,
+      },
+    }
+  })
+
+// Get shipping rates server function
+export const getShippingRatesFn = createServerFn()
+  .inputValidator(checkoutIdSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId } = data
+
+    const [checkout] = await db
+      .select()
+      .from(checkouts)
+      .where(eq(checkouts.id, checkoutId))
+      .limit(1)
+
+    if (!checkout) {
+      throw new Error('Checkout not found')
+    }
+
+    const subtotal = parseFloat(checkout.subtotal)
+    const qualifiesForFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
+
+    const rates = SHIPPING_RATES.map((rate) => ({
+      id: rate.id,
+      name: rate.name,
+      price:
+        rate.id === 'standard' && qualifiesForFreeShipping ? 0 : rate.price,
+      estimatedDays: rate.estimatedDays,
+      isFree: rate.id === 'standard' && qualifiesForFreeShipping,
+    }))
+
+    return {
+      shippingRates: rates,
+      freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
+      qualifiesForFreeShipping,
+      amountUntilFreeShipping: qualifiesForFreeShipping
+        ? 0
+        : FREE_SHIPPING_THRESHOLD - subtotal,
+    }
+  })
+
+// Save customer info server function
+export const saveCustomerInfoFn = createServerFn({ method: 'POST' })
+  .inputValidator(saveCustomerInputSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId, email, firstName, lastName } = data
+
+    const result = await saveCustomerInfo({
+      checkoutId,
+      email,
+      firstName,
+      lastName,
+    })
+
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    return { checkout: result.checkout }
+  })
+
+// Save shipping address server function
+export const saveShippingAddressFn = createServerFn({ method: 'POST' })
+  .inputValidator(saveShippingAddressInputSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId, address } = data
+
+    const result = await saveShippingAddress({ checkoutId, address })
+
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    return { checkout: result.checkout }
+  })
+
+// Save shipping method server function
+export const saveShippingMethodFn = createServerFn({ method: 'POST' })
+  .inputValidator(saveShippingMethodInputSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId, shippingRateId } = data
+
+    const result = await saveShippingMethod({ checkoutId, shippingRateId })
+
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    return { checkout: result.checkout }
+  })
+
+// Complete checkout server function
+export const completeCheckoutFn = createServerFn({ method: 'POST' })
+  .inputValidator(completeCheckoutInputSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId, paymentProvider, paymentId } = data
+
+    const result = await completeCheckout({
+      checkoutId,
+      paymentProvider,
+      paymentId,
+    })
+
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    return { order: result.order }
+  })

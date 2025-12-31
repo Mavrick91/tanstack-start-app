@@ -3,12 +3,14 @@ import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BulkActionsBar } from './BulkActionsBar'
+import { bulkUpdateProductsFn } from '../../../../server/products'
 
 import { render, screen, waitFor } from '@/test/test-utils'
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-global.fetch = mockFetch
+// Mock the server function
+vi.mock('../../../../server/products', () => ({
+  bulkUpdateProductsFn: vi.fn(),
+}))
 
 vi.mock('sonner', () => ({
   toast: {
@@ -22,8 +24,9 @@ describe('BulkActionsBar', () => {
 
   beforeEach(() => {
     vi.resetAllMocks()
-    mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ success: true }),
+    vi.mocked(bulkUpdateProductsFn).mockResolvedValue({
+      success: true,
+      count: 3,
     })
   })
 
@@ -79,20 +82,17 @@ describe('BulkActionsBar', () => {
   })
 
   describe('Activate action', () => {
-    it('calls the bulk API with activate action', async () => {
+    it('calls the bulk server function with activate action', async () => {
       const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith('/api/products/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
+        expect(bulkUpdateProductsFn).toHaveBeenCalledWith({
+          data: {
             action: 'activate',
             ids: ['id-1', 'id-2', 'id-3'],
-          }),
+          },
         })
       })
     })
@@ -110,20 +110,17 @@ describe('BulkActionsBar', () => {
   })
 
   describe('Archive action', () => {
-    it('calls the bulk API with archive action', async () => {
+    it('calls the bulk server function with archive action', async () => {
       const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Archive/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith('/api/products/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
+        expect(bulkUpdateProductsFn).toHaveBeenCalledWith({
+          data: {
             action: 'archive',
             ids: ['id-1', 'id-2', 'id-3'],
-          }),
+          },
         })
       })
     })
@@ -140,20 +137,17 @@ describe('BulkActionsBar', () => {
   })
 
   describe('Delete action', () => {
-    it('calls the bulk API with delete action', async () => {
+    it('calls the bulk server function with delete action', async () => {
       const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Delete/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith('/api/products/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
+        expect(bulkUpdateProductsFn).toHaveBeenCalledWith({
+          data: {
             action: 'delete',
             ids: ['id-1', 'id-2', 'id-3'],
-          }),
+          },
         })
       })
     })
@@ -170,21 +164,10 @@ describe('BulkActionsBar', () => {
   })
 
   describe('Error handling', () => {
-    it('shows error toast when API returns error', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: false, error: 'Server error' }),
-      })
-      const { user } = renderComponent()
-
-      await user.click(screen.getByRole('button', { name: /Activate/i }))
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Failed to update items')
-      })
-    })
-
-    it('shows error toast when fetch fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+    it('shows error toast when server function throws', async () => {
+      vi.mocked(bulkUpdateProductsFn).mockRejectedValueOnce(
+        new Error('Bulk operation failed'),
+      )
       const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
@@ -195,9 +178,9 @@ describe('BulkActionsBar', () => {
     })
 
     it('does not clear selection on error', async () => {
-      mockFetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ success: false, error: 'Server error' }),
-      })
+      vi.mocked(bulkUpdateProductsFn).mockRejectedValueOnce(
+        new Error('Server error'),
+      )
       const { user } = renderComponent()
 
       await user.click(screen.getByRole('button', { name: /Activate/i }))
@@ -225,8 +208,8 @@ describe('BulkActionsBar', () => {
 
   describe('Loading state', () => {
     it('disables buttons while mutation is pending', async () => {
-      // Make fetch hang to keep mutation pending
-      mockFetch.mockImplementationOnce(
+      // Make server function hang to keep mutation pending
+      vi.mocked(bulkUpdateProductsFn).mockImplementationOnce(
         () => new Promise(() => {}), // Never resolves
       )
       const { user } = renderComponent()

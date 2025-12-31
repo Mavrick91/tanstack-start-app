@@ -20,9 +20,13 @@ import {
   DialogTrigger,
 } from '../../../components/ui/dialog'
 import { useAuthStore } from '../../../hooks/useAuth'
+import {
+  getCustomerAddressesFn,
+  createAddressFn,
+  deleteAddressFn,
+} from '../../../server/customers'
 
 import type { AddressFormData } from '../../../lib/checkout-schemas'
-import type { AddressInput } from '../../../types/checkout'
 
 type CustomerAddress = {
   id: string
@@ -45,47 +49,6 @@ type CustomerAddress = {
 export const Route = createFileRoute('/$lang/account/addresses')({
   component: AccountAddressesPage,
 })
-
-async function fetchAddresses() {
-  const response = await fetch('/api/customers/me/addresses', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch addresses')
-  }
-
-  return await response.json()
-}
-
-async function createAddress(address: AddressInput) {
-  const response = await fetch('/api/customers/me/addresses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(address),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to create address')
-  }
-
-  return await response.json()
-}
-
-async function deleteAddress(addressId: string) {
-  const response = await fetch(`/api/customers/me/addresses?id=${addressId}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to delete address')
-  }
-
-  return await response.json()
-}
 
 function AccountAddressesPage() {
   const { lang } = useParams({ strict: false }) as { lang: string }
@@ -121,8 +84,8 @@ function AccountAddressesPage() {
   const loadAddresses = async () => {
     setIsLoading(true)
     try {
-      const data = await fetchAddresses()
-      setAddresses(data.addresses)
+      const data = await getCustomerAddressesFn()
+      setAddresses(data.addresses as CustomerAddress[])
     } catch (err) {
       console.error('Failed to fetch addresses:', err)
     } finally {
@@ -133,7 +96,24 @@ function AccountAddressesPage() {
   const handleAddAddress = async (addressData: AddressFormData) => {
     setIsSubmitting(true)
     try {
-      await createAddress(addressData as AddressInput)
+      await createAddressFn({
+        data: {
+          type: 'shipping',
+          firstName: addressData.firstName,
+          lastName: addressData.lastName,
+          company: addressData.company,
+          address1: addressData.address1,
+          address2: addressData.address2,
+          city: addressData.city,
+          province: addressData.province,
+          provinceCode: addressData.provinceCode,
+          country: addressData.country,
+          countryCode: addressData.countryCode,
+          zip: addressData.zip,
+          phone: addressData.phone,
+          isDefault: false,
+        },
+      })
       toast.success(t('Address added'))
       setIsDialogOpen(false)
       loadAddresses()
@@ -154,7 +134,7 @@ function AccountAddressesPage() {
     if (!confirm(t('Are you sure you want to delete this address?'))) return
 
     try {
-      await deleteAddress(addressId)
+      await deleteAddressFn({ data: { addressId } })
       toast.success(t('Address deleted'))
       loadAddresses()
     } catch {
