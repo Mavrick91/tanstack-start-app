@@ -18,10 +18,6 @@ import { db } from '../db'
 import { orders, orderItems, orderStatusHistory, customers } from '../db/schema'
 import { stripe } from '../lib/stripe'
 
-// ============================================
-// TYPES
-// ============================================
-
 export type OrderStatus =
   | 'pending'
   | 'processing'
@@ -47,36 +43,15 @@ export interface RefundResult {
   error?: string
 }
 
-// ============================================
-// DECIMAL HANDLING
-// ============================================
-
-/**
- * Safely convert decimal string to number preserving precision
- * Uses fixed-point arithmetic to avoid floating-point errors
- */
 export const parseDecimal = (value: string) => {
-  // Parse as string, then convert to number with fixed precision
   const parsed = parseFloat(value)
-  // Round to 2 decimal places to avoid floating-point representation issues
   return Math.round(parsed * 100) / 100
 }
 
-/**
- * Format number to decimal string for database storage
- */
 export const toDecimalString = (value: number) => {
   return value.toFixed(2)
 }
 
-// ============================================
-// N+1 QUERY FIX: BATCH ITEM COUNTS
-// ============================================
-
-/**
- * Get item counts for multiple orders in a single query
- * Fixes N+1 query problem in order listing
- */
 export const getOrderItemCounts = async (orderIds: string[]) => {
   if (orderIds.length === 0) {
     return new Map()
@@ -91,7 +66,7 @@ export const getOrderItemCounts = async (orderIds: string[]) => {
     .where(inArray(orderItems.orderId, orderIds))
     .groupBy(orderItems.orderId)
 
-  const countMap = new Map<string, number>()
+  const countMap = new Map()
   for (const row of results) {
     countMap.set(row.orderId, row.itemCount)
   }
@@ -171,14 +146,6 @@ export const getOrderAuditTrail = async (orderId: string) => {
 // Clear audit trail (for testing only)
 export const clearAuditTrail = async () => {}
 
-// ============================================
-// PAYMENT STATUS VALIDATION
-// ============================================
-
-/**
- * Validate if manual payment status change to 'paid' is allowed
- * Manual changes to 'paid' require justification and are logged
- */
 export const validateManualPaymentStatusChange = (
   currentStatus: PaymentStatus,
   newStatus: PaymentStatus,
@@ -213,10 +180,6 @@ export const validateManualPaymentStatusChange = (
   // Allow with reason, but flag for audit
   return { allowed: true }
 }
-
-// ============================================
-// REFUND PROCESSING
-// ============================================
 
 const PAYPAL_API_BASE =
   process.env.PAYPAL_MODE === 'live'
@@ -359,10 +322,6 @@ export const processRefund = async (
   }
 }
 
-// ============================================
-// ORDER CANCELLATION WITH REFUND
-// ============================================
-
 export interface CancellationResult {
   success: boolean
   refundResult?: RefundResult
@@ -446,10 +405,6 @@ export const cancelOrderWithRefund = async (
     refundResult,
   }
 }
-
-// ============================================
-// SERVER FUNCTIONS (ADMIN)
-// ============================================
 
 // Helper to require admin auth
 const requireAdmin = async () => {

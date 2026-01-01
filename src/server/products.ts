@@ -424,7 +424,7 @@ export const getAdminProductsFn = createServerFn().handler(async () => {
   ])
 
   // Group by productId - get first image only
-  const firstImageByProduct = new Map<string, string>()
+  const firstImageByProduct = new Map()
   for (const img of allImages) {
     if (!firstImageByProduct.has(img.productId)) {
       firstImageByProduct.set(img.productId, img.url)
@@ -450,16 +450,12 @@ export const getAdminProductsFn = createServerFn().handler(async () => {
     const minPrice = prices.length > 0 ? Math.min(...prices) : null
     const maxPrice = prices.length > 0 ? Math.max(...prices) : null
 
-    // TODO: Add inventory tracking
-    const totalInventory = 0
-
     return {
       ...product,
       imageUrl: firstImageByProduct.get(product.id),
       variantCount: variants.length,
       minPrice,
       maxPrice,
-      totalInventory,
       price: variants[0]?.price ?? '0',
     }
   })
@@ -906,7 +902,7 @@ export const getProductsListFn = createServerFn()
             .orderBy(asc(productImages.position))
         : []
 
-    const imagesByProductId = new Map<string, string>()
+    const imagesByProductId = new Map()
     for (const img of images) {
       if (!imagesByProductId.has(img.productId)) {
         imagesByProductId.set(img.productId, img.url)

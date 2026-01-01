@@ -88,10 +88,6 @@ export const cleanupTestData = async () => {
   resetTestIds()
 }
 
-// =============================================================================
-// Seed Functions
-// =============================================================================
-
 type SeedProductOptions = {
   name?: string
   handle?: string

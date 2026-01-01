@@ -40,10 +40,6 @@ const getDbContext = async () => {
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
-// =============================================================================
-// Types
-// =============================================================================
-
 export type CartItem = {
   productId: string
   variantId?: string
@@ -85,10 +81,6 @@ export type CheckoutError = {
   error: string
   status: number
 }
-
-// =============================================================================
-// Create Checkout
-// =============================================================================
 
 export const createCheckout = async (input: CreateCheckoutInput) => {
   const { items, currency = 'USD' } = input
@@ -141,7 +133,7 @@ export const createCheckout = async (input: CreateCheckoutInput) => {
 
   const productMap = new Map(productsData.map((p) => [p.id, p]))
   const variantMap = new Map(variantsData.map((v) => [v.id, v]))
-  const imageMap = new Map<string, string>()
+  const imageMap = new Map()
   for (const img of imagesData) {
     if (!imageMap.has(img.productId)) {
       imageMap.set(img.productId, img.url)
@@ -235,10 +227,6 @@ export const createCheckout = async (input: CreateCheckoutInput) => {
   }
 }
 
-// =============================================================================
-// Save Customer Info
-// =============================================================================
-
 export type SaveCustomerInput = {
   checkoutId: string
   email: string
@@ -328,10 +316,6 @@ export const saveCustomerInfo = async (input: SaveCustomerInput) => {
     },
   }
 }
-
-// =============================================================================
-// Save Shipping Address
-// =============================================================================
 
 export type ShippingAddressInput = {
   checkoutId: string
@@ -423,10 +407,6 @@ export const saveShippingAddress = async (input: ShippingAddressInput) => {
   }
 }
 
-// =============================================================================
-// Save Shipping Method
-// =============================================================================
-
 export type SaveShippingMethodInput = {
   checkoutId: string
   shippingRateId: string
@@ -508,10 +488,6 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
     },
   }
 }
-
-// =============================================================================
-// Complete Checkout
-// =============================================================================
 
 export type CompleteCheckoutInput = {
   checkoutId: string
@@ -626,10 +602,6 @@ export const completeCheckout = async (input: CompleteCheckoutInput) => {
     },
   }
 }
-
-// =============================================================================
-// Server Functions
-// =============================================================================
 
 // Input schemas
 const cartItemSchema = z.object({
@@ -920,13 +892,6 @@ export const createStripePaymentIntentFn = createServerFn({ method: 'POST' })
     }
   })
 
-// =============================================================================
-// Server Functions for beforeLoad (SSR validation)
-// =============================================================================
-
-/**
- * Get checkout ID from cookies (for use in beforeLoad)
- */
 export const getCheckoutIdFromCookieFn = createServerFn().handler(async () => {
   // Dynamic imports to prevent server code from leaking into client bundle
   const { getRequest } = await import('@tanstack/react-start/server')

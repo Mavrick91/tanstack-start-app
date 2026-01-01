@@ -1,6 +1,3 @@
-/**
- * Formats a number as a currency string.
- */
 export type FormatCurrencyOptions = {
   value: number
   currency?: string

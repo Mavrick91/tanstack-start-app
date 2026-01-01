@@ -33,7 +33,6 @@ const createMockProduct = (overrides: Partial<MockProduct> = {}): MockProduct =>
     variantCount: 1,
     minPrice: 10,
     maxPrice: 10,
-    totalInventory: 0,
     price: '10.00',
     ...overrides,
   }) as MockProduct
@@ -71,7 +70,6 @@ describe('Products List Page', () => {
         variantCount: 2,
         minPrice: 12.99,
         maxPrice: 15.99,
-        totalInventory: 100,
       }),
       createMockProduct({
         id: '2',
@@ -81,7 +79,6 @@ describe('Products List Page', () => {
         variantCount: 1,
         minPrice: 19.99,
         maxPrice: 19.99,
-        totalInventory: 0,
       }),
     ]
 
@@ -97,10 +94,6 @@ describe('Products List Page', () => {
     // Check status badges
     expect(screen.getByText('active')).toBeInTheDocument()
     expect(screen.getByText('draft')).toBeInTheDocument()
-
-    // Check inventory
-    expect(screen.getByText('100 in stock')).toBeInTheDocument()
-    expect(screen.getByText('0 in stock')).toBeInTheDocument()
 
     // Check variant counts
     expect(screen.getByText('2 variants')).toBeInTheDocument()
@@ -141,7 +134,6 @@ describe('Products List Page', () => {
         variantCount: 2,
         minPrice: 10.0,
         maxPrice: 20.0,
-        totalInventory: 50,
       }),
     ]
 
@@ -163,7 +155,6 @@ describe('Products List Page', () => {
         vendor: 'TestVendor',
         minPrice: 15.0,
         maxPrice: 15.0,
-        totalInventory: 10,
       }),
     ]
 

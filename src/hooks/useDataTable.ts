@@ -72,7 +72,11 @@ export const useDataTable = <
   const sortOrder = routePath
     ? initialState.sortOrder || 'desc'
     : localSortOrder
-  const filters = routePath ? initialState.filters || {} : localFilters
+
+  const filters = useMemo(
+    () => (routePath ? initialState.filters || {} : localFilters),
+    [routePath, initialState.filters, localFilters],
+  )
 
   // Selection state remains local (not persisted in URL)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())

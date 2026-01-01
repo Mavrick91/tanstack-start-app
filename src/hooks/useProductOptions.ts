@@ -10,7 +10,7 @@ type SelectedOption = { name: string; value: string }
  * Hook for managing product options and variants state.
  * Handles initialization from existing product data and variant generation.
  */
-export function useProductOptions(product?: Product) {
+export const useProductOptions = (product?: Product) => {
   // Options state - initialize from product if editing
   const [options, setOptions] = useState<ProductOption[]>(() => {
     if (product?.options && product.options.length > 0) {

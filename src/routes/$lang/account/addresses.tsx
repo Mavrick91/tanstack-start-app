@@ -93,7 +93,7 @@ const AccountAddressesPage = (): React.ReactNode => {
     }
   }
 
-  const handleSubmitClick = (): void => {
+  const handleSubmitClick = () => {
     addressFormRef.current?.submit()
   }
 

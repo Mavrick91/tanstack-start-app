@@ -76,7 +76,7 @@ export const checkRateLimit = async (
   }
 }
 
-export const getRateLimitKey = (request: Request): string => {
+export const getRateLimitKey = (request: Request) => {
   const forwardedFor = request.headers.get('x-forwarded-for')
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim()
@@ -98,7 +98,7 @@ export const cleanupExpiredRateLimits = async (): Promise<number> => {
   return result.length
 }
 
-export const rateLimitResponse = (retryAfter: number): Response => {
+export const rateLimitResponse = (retryAfter: number) => {
   return new Response('Too many requests', {
     status: 429,
     headers: { 'Retry-After': String(retryAfter) },

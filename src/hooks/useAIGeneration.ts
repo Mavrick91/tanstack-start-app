@@ -43,7 +43,7 @@ type UseAIGenerationOptions = {
  * Hook for AI-powered product detail generation.
  * Supports generating product details from an image URL or local file.
  */
-export function useAIGeneration(options?: UseAIGenerationOptions) {
+export const useAIGeneration = (options?: UseAIGenerationOptions) => {
   const { t } = useTranslation()
   const [isGenerating, setIsGenerating] = useState(false)
   const [provider, setProvider] = useState<AIProvider>('gemini')

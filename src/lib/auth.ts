@@ -5,16 +5,10 @@ import { validateCsrf } from './csrf'
 import { db } from '../db'
 import { sessions, users } from '../db/schema'
 
-/**
- * Hash a password using bcrypt
- */
 export const hashPassword = async (password: string) => {
   return await hash(password, 10)
 }
 
-/**
- * Verify a password against a hash
- */
 export const verifyPassword = async (
   password: string,
   passwordHash: string,
@@ -22,9 +16,6 @@ export const verifyPassword = async (
   return await compare(password, passwordHash)
 }
 
-/**
- * Parse cookies from request header, handling values with '=' characters
- */
 export const getCookie = (request: Request, name: string) => {
   const cookieHeader = request.headers.get('Cookie')
   if (!cookieHeader) return undefined
@@ -45,9 +36,6 @@ export const getCookie = (request: Request, name: string) => {
   return cookies[name]
 }
 
-/**
- * Validate session and return user if authenticated
- */
 export const validateSession = async (request: Request) => {
   const sessionId = getCookie(request, 'session')
 

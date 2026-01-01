@@ -5,7 +5,7 @@ import { ProductForm } from '../../../../components/admin/products/ProductForm'
 const NewProductPage = (): React.ReactNode => {
   const router = useRouter()
 
-  const handleBack = (): void => {
+  const handleBack = () => {
     router.navigate({ to: '/admin/products' })
   }
 

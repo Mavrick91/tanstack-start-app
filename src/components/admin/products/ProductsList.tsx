@@ -90,9 +90,6 @@ export const ProductsListContent = () => {
                   Status
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
-                  Inventory
-                </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
                   Price
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
@@ -122,15 +119,6 @@ export const ProductsListContent = () => {
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={product.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={
-                        product.totalInventory === 0 ? 'text-red-500' : ''
-                      }
-                    >
-                      {product.totalInventory} in stock
-                    </span>
                   </td>
                   <td className="px-6 py-4">
                     {product.minPrice !== null ? (

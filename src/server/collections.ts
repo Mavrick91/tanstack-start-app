@@ -220,7 +220,7 @@ export const getCollectionFn = createServerFn({ method: 'GET' })
 
     // Batch fetch images to avoid N+1 queries
     const productIds = collectionProductsList.map(({ product }) => product.id)
-    const firstImageByProduct = new Map<string, string>()
+    const firstImageByProduct = new Map()
 
     if (productIds.length > 0) {
       const allImages = await db

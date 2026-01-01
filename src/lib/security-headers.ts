@@ -1,7 +1,7 @@
 /**
  * Security headers for HTTP responses
  */
-export const securityHeaders: Record<string, string> = {
+export const securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
@@ -12,7 +12,7 @@ export const securityHeaders: Record<string, string> = {
 /**
  * Content Security Policy for HTML responses
  */
-export const cspHeader: Record<string, string> = {
+export const cspHeader = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.paypal.com",

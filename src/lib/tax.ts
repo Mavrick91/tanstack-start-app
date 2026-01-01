@@ -1,7 +1,7 @@
 const DEFAULT_TAX_RATE = 0.1
 
 // Get tax rate from environment (supports 0.10 or 10 format)
-export const getTaxRate = (): number => {
+export const getTaxRate = () => {
   const envRate = process.env.TAX_RATE
   if (!envRate) return DEFAULT_TAX_RATE
 
@@ -18,6 +18,6 @@ export const calculateTax = (subtotal: number, rate?: number): number => {
 }
 
 // Format tax amount for database storage
-export const formatTaxAmount = (amount: number): string => {
+export const formatTaxAmount = (amount: number) => {
   return amount.toFixed(2)
 }

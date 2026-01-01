@@ -32,7 +32,7 @@ const AccountOrdersPage = (): React.ReactNode => {
   // Data is loaded via route loader
   const { orders } = Route.useLoaderData()
 
-  const formatDate = (date: Date | string): string => {
+  const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date
     return d.toLocaleDateString('en-US', {
       year: 'numeric',

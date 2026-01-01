@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
 
-const getCsrfSecret = (): string => {
+const getCsrfSecret = () => {
   const secret = process.env.CHECKOUT_SECRET
   if (!secret) {
     throw new Error('CHECKOUT_SECRET required for CSRF protection')
@@ -11,7 +11,7 @@ const getCsrfSecret = (): string => {
 /**
  * Generate a cryptographically secure CSRF token
  */
-export const generateCsrfToken = (): string => {
+export const generateCsrfToken = () => {
   return randomBytes(32).toString('hex')
 }
 
@@ -19,7 +19,7 @@ export const generateCsrfToken = (): string => {
  * Generate a CSRF token tied to a session ID
  * Uses HMAC so we don't need to store it in the database
  */
-export const generateSessionCsrfToken = (sessionId: string): string => {
+export const generateSessionCsrfToken = (sessionId: string) => {
   const hmac = createHmac('sha256', getCsrfSecret())
   hmac.update(`csrf:${sessionId}`)
   return hmac.digest('hex')
@@ -96,7 +96,7 @@ export const getCsrfTokenFromRequest = (
 /**
  * Create a Set-Cookie header for the CSRF token
  */
-export const createCsrfCookie = (token: string): string => {
+export const createCsrfCookie = (token: string) => {
   // CSRF cookies should be:
   // - HttpOnly: not accessible by JavaScript
   // - SameSite=Strict: only sent with same-site requests

@@ -99,7 +99,7 @@ const AdminProductsPage = (): React.ReactNode => {
   const statusFilter = (table.filters.status || 'all') as ProductStatus | 'all'
 
   // Handler to clear both search and status filter
-  const handleClearFilters = (): void => {
+  const handleClearFilters = () => {
     table.setSearch('')
     table.setFilter('status', 'all')
   }

@@ -31,7 +31,7 @@ const inputBaseClass =
  * Reusable component for localized (en/fr/id) field input with tabs.
  * Supports input, textarea, and rich text editor field types.
  */
-export function LocalizedFieldTabs({
+export const LocalizedFieldTabs = ({
   value,
   onChange,
   type = 'input',
@@ -39,7 +39,7 @@ export function LocalizedFieldTabs({
   className,
   onBlurEn,
   hasError,
-}: LocalizedFieldTabsProps) {
+}: LocalizedFieldTabsProps) => {
   const handleChange = (lang: 'en' | 'fr' | 'id', newValue: string) => {
     onChange({
       ...value,

@@ -5,10 +5,7 @@ export type CartTotals = {
   totalPrice: number
 }
 
-/**
- * Calculates total items and total price for a given set of cart items.
- */
-export const calculateCartTotals = (items: Array<CartItem>): CartTotals => {
+export const calculateCartTotals = (items: Array<CartItem>) => {
   return items.reduce(
     (acc, item) => ({
       totalItems: acc.totalItems + item.quantity,

@@ -32,7 +32,7 @@ const processEmailJob = async (job: Job<EmailJob>): Promise<void> => {
 }
 
 // Create and start worker
-export const startEmailWorker = (): Worker => {
+export const startEmailWorker = () => {
   const worker = new Worker('email', processEmailJob, {
     connection: getRedisConnection(),
     concurrency: 5, // Process up to 5 emails concurrently

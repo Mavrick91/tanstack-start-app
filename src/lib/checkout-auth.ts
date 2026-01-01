@@ -6,7 +6,7 @@ import { getCsrfTokenFromRequest } from './csrf'
 import { db } from '../db'
 import { checkouts } from '../db/schema'
 
-const getCheckoutSecret = (): string => {
+const getCheckoutSecret = () => {
   const secret = process.env.CHECKOUT_SECRET
   if (!secret) {
     throw new Error('CHECKOUT_SECRET environment variable is required')
@@ -20,7 +20,7 @@ export interface CheckoutAccessResult {
   error?: string
 }
 
-export const generateCheckoutToken = (checkoutId: string): string => {
+export const generateCheckoutToken = (checkoutId: string) => {
   const hmac = createHmac('sha256', getCheckoutSecret())
   hmac.update(checkoutId)
   return hmac.digest('hex')
@@ -130,6 +130,6 @@ export const getCheckoutIdFromRequest = (request: Request): string | null => {
 /**
  * Create a cookie to clear the checkout ID
  */
-export const clearCheckoutIdCookie = (): string => {
+export const clearCheckoutIdCookie = () => {
   return 'checkout_id=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'
 }

@@ -12,10 +12,6 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
-// ============================================
-// AUTH TABLES
-// ============================================
-
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
@@ -33,10 +29,6 @@ export const sessions = pgTable('sessions', {
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
-
-// ============================================
-// PRODUCT TABLES
-// ============================================
 
 // Enums
 export const productStatusEnum = pgEnum('product_status', [
@@ -105,10 +97,6 @@ export const productVariants = pgTable('product_variants', {
   position: integer('position').default(0).notNull(),
 })
 
-// ============================================
-// MEDIA LIBRARY
-// ============================================
-
 export const media = pgTable('media', {
   id: uuid('id').defaultRandom().primaryKey(),
   url: text('url').notNull(),
@@ -137,10 +125,6 @@ export const productImages = pgTable('product_images', {
   position: integer('position').default(0).notNull(),
 })
 
-// ============================================
-// COLLECTIONS
-// ============================================
-
 export const collections = pgTable('collections', {
   id: uuid('id').defaultRandom().primaryKey(),
   handle: text('handle').notNull().unique(),
@@ -167,10 +151,6 @@ export const collectionProducts = pgTable(
   },
   (table) => [primaryKey({ columns: [table.collectionId, table.productId] })],
 )
-
-// ============================================
-// CHECKOUT & ORDER TABLES
-// ============================================
 
 // Order status enums
 export const orderStatusEnum = pgEnum('order_status', [
@@ -381,10 +361,6 @@ export const orderStatusHistory = pgTable('order_status_history', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
-// ============================================
-// WEBHOOK EVENTS (Idempotency)
-// ============================================
-
 export const webhookEvents = pgTable('webhook_events', {
   id: text('id').primaryKey(), // Event ID from provider (Stripe/PayPal)
   provider: text('provider').notNull(), // 'stripe' | 'paypal'
@@ -395,10 +371,6 @@ export const webhookEvents = pgTable('webhook_events', {
   payload: jsonb('payload'),
   processedAt: timestamp('processed_at').defaultNow().notNull(),
 })
-
-// ============================================
-// RATE LIMITING
-// ============================================
 
 export const rateLimits = pgTable('rate_limits', {
   key: text('key').primaryKey(), // IP:limiterType compound key
