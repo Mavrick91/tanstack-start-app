@@ -10,8 +10,13 @@ const AccountLayout = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/$lang/account')({
-  beforeLoad: async ({ params }) => {
-    const session = await getCustomerSessionFn()
+  beforeLoad: async ({ params, context }) => {
+    // Use TanStack Query to cache customer session across navigations (5 min stale time)
+    const session = await context.queryClient.ensureQueryData({
+      queryKey: ['customer', 'session'],
+      queryFn: getCustomerSessionFn,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })
 
     if (!session.customer) {
       throw redirect({ to: '/$lang', params })

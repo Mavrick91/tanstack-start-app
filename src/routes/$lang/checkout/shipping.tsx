@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, Loader2 } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -22,7 +22,6 @@ import {
   type CustomFieldRenderProps,
 } from '../../../components/ui/fn-form'
 import {
-  useCheckoutIdStore,
   useCheckout,
   useShippingRates,
   useSaveShippingMethod,
@@ -37,19 +36,7 @@ const CheckoutShippingPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { serverCheckout } = Route.useRouteContext()
-
-  // Initialize checkout ID from server (cookie) or Zustand
-  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
-  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
-  const checkoutId = serverCheckout?.id || storedCheckoutId
-
-  // Sync Zustand with server-provided checkout ID
-  useEffect(() => {
-    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
-      setCheckoutId(serverCheckout.id)
-    }
-  }, [serverCheckout?.id, storedCheckoutId, setCheckoutId])
+  const { checkoutId, serverCheckout } = Route.useRouteContext()
 
   const { data: checkout, isLoading: isLoadingCheckout } =
     useCheckout(checkoutId)
@@ -58,18 +45,15 @@ const CheckoutShippingPage = () => {
   const saveShippingMutation = useSaveShippingMethod(checkoutId || '')
   const formRef = useRef<FNFormRef | null>(null)
 
+  // Use serverCheckout for initial render, fall back to fetched checkout
+  const displayCheckout = checkout || serverCheckout
+
   // Compute initial selected rate
   const initialRateId = useMemo(() => {
-    if (checkout?.shippingRateId) return checkout.shippingRateId
+    if (displayCheckout?.shippingRateId) return displayCheckout.shippingRateId
     if (shippingRates.length > 0) return shippingRates[0].id
     return ''
-  }, [checkout?.shippingRateId, shippingRates])
-
-  // Redirect if no checkout
-  if (!checkoutId) {
-    navigate({ to: '/$lang/checkout', params: { lang } })
-    return null
-  }
+  }, [displayCheckout?.shippingRateId, shippingRates])
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     const shippingRateId = String(values.shippingRateId || '')
@@ -89,9 +73,9 @@ const CheckoutShippingPage = () => {
     }
   }
 
-  const isLoading = isLoadingCheckout || isLoadingRates
+  const isLoading = (isLoadingCheckout || isLoadingRates) && !displayCheckout
 
-  if (isLoading || !checkout) {
+  if (isLoading || !displayCheckout) {
     return (
       <CheckoutLayout currentStep="shipping">
         <div className="flex flex-col items-center justify-center py-20">
@@ -101,7 +85,7 @@ const CheckoutShippingPage = () => {
     )
   }
 
-  const shippingAddress = checkout.shippingAddress
+  const shippingAddress = displayCheckout.shippingAddress
 
   const formDefinition: FormDefinition = {
     fields: [
@@ -116,7 +100,7 @@ const CheckoutShippingPage = () => {
               rates={shippingRates}
               selectedRateId={String(props.value ?? '')}
               onSelect={(rateId) => props.onChange(rateId)}
-              currency={checkout.currency}
+              currency={displayCheckout.currency}
             />
           ) : (
             <div className="p-8 rounded-lg border bg-gray-50 text-gray-500 text-center">
@@ -131,16 +115,16 @@ const CheckoutShippingPage = () => {
     <CheckoutLayout
       currentStep="shipping"
       total={formatCurrency({
-        value: checkout.total,
-        currency: checkout.currency,
+        value: displayCheckout.total,
+        currency: displayCheckout.currency,
       })}
       orderSummary={
         <OrderSummary
-          items={checkout.cartItems}
-          subtotal={checkout.subtotal}
-          shippingTotal={checkout.shippingTotal}
-          total={checkout.total}
-          currency={checkout.currency}
+          items={displayCheckout.cartItems}
+          subtotal={displayCheckout.subtotal}
+          shippingTotal={displayCheckout.shippingTotal}
+          total={displayCheckout.total}
+          currency={displayCheckout.currency}
         />
       }
     >
@@ -160,7 +144,7 @@ const CheckoutShippingPage = () => {
                   {t('Contact')}
                 </span>
                 <span className="text-gray-900 break-all">
-                  {checkout.email}
+                  {displayCheckout.email}
                 </span>
               </div>
               <Link
@@ -253,23 +237,25 @@ export const Route = createFileRoute('/$lang/checkout/shipping')({
     // Try to get checkout ID from cookie (server-side)
     const { checkoutId } = await getCheckoutIdFromCookieFn()
 
-    if (checkoutId) {
-      const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
-
-      if (!result.valid) {
-        throw redirect({ to: '/$lang/checkout', params })
-      }
-
-      // Shipping step requires email and shipping address from information step
-      if (!result.checkout?.email || !result.checkout?.shippingAddress) {
-        throw redirect({ to: '/$lang/checkout/information', params })
-      }
-
-      return { serverCheckout: result.checkout }
+    if (!checkoutId) {
+      throw redirect({ to: '/$lang/checkout', params })
     }
 
-    // No cookie - let client-side handle (localStorage fallback)
-    return { serverCheckout: null }
+    const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
+
+    if (!result.valid) {
+      throw redirect({ to: '/$lang/checkout', params })
+    }
+
+    // Shipping step requires email and shipping address from information step
+    if (!result.checkout?.email || !result.checkout?.shippingAddress) {
+      throw redirect({ to: '/$lang/checkout/information', params })
+    }
+
+    return {
+      serverCheckout: result.checkout,
+      checkoutId: result.checkout.id,
+    }
   },
   component: CheckoutShippingPage,
 })

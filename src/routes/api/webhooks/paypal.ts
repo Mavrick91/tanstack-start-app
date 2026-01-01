@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { orders } from '../../../db/schema'
 import { withSecurityHeaders } from '../../../lib/api'
+import { logError, logWarning } from '../../../lib/logger'
 import { verifyWebhookSignature } from '../../../lib/paypal'
 import {
   checkRateLimit,
@@ -28,7 +29,10 @@ export const Route = createFileRoute('/api/webhooks/paypal')({
 
           const webhookId = process.env.PAYPAL_WEBHOOK_ID
           if (!webhookId) {
-            console.error('PAYPAL_WEBHOOK_ID not configured')
+            logError(
+              'PAYPAL_WEBHOOK_ID not configured',
+              new Error('Missing webhook ID'),
+            )
             return withSecurityHeaders(
               new Response('Webhook not configured', { status: 500 }),
             )
@@ -48,7 +52,10 @@ export const Route = createFileRoute('/api/webhooks/paypal')({
           })
 
           if (!verified) {
-            console.error('PayPal webhook signature verification failed')
+            logError(
+              'PayPal webhook signature verification failed',
+              new Error('Invalid signature'),
+            )
             return withSecurityHeaders(
               new Response('Invalid signature', { status: 401 }),
             )
@@ -209,7 +216,9 @@ export const Route = createFileRoute('/api/webhooks/paypal')({
             }
 
             default:
-              console.warn(`Unhandled PayPal event type: ${event.event_type}`)
+              logWarning(`Unhandled PayPal event type: ${event.event_type}`, {
+                eventType: event.event_type,
+              })
           }
 
           // Record the processed event for idempotency
@@ -228,7 +237,7 @@ export const Route = createFileRoute('/api/webhooks/paypal')({
             }),
           )
         } catch (error) {
-          console.error('PayPal webhook error:', error)
+          logError('PayPal webhook error', error)
           const errorMessage =
             error instanceof Error ? error.message : 'Unknown error'
 

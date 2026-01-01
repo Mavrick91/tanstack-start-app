@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { orders } from '../../../db/schema'
 import { withSecurityHeaders } from '../../../lib/api'
+import { logError, logWarning } from '../../../lib/logger'
 import {
   checkRateLimit,
   getRateLimitKey,
@@ -37,7 +38,10 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
 
           const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
           if (!webhookSecret) {
-            console.error('STRIPE_WEBHOOK_SECRET not configured')
+            logError(
+              'STRIPE_WEBHOOK_SECRET not configured',
+              new Error('Missing webhook secret'),
+            )
             return withSecurityHeaders(
               new Response('Webhook not configured', { status: 500 }),
             )
@@ -283,7 +287,9 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
             }
 
             default:
-              console.warn(`Unhandled Stripe event type: ${event.type}`)
+              logWarning(`Unhandled Stripe event type: ${event.type}`, {
+                eventType: event.type,
+              })
           }
 
           // Record the processed event for idempotency
@@ -302,7 +308,7 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
             }),
           )
         } catch (error) {
-          console.error('Webhook error:', error)
+          logError('Stripe webhook error', error)
           const errorMessage =
             error instanceof Error ? error.message : 'Unknown error'
 

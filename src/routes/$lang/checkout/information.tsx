@@ -2,6 +2,7 @@ import {
   createFileRoute,
   useNavigate,
   useParams,
+  useRouter,
   Link,
 } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -23,7 +24,6 @@ import {
 import { Label } from '../../../components/ui/label'
 import { useCartStore } from '../../../hooks/useCart'
 import {
-  useCheckoutIdStore,
   useCheckout,
   useCreateCheckout,
   useSaveCustomerInfo,
@@ -41,13 +41,10 @@ import type { AddressFormData } from '../../../lib/checkout-schemas'
 const CheckoutInformationPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
+  const router = useRouter()
   const { t } = useTranslation()
-  const { isAuthenticated, serverCheckout } = Route.useRouteContext()
-
-  // Initialize checkout ID from server (cookie) or Zustand
-  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
-  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
-  const checkoutId = serverCheckout?.id || storedCheckoutId
+  const { isAuthenticated, serverCheckout, checkoutId } =
+    Route.useRouteContext()
 
   const cartItems = useCartStore((s) => s.items)
   const clearCart = useCartStore((s) => s.clearCart)
@@ -89,17 +86,11 @@ const CheckoutInformationPage = () => {
     ],
   }
 
-  // Single initialization effect: sync Zustand and create checkout if needed
+  // Create checkout if needed (cart is client-only, must be done here)
   useEffect(() => {
-    // Sync Zustand with server-provided checkout ID
-    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
-      setCheckoutId(serverCheckout.id)
-    }
+    if (checkoutId) return
 
-    // Create checkout if needed (cart is client-only, must be done here)
     const initCheckout = async () => {
-      if (checkoutId) return
-
       if (cartItems.length === 0) {
         navigate({ to: '/$lang', params: { lang } })
         return
@@ -107,6 +98,8 @@ const CheckoutInformationPage = () => {
 
       try {
         await createCheckoutMutation.mutateAsync(cartItems)
+        // After creation, invalidate router to refetch with new cookie
+        router.invalidate()
       } catch (err) {
         console.error('Failed to create checkout:', err)
         const errorMessage =
@@ -117,19 +110,15 @@ const CheckoutInformationPage = () => {
       }
     }
 
-    if (!checkoutId) {
-      initCheckout()
-    }
+    initCheckout()
   }, [
-    serverCheckout?.id,
-    storedCheckoutId,
-    setCheckoutId,
     checkoutId,
     cartItems,
     clearCart,
     createCheckoutMutation,
     lang,
     navigate,
+    router,
   ])
 
   const handleSubmit = async () => {
@@ -337,15 +326,19 @@ export const Route = createFileRoute('/$lang/checkout/information')({
 
       // If checkout is invalid/expired, let client-side create a new one
       if (!result.valid) {
-        return { serverCheckout: null, isAuthenticated }
+        return { serverCheckout: null, checkoutId: null, isAuthenticated }
       }
 
-      return { serverCheckout: result.checkout, isAuthenticated }
+      return {
+        serverCheckout: result.checkout,
+        checkoutId: result.checkout?.id || null,
+        isAuthenticated,
+      }
     }
 
     // No cookie - let client-side handle checkout creation
     // (Cart is in localStorage, not accessible on server)
-    return { serverCheckout: null, isAuthenticated }
+    return { serverCheckout: null, checkoutId: null, isAuthenticated }
   },
   component: CheckoutInformationPage,
 })

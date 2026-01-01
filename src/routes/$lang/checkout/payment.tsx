@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, CreditCard, Loader2, Lock } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -26,93 +26,38 @@ import {
   TabsTrigger,
 } from '../../../components/ui/tabs'
 import { useCartStore } from '../../../hooks/useCart'
-import {
-  useCheckoutIdStore,
-  useCheckout,
-  useCreateStripePaymentIntent,
-  useCompleteCheckout,
-} from '../../../hooks/useCheckout'
+import { useCheckout, useCompleteCheckout } from '../../../hooks/useCheckout'
+import { clearCheckoutIdCookieClient } from '../../../lib/checkout-cookies.client'
 import { formatCurrency } from '../../../lib/format'
 import {
   getCheckoutIdFromCookieFn,
   validateCheckoutForRouteFn,
+  createStripePaymentIntentFn,
 } from '../../../server/checkout'
 
 const CheckoutPaymentPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { serverCheckout } = Route.useRouteContext()
+  const { checkoutId, serverCheckout, clientSecret, publishableKey } =
+    Route.useRouteContext()
 
-  // Initialize checkout ID from server (cookie) or Zustand
-  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
-  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
-  const checkoutId = serverCheckout?.id || storedCheckoutId
-
-  // Sync Zustand with server-provided checkout ID
-  useEffect(() => {
-    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
-      setCheckoutId(serverCheckout.id)
-    }
-  }, [serverCheckout?.id, storedCheckoutId, setCheckoutId])
-
-  const clearCheckoutId = useCheckoutIdStore((s) => s.clearCheckoutId)
   const { data: checkout, isLoading: isLoadingCheckout } =
     useCheckout(checkoutId)
   const clearCart = useCartStore((s) => s.clearCart)
 
-  const createPaymentIntentMutation = useCreateStripePaymentIntent(
-    checkoutId || '',
-  )
   const completeCheckoutMutation = useCompleteCheckout(checkoutId || '')
 
   const [paymentTab, setPaymentTab] = useState('card')
-  const [stripePromise, setStripePromise] = useState<ReturnType<
-    typeof loadStripe
-  > | null>(null)
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
-  const [paypalClientId, setPaypalClientId] = useState<string | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
 
-  useEffect(() => {
-    const init = async () => {
-      if (!checkoutId || !checkout || isInitialized) return
-      if (!checkout.shippingAddress || !checkout.shippingRateId) return
+  // Initialize Stripe promise from server-provided publishable key
+  const stripePromise = useMemo(() => {
+    if (!publishableKey) return null
+    return loadStripe(publishableKey)
+  }, [publishableKey])
 
-      try {
-        const stripeData = await createPaymentIntentMutation.mutateAsync()
-        setClientSecret(stripeData.clientSecret)
-        // PayPal client ID comes from env, not from Stripe API
-        setPaypalClientId(import.meta.env.VITE_PAYPAL_CLIENT_ID || null)
-
-        const stripe = loadStripe(stripeData.publishableKey)
-        setStripePromise(stripe)
-        setIsInitialized(true)
-      } catch (err) {
-        console.error('Failed to initialize payment:', err)
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : t('Failed to initialize payment'),
-        )
-      }
-    }
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkout, checkoutId, isInitialized])
-
-  // Redirect if no checkout or missing shipping info
-  if (!checkoutId) {
-    navigate({ to: '/$lang/checkout', params: { lang } })
-    return null
-  }
-
-  if (checkout && (!checkout.shippingAddress || !checkout.shippingRateId)) {
-    navigate({ to: '/$lang/checkout/information', params: { lang } })
-    return null
-  }
-
-  // Initialize payment once checkout is loaded
+  // PayPal client ID from env
+  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || null
 
   const handlePaymentSuccess = async (
     paymentProvider: 'stripe' | 'paypal',
@@ -127,7 +72,7 @@ const CheckoutPaymentPage = () => {
       })
 
       clearCart()
-      clearCheckoutId()
+      clearCheckoutIdCookieClient()
 
       navigate({
         to: '/$lang/checkout/confirmation',
@@ -149,9 +94,11 @@ const CheckoutPaymentPage = () => {
     toast.error(errorMessage)
   }
 
-  const isLoading = isLoadingCheckout || createPaymentIntentMutation.isPending
+  // Use serverCheckout for initial render, fall back to fetched checkout
+  const displayCheckout = checkout || serverCheckout
+  const isLoading = isLoadingCheckout && !displayCheckout
 
-  if (isLoading || !checkout) {
+  if (isLoading || !displayCheckout) {
     return (
       <CheckoutLayout currentStep="payment">
         <div className="flex flex-col items-center justify-center py-20">
@@ -161,22 +108,22 @@ const CheckoutPaymentPage = () => {
     )
   }
 
-  const shippingAddress = checkout.shippingAddress
+  const shippingAddress = displayCheckout.shippingAddress
 
   return (
     <CheckoutLayout
       currentStep="payment"
       total={formatCurrency({
-        value: checkout.total,
-        currency: checkout.currency,
+        value: displayCheckout.total,
+        currency: displayCheckout.currency,
       })}
       orderSummary={
         <OrderSummary
-          items={checkout.cartItems}
-          subtotal={checkout.subtotal}
-          shippingTotal={checkout.shippingTotal}
-          total={checkout.total}
-          currency={checkout.currency}
+          items={displayCheckout.cartItems}
+          subtotal={displayCheckout.subtotal}
+          shippingTotal={displayCheckout.shippingTotal}
+          total={displayCheckout.total}
+          currency={displayCheckout.currency}
         />
       }
     >
@@ -196,7 +143,7 @@ const CheckoutPaymentPage = () => {
                   {t('Contact')}
                 </span>
                 <span className="text-gray-900 break-all">
-                  {checkout.email}
+                  {displayCheckout.email}
                 </span>
               </div>
               <Link
@@ -235,7 +182,9 @@ const CheckoutPaymentPage = () => {
                 <span className="text-gray-500 w-20 shrink-0">
                   {t('Method')}
                 </span>
-                <span className="text-gray-900">{checkout.shippingMethod}</span>
+                <span className="text-gray-900">
+                  {displayCheckout.shippingMethod}
+                </span>
               </div>
               <Link
                 to="/$lang/checkout/shipping"
@@ -325,7 +274,7 @@ const CheckoutPaymentPage = () => {
                       <PayPalScriptProvider
                         options={{
                           clientId: paypalClientId,
-                          currency: checkout.currency,
+                          currency: displayCheckout.currency,
                         }}
                       >
                         <PayPalButton
@@ -348,15 +297,13 @@ const CheckoutPaymentPage = () => {
           </div>
 
           {/* Error display */}
-          {(createPaymentIntentMutation.error ||
-            completeCheckoutMutation.error) && (
+          {completeCheckoutMutation.error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm"
             >
-              {createPaymentIntentMutation.error?.message ||
-                completeCheckoutMutation.error?.message}
+              {completeCheckoutMutation.error.message}
             </motion.div>
           )}
 
@@ -382,28 +329,32 @@ export const Route = createFileRoute('/$lang/checkout/payment')({
     // Try to get checkout ID from cookie (server-side)
     const { checkoutId } = await getCheckoutIdFromCookieFn()
 
-    // If no checkout ID in cookie, redirect to checkout start
-    // (Client-side will also check localStorage via Zustand as fallback)
-    if (checkoutId) {
-      const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
-
-      if (!result.valid) {
-        throw redirect({ to: '/$lang/checkout', params })
-      }
-
-      // Check if checkout has required shipping info for payment step
-      if (
-        !result.checkout?.shippingAddress ||
-        !result.checkout?.shippingRateId
-      ) {
-        throw redirect({ to: '/$lang/checkout/information', params })
-      }
-
-      return { serverCheckout: result.checkout }
+    if (!checkoutId) {
+      throw redirect({ to: '/$lang/checkout', params })
     }
 
-    // No cookie - let client-side handle (localStorage fallback)
-    return { serverCheckout: null }
+    const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
+
+    if (!result.valid) {
+      throw redirect({ to: '/$lang/checkout', params })
+    }
+
+    // Check if checkout has required shipping info for payment step
+    if (!result.checkout?.shippingAddress || !result.checkout?.shippingRateId) {
+      throw redirect({ to: '/$lang/checkout/information', params })
+    }
+
+    // Create payment intent on server (moves initialization out of useEffect)
+    const paymentData = await createStripePaymentIntentFn({
+      data: { checkoutId },
+    })
+
+    return {
+      serverCheckout: result.checkout,
+      checkoutId,
+      clientSecret: paymentData.clientSecret,
+      publishableKey: paymentData.publishableKey,
+    }
   },
   component: CheckoutPaymentPage,
 })

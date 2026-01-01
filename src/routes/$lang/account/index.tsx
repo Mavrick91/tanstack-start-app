@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
   useNavigate,
@@ -8,19 +9,22 @@ import { Package, MapPin, User, LogOut, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
-import { useAuthStore } from '../../../hooks/useAuth'
+import { logoutFn } from '../../../server/auth'
 
 const AccountPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { t } = useTranslation()
-  const { logout } = useAuthStore()
 
   // Customer is guaranteed by parent layout's beforeLoad
   const { customer } = Route.useRouteContext()
 
   const handleLogout = async () => {
-    await logout()
+    // Call server function directly instead of Zustand action
+    await logoutFn()
+    // Invalidate cached customer session to force re-fetch on next login
+    queryClient.removeQueries({ queryKey: ['customer', 'session'] })
     navigate({ to: '/$lang', params: { lang } })
   }
 

@@ -1,6 +1,8 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
+import { Loader2 } from 'lucide-react'
 
+import { DefaultErrorComponent } from './components/ui/error-boundary'
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
@@ -15,6 +17,13 @@ const createQueryClient = () =>
     },
   })
 
+// Default pending component for route transitions
+const DefaultPendingComponent = () => (
+  <div className="min-h-[200px] flex items-center justify-center">
+    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+  </div>
+)
+
 // Create a new router instance
 export const getRouter = () => {
   const queryClient = createQueryClient()
@@ -25,6 +34,13 @@ export const getRouter = () => {
 
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+
+    // Global error handling
+    defaultErrorComponent: DefaultErrorComponent,
+
+    // Global pending state during navigation
+    defaultPendingComponent: DefaultPendingComponent,
+    defaultPendingMinMs: 200, // Avoid flash for fast transitions
   })
 
   return router

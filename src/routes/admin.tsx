@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Outlet,
   createFileRoute,
@@ -15,8 +16,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '../components/ui/button'
-import { useAuthStore } from '../hooks/useAuth'
-import { getMeFn } from '../server/auth'
+import { getMeFn, logoutFn } from '../server/auth'
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
@@ -27,13 +27,16 @@ const navItems = [
 
 const AdminLayout = () => {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { location } = useRouterState()
   const { user } = Route.useRouteContext()
-  const logout = useAuthStore((state) => state.logout)
   const isLoginPage = location.pathname === '/admin/login'
 
   const handleLogout = async () => {
-    await logout()
+    // Call server function directly instead of Zustand action
+    await logoutFn()
+    // Invalidate cached auth to force re-fetch on next login
+    queryClient.removeQueries({ queryKey: ['admin', 'auth'] })
     router.navigate({ to: '/admin/login' })
   }
 
@@ -119,9 +122,13 @@ const AdminLayout = () => {
 }
 
 export const Route = createFileRoute('/admin')({
-  beforeLoad: async () => {
-    // Fetch user for the layout (non-blocking, user may be null on login page)
-    const user = await getMeFn()
+  beforeLoad: async ({ context }) => {
+    // Use TanStack Query to cache auth across navigations (5 min stale time)
+    const user = await context.queryClient.ensureQueryData({
+      queryKey: ['admin', 'auth'],
+      queryFn: getMeFn,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })
     return { user }
   },
   component: AdminLayout,
