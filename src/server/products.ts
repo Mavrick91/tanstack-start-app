@@ -6,6 +6,14 @@ import { z } from 'zod'
 import { getMeFn } from './auth'
 import { db } from '../db'
 import {
+  productIdSchema,
+  productInputSchema,
+  updateProductStatusSchema,
+  type ProductInput,
+  type ProductOptionInput,
+  type ProductVariantInput,
+} from './schemas/products'
+import {
   products,
   productImages,
   productOptions,
@@ -14,45 +22,10 @@ import {
 import { emptyToNull } from '../lib/api'
 import { validateSession } from '../lib/auth'
 
-type LocalizedString = { en: string; fr?: string; id?: string }
 type SelectedOption = { name: string; value: string }
 
-// Option input for creating/updating product
-export interface ProductOptionInput {
-  name: string // e.g., "Shape"
-  values: string[] // e.g., ["Coffin", "Almond"]
-}
-
-// Variant input (for explicit variant data)
-export interface ProductVariantInput {
-  title?: string
-  selectedOptions?: SelectedOption[]
-  price: string
-  compareAtPrice?: string
-  sku?: string
-  barcode?: string
-  weight?: string
-  available?: boolean
-}
-
-export interface ProductInput {
-  name: LocalizedString
-  handle: string
-  description?: LocalizedString
-  vendor?: string
-  productType?: string
-  status?: 'draft' | 'active' | 'archived'
-  tags?: string[]
-  metaTitle?: LocalizedString
-  metaDescription?: LocalizedString
-  images?: { url: string; altText?: LocalizedString }[]
-  // New: Options & Variants
-  options?: ProductOptionInput[]
-  variants?: ProductVariantInput[]
-  // Legacy: single price (creates default variant)
-  price?: string
-  compareAtPrice?: string
-}
+// Re-export types for backwards compatibility
+export type { ProductInput, ProductOptionInput, ProductVariantInput }
 
 // Helper: Generate all variant combinations from options
 export const generateVariantCombinations = (
@@ -86,49 +59,77 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
       .from(products)
       .orderBy(desc(products.createdAt))
 
-    const productsWithData = await Promise.all(
-      allProducts.map(async (product) => {
-        // Get first image
-        const images = await db
-          .select({ url: productImages.url })
-          .from(productImages)
-          .where(eq(productImages.productId, product.id))
-          .orderBy(asc(productImages.position))
-          .limit(1)
+    if (allProducts.length === 0) {
+      return { success: true, data: [] }
+    }
 
-        // Get variants (for price display)
-        const variants = await db
-          .select()
-          .from(productVariants)
-          .where(eq(productVariants.productId, product.id))
-          .orderBy(asc(productVariants.position))
+    // Batch fetch all related data to avoid N+1 queries
+    const productIds = allProducts.map((p) => p.id)
 
-        // Get options
-        const options = await db
-          .select()
-          .from(productOptions)
-          .where(eq(productOptions.productId, product.id))
-          .orderBy(asc(productOptions.position))
+    const [allImages, allVariants, allOptions] = await Promise.all([
+      db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, productIds))
+        .orderBy(asc(productImages.position)),
+      db
+        .select()
+        .from(productVariants)
+        .where(inArray(productVariants.productId, productIds))
+        .orderBy(asc(productVariants.position)),
+      db
+        .select()
+        .from(productOptions)
+        .where(inArray(productOptions.productId, productIds))
+        .orderBy(asc(productOptions.position)),
+    ])
 
-        // Derive price from first variant
-        const firstVariant = variants[0]
+    // Group by productId
+    const imagesByProduct = new Map<string, (typeof allImages)[0][]>()
+    for (const img of allImages) {
+      if (!imagesByProduct.has(img.productId)) {
+        imagesByProduct.set(img.productId, [])
+      }
+      imagesByProduct.get(img.productId)!.push(img)
+    }
 
-        return {
-          ...product,
-          image: images[0]?.url || null,
-          price: firstVariant?.price || null,
-          variants,
-          options,
-        }
-      }),
-    )
+    const variantsByProduct = new Map<string, (typeof allVariants)[0][]>()
+    for (const v of allVariants) {
+      if (!variantsByProduct.has(v.productId)) {
+        variantsByProduct.set(v.productId, [])
+      }
+      variantsByProduct.get(v.productId)!.push(v)
+    }
+
+    const optionsByProduct = new Map<string, (typeof allOptions)[0][]>()
+    for (const opt of allOptions) {
+      if (!optionsByProduct.has(opt.productId)) {
+        optionsByProduct.set(opt.productId, [])
+      }
+      optionsByProduct.get(opt.productId)!.push(opt)
+    }
+
+    const productsWithData = allProducts.map((product) => {
+      const images = imagesByProduct.get(product.id) || []
+      const variants = variantsByProduct.get(product.id) || []
+      const options = optionsByProduct.get(product.id) || []
+      const firstVariant = variants[0]
+
+      return {
+        ...product,
+        image: images[0]?.url || null,
+        price: firstVariant?.price || null,
+        variants,
+        options,
+      }
+    })
 
     return { success: true, data: productsWithData }
   },
 )
 
 export const createProductFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: ProductInput) => d)
+  .inputValidator((data) => productInputSchema.parse(data))
   .handler(async ({ data }) => {
     const request = getRequest()
     if (!request) throw new Error('No request found')
@@ -155,19 +156,8 @@ export const createProductFn = createServerFn({ method: 'POST' })
       compareAtPrice,
     } = data
 
-    if (
-      !name ||
-      typeof name !== 'object' ||
-      !('en' in name) ||
-      typeof name.en !== 'string' ||
-      !name.en.trim()
-    ) {
-      throw new Error('Name must be an object with a non-empty "en" property')
-    }
-
-    if (!handle || typeof handle !== 'string' || !handle.trim()) {
-      throw new Error('Handle is required')
-    }
+    // Zod already validates name.en and handle, but we trim handle
+    const trimmedHandle = handle.trim()
 
     const product = await db.transaction(async (tx) => {
       // 1. Insert Product
@@ -175,7 +165,7 @@ export const createProductFn = createServerFn({ method: 'POST' })
         .insert(products)
         .values({
           name,
-          handle: handle.trim(),
+          handle: trimmedHandle,
           description,
           vendor: emptyToNull(vendor),
           productType: emptyToNull(productType),
@@ -245,17 +235,12 @@ export const createProductFn = createServerFn({ method: 'POST' })
       // 4. Insert Images
       if (Array.isArray(images) && images.length > 0) {
         await tx.insert(productImages).values(
-          images.map(
-            (
-              img: { url: string; altText?: LocalizedString },
-              index: number,
-            ) => ({
-              productId: newProduct.id,
-              url: img.url,
-              altText: img.altText,
-              position: index,
-            }),
-          ),
+          images.map((img, index) => ({
+            productId: newProduct.id,
+            url: img.url,
+            altText: img.altText ?? undefined,
+            position: index,
+          })),
         )
       }
 
@@ -266,7 +251,7 @@ export const createProductFn = createServerFn({ method: 'POST' })
   })
 
 export const deleteProductFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { productId: string }) => d)
+  .inputValidator((data: unknown) => productIdSchema.parse(data))
   .handler(async ({ data }) => {
     const request = getRequest()
     if (!request) throw new Error('No request found')
@@ -291,7 +276,7 @@ export const deleteProductFn = createServerFn({ method: 'POST' })
   })
 
 export const duplicateProductFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { productId: string }) => d)
+  .inputValidator((data: unknown) => productIdSchema.parse(data))
   .handler(async ({ data }) => {
     const request = getRequest()
     if (!request) throw new Error('No request found')
@@ -382,9 +367,7 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
   })
 
 export const updateProductStatusFn = createServerFn({ method: 'POST' })
-  .inputValidator(
-    (d: { productId: string; status: 'draft' | 'active' | 'archived' }) => d,
-  )
+  .inputValidator((data: unknown) => updateProductStatusSchema.parse(data))
   .handler(async ({ data }) => {
     const request = getRequest()
     if (!request) throw new Error('No request found')
@@ -420,42 +403,66 @@ export const getAdminProductsFn = createServerFn().handler(async () => {
     .from(products)
     .orderBy(desc(products.createdAt))
 
-  const productsWithData = await Promise.all(
-    allProducts.map(async (product) => {
-      const images = await db
-        .select({ url: productImages.url })
-        .from(productImages)
-        .where(eq(productImages.productId, product.id))
-        .orderBy(asc(productImages.position))
-        .limit(1)
+  if (allProducts.length === 0) {
+    return []
+  }
 
-      const variants = await db
-        .select()
-        .from(productVariants)
-        .where(eq(productVariants.productId, product.id))
-        .orderBy(asc(productVariants.position))
+  // Batch fetch all related data to avoid N+1 queries
+  const productIds = allProducts.map((p) => p.id)
 
-      // Calculate price range
-      const prices = variants
-        .map((v) => parseFloat(v.price))
-        .filter((p) => !isNaN(p))
-      const minPrice = prices.length > 0 ? Math.min(...prices) : null
-      const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+  const [allImages, allVariants] = await Promise.all([
+    db
+      .select()
+      .from(productImages)
+      .where(inArray(productImages.productId, productIds))
+      .orderBy(asc(productImages.position)),
+    db
+      .select()
+      .from(productVariants)
+      .where(inArray(productVariants.productId, productIds))
+      .orderBy(asc(productVariants.position)),
+  ])
 
-      // TODO: Add inventory tracking
-      const totalInventory = 0
+  // Group by productId - get first image only
+  const firstImageByProduct = new Map<string, string>()
+  for (const img of allImages) {
+    if (!firstImageByProduct.has(img.productId)) {
+      firstImageByProduct.set(img.productId, img.url)
+    }
+  }
 
-      return {
-        ...product,
-        imageUrl: images[0]?.url,
-        variantCount: variants.length,
-        minPrice,
-        maxPrice,
-        totalInventory,
-        price: variants[0]?.price ?? '0',
-      }
-    }),
-  )
+  // Group variants by productId
+  const variantsByProduct = new Map<string, (typeof allVariants)[0][]>()
+  for (const v of allVariants) {
+    if (!variantsByProduct.has(v.productId)) {
+      variantsByProduct.set(v.productId, [])
+    }
+    variantsByProduct.get(v.productId)!.push(v)
+  }
+
+  const productsWithData = allProducts.map((product) => {
+    const variants = variantsByProduct.get(product.id) || []
+
+    // Calculate price range
+    const prices = variants
+      .map((v) => parseFloat(v.price))
+      .filter((p) => !isNaN(p))
+    const minPrice = prices.length > 0 ? Math.min(...prices) : null
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+
+    // TODO: Add inventory tracking
+    const totalInventory = 0
+
+    return {
+      ...product,
+      imageUrl: firstImageByProduct.get(product.id),
+      variantCount: variants.length,
+      minPrice,
+      maxPrice,
+      totalInventory,
+      price: variants[0]?.price ?? '0',
+    }
+  })
 
   return productsWithData
 })
@@ -677,92 +684,95 @@ export const updateProductFn = createServerFn({ method: 'POST' })
       variants,
     } = data
 
-    // Update product
-    const updateData: Record<string, unknown> = { updatedAt: new Date() }
-    if (name !== undefined) updateData.name = name
-    if (description !== undefined) updateData.description = description
-    if (handle !== undefined) updateData.handle = handle
-    if (status !== undefined) updateData.status = status
-    if (vendor !== undefined) updateData.vendor = emptyToNull(vendor)
-    if (productType !== undefined)
-      updateData.productType = emptyToNull(productType)
-    if (tags !== undefined) updateData.tags = tags
-    if (metaTitle !== undefined) updateData.metaTitle = metaTitle
-    if (metaDescription !== undefined)
-      updateData.metaDescription = metaDescription
+    // Use transaction to ensure atomicity of multi-step update
+    return await db.transaction(async (tx) => {
+      // Update product
+      const updateData: Record<string, unknown> = { updatedAt: new Date() }
+      if (name !== undefined) updateData.name = name
+      if (description !== undefined) updateData.description = description
+      if (handle !== undefined) updateData.handle = handle
+      if (status !== undefined) updateData.status = status
+      if (vendor !== undefined) updateData.vendor = emptyToNull(vendor)
+      if (productType !== undefined)
+        updateData.productType = emptyToNull(productType)
+      if (tags !== undefined) updateData.tags = tags
+      if (metaTitle !== undefined) updateData.metaTitle = metaTitle
+      if (metaDescription !== undefined)
+        updateData.metaDescription = metaDescription
 
-    const [updated] = await db
-      .update(products)
-      .set(updateData)
-      .where(eq(products.id, productId))
-      .returning()
+      const [updated] = await tx
+        .update(products)
+        .set(updateData)
+        .where(eq(products.id, productId))
+        .returning()
 
-    if (!updated) {
-      throw new Error('Product not found')
-    }
+      if (!updated) {
+        throw new Error('Product not found')
+      }
 
-    // Update options if provided
-    if (options !== undefined) {
-      await db
-        .delete(productOptions)
+      // Update options if provided
+      if (options !== undefined) {
+        await tx
+          .delete(productOptions)
+          .where(eq(productOptions.productId, productId))
+
+        if (options.length > 0) {
+          await tx.insert(productOptions).values(
+            options.map((opt, index) => ({
+              productId,
+              name: opt.name,
+              values: opt.values,
+              position: index,
+            })),
+          )
+        }
+      }
+
+      // Update variants if provided
+      if (variants !== undefined) {
+        await tx
+          .delete(productVariants)
+          .where(eq(productVariants.productId, productId))
+
+        if (variants.length > 0) {
+          await tx.insert(productVariants).values(
+            variants.map((v, index) => ({
+              productId,
+              title: v.title || 'Default Title',
+              selectedOptions: v.selectedOptions || [],
+              price: v.price,
+              compareAtPrice: emptyToNull(v.compareAtPrice),
+              sku: emptyToNull(v.sku),
+              barcode: emptyToNull(v.barcode),
+              weight: emptyToNull(v.weight),
+              available: v.available !== false ? 1 : 0,
+              position: index,
+            })),
+          )
+        }
+      }
+
+      // Fetch updated data within the same transaction
+      const updatedOptions = await tx
+        .select()
+        .from(productOptions)
         .where(eq(productOptions.productId, productId))
+        .orderBy(asc(productOptions.position))
 
-      if (options.length > 0) {
-        await db.insert(productOptions).values(
-          options.map((opt, index) => ({
-            productId,
-            name: opt.name,
-            values: opt.values,
-            position: index,
-          })),
-        )
-      }
-    }
-
-    // Update variants if provided
-    if (variants !== undefined) {
-      await db
-        .delete(productVariants)
+      const updatedVariants = await tx
+        .select()
+        .from(productVariants)
         .where(eq(productVariants.productId, productId))
+        .orderBy(asc(productVariants.position))
 
-      if (variants.length > 0) {
-        await db.insert(productVariants).values(
-          variants.map((v, index) => ({
-            productId,
-            title: v.title || 'Default Title',
-            selectedOptions: v.selectedOptions || [],
-            price: v.price,
-            compareAtPrice: emptyToNull(v.compareAtPrice),
-            sku: emptyToNull(v.sku),
-            barcode: emptyToNull(v.barcode),
-            weight: emptyToNull(v.weight),
-            available: v.available !== false ? 1 : 0,
-            position: index,
-          })),
-        )
+      return {
+        product: {
+          ...updated,
+          options: updatedOptions,
+          variants: updatedVariants,
+        },
       }
-    }
-
-    // Fetch updated data
-    const updatedOptions = await db
-      .select()
-      .from(productOptions)
-      .where(eq(productOptions.productId, productId))
-      .orderBy(asc(productOptions.position))
-
-    const updatedVariants = await db
-      .select()
-      .from(productVariants)
-      .where(eq(productVariants.productId, productId))
-      .orderBy(asc(productVariants.position))
-
-    return {
-      product: {
-        ...updated,
-        options: updatedOptions,
-        variants: updatedVariants,
-      },
-    }
+    })
   })
 
 // Update product images
@@ -792,7 +802,7 @@ export const updateProductImagesFn = createServerFn({ method: 'POST' })
 
     const { productId, images } = data
 
-    // Get existing images for cleanup
+    // Get existing images for cleanup (outside transaction - read-only)
     const existingImages = await db
       .select({ url: productImages.url })
       .from(productImages)
@@ -801,27 +811,32 @@ export const updateProductImagesFn = createServerFn({ method: 'POST' })
     const existingUrls = new Set(existingImages.map((i) => i.url))
     const newUrls = new Set(images.map((i) => i.url))
 
-    // Find removed images and delete from Cloudinary
+    // Find removed images and delete from Cloudinary (outside transaction - external service)
     const removedUrls = [...existingUrls].filter((url) => !newUrls.has(url))
     if (removedUrls.length > 0) {
       const { deleteImagesFromCloudinary } = await import('../lib/cloudinary')
       await deleteImagesFromCloudinary(removedUrls)
     }
 
-    // Delete all existing images
-    await db.delete(productImages).where(eq(productImages.productId, productId))
+    // Use transaction for database operations to ensure atomicity
+    await db.transaction(async (tx) => {
+      // Delete all existing images
+      await tx
+        .delete(productImages)
+        .where(eq(productImages.productId, productId))
 
-    // Insert new images
-    if (images.length > 0) {
-      await db.insert(productImages).values(
-        images.map((img) => ({
-          productId,
-          url: img.url,
-          altText: img.altText,
-          position: img.position,
-        })),
-      )
-    }
+      // Insert new images
+      if (images.length > 0) {
+        await tx.insert(productImages).values(
+          images.map((img) => ({
+            productId,
+            url: img.url,
+            altText: img.altText,
+            position: img.position,
+          })),
+        )
+      }
+    })
 
     return { success: true }
   })

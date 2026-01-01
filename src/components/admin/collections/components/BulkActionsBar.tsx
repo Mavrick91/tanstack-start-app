@@ -43,7 +43,8 @@ export const BulkActionsBar = ({
     mutationFn: bulkUpdateCollectionsStatusFn,
     onSuccess: (data, variables) => {
       handleSuccess()
-      if (variables.data.action === 'publish') {
+      const action = (variables?.data as { action?: string })?.action
+      if (action === 'publish') {
         toast.success(t('{{count}} items activated', { count: data.count }))
       } else {
         toast.success(t('{{count}} items archived', { count: data.count }))

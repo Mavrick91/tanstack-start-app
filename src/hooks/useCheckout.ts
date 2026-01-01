@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
 
@@ -19,35 +20,56 @@ import {
 
 import type { Checkout, AddressInput, ShippingRate } from '../types/checkout'
 
-// Zustand store for checkout ID (synced with cookie as single source of truth)
+// Zustand store for checkout ID
+// Cookie is the single source of truth - store is just a cache for React reactivity
 type CheckoutIdStore = {
   checkoutId: string | null
+  isInitialized: boolean
   setCheckoutId: (id: string | null) => void
   clearCheckoutId: () => void
   initFromCookie: () => void
 }
 
-export const useCheckoutIdStore = create<CheckoutIdStore>()((set) => ({
+export const useCheckoutIdStore = create<CheckoutIdStore>()((set, get) => ({
   checkoutId: null,
+  isInitialized: false,
+
   setCheckoutId: (id) => {
-    set({ checkoutId: id })
-    // Sync to cookie (single source of truth)
+    // Cookie is source of truth - update it first
     if (id) {
       setCheckoutIdCookieClient(id)
     } else {
       clearCheckoutIdCookieClient()
     }
-  },
-  clearCheckoutId: () => {
-    set({ checkoutId: null })
-    clearCheckoutIdCookieClient()
-  },
-  // Initialize from cookie on app load
-  initFromCookie: () => {
-    const id = getCheckoutIdFromCookie()
+    // Then sync store (cache) to reflect cookie state
     set({ checkoutId: id })
   },
+
+  clearCheckoutId: () => {
+    // Cookie is source of truth - clear it first
+    clearCheckoutIdCookieClient()
+    // Then sync store (cache)
+    set({ checkoutId: null })
+  },
+
+  // Initialize store from cookie on first access
+  initFromCookie: () => {
+    if (get().isInitialized) return
+    const id = getCheckoutIdFromCookie()
+    set({ checkoutId: id, isInitialized: true })
+  },
 }))
+
+// Hook that auto-initializes from cookie and returns the checkout ID
+export const useCheckoutId = () => {
+  const store = useCheckoutIdStore()
+
+  useEffect(() => {
+    store.initFromCookie()
+  }, [store])
+
+  return store.checkoutId
+}
 
 // API functions using server functions
 const createCheckoutApi = async (

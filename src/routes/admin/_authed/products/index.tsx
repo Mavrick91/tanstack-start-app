@@ -241,8 +241,23 @@ const AdminProductsPage = (): React.ReactNode => {
 
 export const Route = createFileRoute('/admin/_authed/products/')({
   validateSearch: searchSchema,
-  loaderDeps: ({ search }) => ({ search }),
-  loader: async ({ deps: { search }, context: { queryClient } }) => {
+  // Destructure individual params for proper change detection
+  loaderDeps: ({ search }) => ({
+    q: search.q,
+    status: search.status,
+    sort: search.sort,
+    order: search.order,
+    page: search.page,
+  }),
+  loader: async ({ deps, context: { queryClient } }) => {
+    // Reconstruct search object from individual deps
+    const search = {
+      q: deps.q,
+      status: deps.status,
+      sort: deps.sort,
+      order: deps.order,
+      page: deps.page,
+    }
     const tableState = buildTableState(search)
     // Pre-fetch products data for SSR and link preloading
     await queryClient.ensureQueryData({

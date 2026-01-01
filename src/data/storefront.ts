@@ -5,7 +5,8 @@ import type { ProductOption, ProductVariant } from '../types/store'
 // Helper to dynamically import database context (prevents server code leaking to client)
 const getDbContext = async () => {
   const { db } = await import('../db')
-  const { and, asc, desc, eq, isNotNull, sql } = await import('drizzle-orm')
+  const { and, asc, desc, eq, inArray, isNotNull, sql } =
+    await import('drizzle-orm')
   const {
     collectionProducts,
     collections,
@@ -20,6 +21,7 @@ const getDbContext = async () => {
     asc,
     desc,
     eq,
+    inArray,
     isNotNull,
     sql,
     collectionProducts,
@@ -36,21 +38,6 @@ type LocalizedString = { en: string; fr?: string; id?: string }
 const getLocalizedText = (value: LocalizedString | null, lang = 'en') => {
   if (!value) return ''
   return value[lang as keyof LocalizedString] || value.en || ''
-}
-
-// Fetch first variant for a product (for price)
-const fetchProductFirstVariant = async (
-  productId: string,
-  ctx: Awaited<ReturnType<typeof getDbContext>>,
-) => {
-  const { db, eq, asc, productVariants } = ctx
-  const [variant] = await db
-    .select({ price: productVariants.price })
-    .from(productVariants)
-    .where(eq(productVariants.productId, productId))
-    .orderBy(asc(productVariants.position))
-    .limit(1)
-  return variant
 }
 
 const toStorefrontProduct = (
@@ -98,6 +85,67 @@ const fetchProductImages = async (
     .from(productImages)
     .where(eq(productImages.productId, productId))
     .orderBy(productImages.position)
+}
+
+// Batch fetch: Get all images for multiple products in a single query
+const fetchProductImagesBatch = async (
+  productIds: string[],
+  ctx: Awaited<ReturnType<typeof getDbContext>>,
+) => {
+  if (productIds.length === 0) return {}
+
+  const { db, inArray, asc, productImages } = ctx
+  const allImages = await db
+    .select({
+      productId: productImages.productId,
+      url: productImages.url,
+    })
+    .from(productImages)
+    .where(inArray(productImages.productId, productIds))
+    .orderBy(asc(productImages.position))
+
+  // Group by productId
+  const imagesByProduct: Record<string, { url: string }[]> = {}
+  for (const id of productIds) {
+    imagesByProduct[id] = []
+  }
+  for (const img of allImages) {
+    if (imagesByProduct[img.productId]) {
+      imagesByProduct[img.productId].push({ url: img.url })
+    }
+  }
+  return imagesByProduct
+}
+
+// Batch fetch: Get first variant for each product in a single query
+const fetchProductFirstVariantBatch = async (
+  productIds: string[],
+  ctx: Awaited<ReturnType<typeof getDbContext>>,
+) => {
+  if (productIds.length === 0) return {}
+
+  const { db, inArray, asc, productVariants } = ctx
+  const allVariants = await db
+    .select({
+      productId: productVariants.productId,
+      price: productVariants.price,
+      position: productVariants.position,
+    })
+    .from(productVariants)
+    .where(inArray(productVariants.productId, productIds))
+    .orderBy(asc(productVariants.position))
+
+  // Get only the first variant (lowest position) for each product
+  const variantsByProduct: Record<string, { price: string } | null> = {}
+  for (const id of productIds) {
+    variantsByProduct[id] = null
+  }
+  for (const v of allVariants) {
+    if (variantsByProduct[v.productId] === null) {
+      variantsByProduct[v.productId] = { price: v.price }
+    }
+  }
+  return variantsByProduct
 }
 
 const fetchProductOptionsAndVariants = async (
@@ -223,17 +271,20 @@ export const getProducts = createServerFn({ method: 'GET' })
       .where(eq(products.status, 'active'))
       .orderBy(desc(products.createdAt))
 
-    return Promise.all(
-      dbProducts.map(async (product) => {
-        const images = await fetchProductImages(product.id, ctx)
-        const variant = await fetchProductFirstVariant(product.id, ctx)
-        return toStorefrontProduct(
-          product,
-          images,
-          variant?.price || null,
-          lang,
-        )
-      }),
+    // Batch fetch images and variants to avoid N+1 queries
+    const productIds = dbProducts.map((p) => p.id)
+    const [imagesMap, variantsMap] = await Promise.all([
+      fetchProductImagesBatch(productIds, ctx),
+      fetchProductFirstVariantBatch(productIds, ctx),
+    ])
+
+    return dbProducts.map((product) =>
+      toStorefrontProduct(
+        product,
+        imagesMap[product.id] || [],
+        variantsMap[product.id]?.price || null,
+        lang,
+      ),
     )
   })
 
@@ -253,17 +304,20 @@ export const getFeaturedProducts = createServerFn({ method: 'GET' })
       .orderBy(desc(products.createdAt))
       .limit(3)
 
-    return Promise.all(
-      dbProducts.map(async (product) => {
-        const images = await fetchProductImages(product.id, ctx)
-        const variant = await fetchProductFirstVariant(product.id, ctx)
-        return toStorefrontProduct(
-          product,
-          images,
-          variant?.price || null,
-          lang,
-        )
-      }),
+    // Batch fetch images and variants to avoid N+1 queries
+    const productIds = dbProducts.map((p) => p.id)
+    const [imagesMap, variantsMap] = await Promise.all([
+      fetchProductImagesBatch(productIds, ctx),
+      fetchProductFirstVariantBatch(productIds, ctx),
+    ])
+
+    return dbProducts.map((product) =>
+      toStorefrontProduct(
+        product,
+        imagesMap[product.id] || [],
+        variantsMap[product.id]?.price || null,
+        lang,
+      ),
     )
   })
 
@@ -374,17 +428,20 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
       )
       .orderBy(orderByClause)
 
-    let productsList = await Promise.all(
-      collectionProductsList.map(async ({ product }) => {
-        const images = await fetchProductImages(product.id, ctx)
-        const variant = await fetchProductFirstVariant(product.id, ctx)
-        return toStorefrontProduct(
-          product,
-          images,
-          variant?.price || null,
-          lang,
-        )
-      }),
+    // Batch fetch images and variants to avoid N+1 queries
+    const productIds = collectionProductsList.map(({ product }) => product.id)
+    const [imagesMap, variantsMap] = await Promise.all([
+      fetchProductImagesBatch(productIds, ctx),
+      fetchProductFirstVariantBatch(productIds, ctx),
+    ])
+
+    let productsList = collectionProductsList.map(({ product }) =>
+      toStorefrontProduct(
+        product,
+        imagesMap[product.id] || [],
+        variantsMap[product.id]?.price || null,
+        lang,
+      ),
     )
 
     // Post-fetch sorting for price (since price is on variants)

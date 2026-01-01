@@ -14,28 +14,43 @@ type AuthState = {
   checkSession: () => Promise<void>
 }
 
+// Request tracking to prevent race conditions
+// When multiple concurrent calls are made, only the latest one updates state
+let loginRequestId = 0
+let sessionRequestId = 0
+
 export const useAuthStore = create<AuthState>()((set) => ({
   isAuthenticated: false,
   user: null,
   isLoading: true,
 
   login: async (email, password) => {
+    const requestId = ++loginRequestId
     try {
       const result = await loginFn({ data: { email, password } })
-      set({
-        isAuthenticated: true,
-        user: result.user,
-      })
+      // Only update state if this is still the latest request
+      if (requestId === loginRequestId) {
+        set({
+          isAuthenticated: true,
+          user: result.user,
+        })
+      }
       return { success: true }
     } catch (error) {
       console.error('Login failed:', error)
-      // Extract error message from json response or fallback
-      const message = error instanceof Error ? error.message : 'Login failed'
-      return { success: false, error: message }
+      // Only update state if this is still the latest request
+      if (requestId === loginRequestId) {
+        const message = error instanceof Error ? error.message : 'Login failed'
+        return { success: false, error: message }
+      }
+      return { success: false, error: 'Request superseded' }
     }
   },
 
   logout: async () => {
+    // Increment both counters to invalidate any pending requests
+    loginRequestId++
+    sessionRequestId++
     try {
       await logoutFn()
     } catch (error) {
@@ -46,30 +61,37 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   checkSession: async () => {
+    const requestId = ++sessionRequestId
+    set({ isLoading: true })
     try {
-      set({ isLoading: true })
       const user = await getMeFn()
 
-      if (user) {
-        set({
-          isAuthenticated: true,
-          user,
-          isLoading: false,
-        })
-      } else {
+      // Only update state if this is still the latest request
+      if (requestId === sessionRequestId) {
+        if (user) {
+          set({
+            isAuthenticated: true,
+            user,
+            isLoading: false,
+          })
+        } else {
+          set({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Session check failed:', error)
+      // Only update state if this is still the latest request
+      if (requestId === sessionRequestId) {
         set({
           isAuthenticated: false,
           user: null,
           isLoading: false,
         })
       }
-    } catch (error) {
-      console.error('Session check failed:', error)
-      set({
-        isAuthenticated: false,
-        user: null,
-        isLoading: false,
-      })
     }
   },
 }))

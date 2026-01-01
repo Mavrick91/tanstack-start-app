@@ -16,6 +16,19 @@ import {
 
 import { db } from '../db'
 import {
+  addProductsToCollectionSchema,
+  bulkCollectionIdsSchema,
+  bulkCollectionStatusSchema,
+  collectionIdSchema,
+  collectionInputSchema,
+  collectionsStateSchema,
+  removeProductFromCollectionSchema,
+  reorderCollectionProductsSchema,
+  updateCollectionSchema,
+  type CollectionInput,
+  type CollectionsState,
+} from './schemas/collections'
+import {
   collectionProducts,
   collections,
   productImages,
@@ -23,25 +36,8 @@ import {
 } from '../db/schema'
 import { validateSession } from '../lib/auth'
 
-type LocalizedString = { en: string; fr?: string; id?: string }
-
-export interface CollectionInput {
-  name: LocalizedString
-  handle: string
-  description?: LocalizedString
-  sortOrder?: 'manual' | 'best_selling' | 'newest' | 'price_asc' | 'price_desc'
-  metaTitle?: LocalizedString
-  metaDescription?: LocalizedString
-}
-
-export interface CollectionsState {
-  page?: number
-  limit?: number
-  search?: string
-  status?: 'all' | 'active' | 'draft'
-  sortKey?: 'name' | 'productCount' | 'createdAt'
-  sortOrder?: 'asc' | 'desc'
-}
+// Re-export types for backwards compatibility
+export type { CollectionInput, CollectionsState }
 
 const requireAuth = async () => {
   const request = getRequest()
@@ -52,7 +48,7 @@ const requireAuth = async () => {
 }
 
 export const getCollectionsFn = createServerFn({ method: 'GET' })
-  .inputValidator((d: CollectionsState) => d)
+  .inputValidator((data: unknown) => collectionsStateSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -166,7 +162,7 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
   })
 
 export const bulkDeleteCollectionsFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { ids: string[] }) => d)
+  .inputValidator((data: unknown) => bulkCollectionIdsSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -181,7 +177,7 @@ export const bulkDeleteCollectionsFn = createServerFn({ method: 'POST' })
   })
 
 export const bulkUpdateCollectionsStatusFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { ids: string[]; action: 'publish' | 'unpublish' }) => d)
+  .inputValidator((data: unknown) => bulkCollectionStatusSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -201,7 +197,7 @@ export const bulkUpdateCollectionsStatusFn = createServerFn({ method: 'POST' })
   })
 
 export const getCollectionFn = createServerFn({ method: 'GET' })
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -222,20 +218,33 @@ export const getCollectionFn = createServerFn({ method: 'GET' })
       .where(eq(collectionProducts.collectionId, data.id))
       .orderBy(asc(collectionProducts.position))
 
-    const productsWithImages = await Promise.all(
-      collectionProductsList.map(async ({ product, position }) => {
-        const images = await db
-          .select({ url: productImages.url })
-          .from(productImages)
-          .where(eq(productImages.productId, product.id))
-          .orderBy(asc(productImages.position))
-          .limit(1)
+    // Batch fetch images to avoid N+1 queries
+    const productIds = collectionProductsList.map(({ product }) => product.id)
+    const firstImageByProduct = new Map<string, string>()
 
-        return {
-          ...product,
-          position,
-          image: images[0]?.url || null,
+    if (productIds.length > 0) {
+      const allImages = await db
+        .select({
+          productId: productImages.productId,
+          url: productImages.url,
+        })
+        .from(productImages)
+        .where(inArray(productImages.productId, productIds))
+        .orderBy(asc(productImages.position))
+
+      // Get first image for each product
+      for (const img of allImages) {
+        if (!firstImageByProduct.has(img.productId)) {
+          firstImageByProduct.set(img.productId, img.url)
         }
+      }
+    }
+
+    const productsWithImages = collectionProductsList.map(
+      ({ product, position }) => ({
+        ...product,
+        position,
+        image: firstImageByProduct.get(product.id) || null,
       }),
     )
 
@@ -246,20 +255,14 @@ export const getCollectionFn = createServerFn({ method: 'GET' })
   })
 
 export const createCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: CollectionInput) => d)
+  .inputValidator((data: unknown) => collectionInputSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
     const { name, handle, description, sortOrder, metaTitle, metaDescription } =
       data
 
-    if (!name?.en?.trim()) {
-      throw new Error('Name (English) is required')
-    }
-    if (!handle?.trim()) {
-      throw new Error('Handle is required')
-    }
-
+    // Zod validates required fields, just trim handle for insert
     const [collection] = await db
       .insert(collections)
       .values({
@@ -276,7 +279,7 @@ export const createCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const updateCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { id: string } & Partial<CollectionInput>) => d)
+  .inputValidator((data: unknown) => updateCollectionSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -294,7 +297,7 @@ export const updateCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const deleteCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -309,7 +312,7 @@ export const deleteCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const addProductsToCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { collectionId: string; productIds: string[] }) => d)
+  .inputValidator((data: unknown) => addProductsToCollectionSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -353,7 +356,9 @@ export const addProductsToCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const removeProductFromCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { collectionId: string; productId: string }) => d)
+  .inputValidator((data: unknown) =>
+    removeProductFromCollectionSchema.parse(data),
+  )
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -370,7 +375,9 @@ export const removeProductFromCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const reorderCollectionProductsFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { collectionId: string; productIds: string[] }) => d)
+  .inputValidator((data: unknown) =>
+    reorderCollectionProductsSchema.parse(data),
+  )
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -395,7 +402,7 @@ export const reorderCollectionProductsFn = createServerFn({ method: 'POST' })
   })
 
 export const publishCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -411,7 +418,7 @@ export const publishCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const unpublishCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 
@@ -427,7 +434,7 @@ export const unpublishCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const duplicateCollectionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAuth()
 

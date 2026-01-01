@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../ui/button'
@@ -84,10 +84,17 @@ export const VariantSelector = ({
     [variants, selectedOptions],
   )
 
-  // Notify parent on initial mount
-  useMemo(() => {
-    onVariantChange(selectedVariant)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Track if this is the initial mount - used to notify parent of initial variant
+  const isInitialMount = useRef(true)
+
+  // Notify parent when variant changes (including initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      // On initial mount, notify parent of the initial variant selection
+      isInitialMount.current = false
+      onVariantChange(selectedVariant)
+    }
+  }, [selectedVariant, onVariantChange])
 
   if (options.length === 0) {
     return null

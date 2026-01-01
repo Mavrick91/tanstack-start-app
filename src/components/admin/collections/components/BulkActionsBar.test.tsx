@@ -96,8 +96,8 @@ describe('BulkActionsBar', () => {
       await waitFor(() => {
         expect(bulkUpdateCollectionsStatusFn).toHaveBeenCalled()
         const callArg = vi.mocked(bulkUpdateCollectionsStatusFn).mock
-          .calls[0][0]
-        expect(callArg.data).toEqual({
+          .calls[0]?.[0]
+        expect(callArg?.data).toEqual({
           ids: ['id-1', 'id-2', 'id-3'],
           action: 'publish',
         })
@@ -125,8 +125,8 @@ describe('BulkActionsBar', () => {
       await waitFor(() => {
         expect(bulkUpdateCollectionsStatusFn).toHaveBeenCalled()
         const callArg = vi.mocked(bulkUpdateCollectionsStatusFn).mock
-          .calls[0][0]
-        expect(callArg.data).toEqual({
+          .calls[0]?.[0]
+        expect(callArg?.data).toEqual({
           ids: ['id-1', 'id-2', 'id-3'],
           action: 'unpublish',
         })
@@ -152,8 +152,8 @@ describe('BulkActionsBar', () => {
 
       await waitFor(() => {
         expect(bulkDeleteCollectionsFn).toHaveBeenCalled()
-        const callArg = vi.mocked(bulkDeleteCollectionsFn).mock.calls[0][0]
-        expect(callArg.data).toEqual({ ids: ['id-1', 'id-2', 'id-3'] })
+        const callArg = vi.mocked(bulkDeleteCollectionsFn).mock.calls[0]?.[0]
+        expect(callArg?.data).toEqual({ ids: ['id-1', 'id-2', 'id-3'] })
       })
     })
 
