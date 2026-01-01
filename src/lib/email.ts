@@ -36,6 +36,12 @@ export interface PasswordResetEmailData {
   resetUrl: string
 }
 
+export interface VerificationEmailData {
+  email: string
+  verifyUrl: string
+  firstName?: string
+}
+
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@finenail.com'
 const FROM_NAME = process.env.FROM_NAME || 'FineNail'
 
@@ -338,6 +344,86 @@ export const sendPasswordResetEmail = async (data: PasswordResetEmailData) => {
     return { success: true }
   } catch (error) {
     console.error('Failed to send password reset email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send email',
+    }
+  }
+}
+
+const generateVerificationEmailHtml = (data: VerificationEmailData) => {
+  const greeting = data.firstName ? `Hi ${data.firstName},` : 'Hi,'
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #ec4899, #f43f5e); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">Verify Your Email</h1>
+    </div>
+
+    <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+      <p style="font-size: 16px; color: #333; margin-bottom: 24px;">
+        ${greeting}<br><br>
+        Click the button below to verify your email and set your password.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${data.verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          Set Password
+        </a>
+      </div>
+
+      <p style="color: #666; font-size: 14px; margin-bottom: 24px;">
+        This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+
+      <p style="color: #999; font-size: 12px; margin: 0;">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <a href="${data.verifyUrl}" style="color: #ec4899; word-break: break-all;">${data.verifyUrl}</a>
+      </p>
+    </div>
+
+    <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
+      &copy; ${new Date().getFullYear()} FineNail. All rights reserved.
+    </p>
+  </div>
+</body>
+</html>
+  `
+}
+
+export const sendVerificationEmail = async (data: VerificationEmailData) => {
+  if (!isEmailConfigured()) {
+    return { success: false, error: 'Email service not configured' }
+  }
+
+  if (!data.email) {
+    return { success: false, error: 'Email address is required' }
+  }
+
+  if (!initializeSendGrid()) {
+    return { success: false, error: 'Failed to initialize email service' }
+  }
+
+  try {
+    await sgMail.send({
+      to: data.email,
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject: 'Verify Your FineNail Account',
+      html: generateVerificationEmailHtml(data),
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send verification email:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',

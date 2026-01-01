@@ -42,6 +42,11 @@ export const Route = createFileRoute('/api/auth/login')({
             return simpleErrorResponse('Invalid email or password', 401)
           }
 
+          // Check if user has a password (Google OAuth users don't)
+          if (!user.passwordHash) {
+            return simpleErrorResponse('Invalid email or password', 401)
+          }
+
           const validPassword = await compare(password, user.passwordHash)
 
           if (!validPassword) {

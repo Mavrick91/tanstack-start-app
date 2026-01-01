@@ -1,15 +1,18 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { Menu, Search, ShoppingBag } from 'lucide-react'
+import { Menu, Search, ShoppingBag, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getProducts } from '../../data/storefront'
+import { useAuthStore } from '../../hooks/useAuth'
 import { useCartStore } from '../../hooks/useCart'
 import { cn } from '../../lib/utils'
 import { CartDrawer } from '../cart/CartDrawer'
 import { Button } from '../ui/button'
 
 import type { Product } from '../../types/store'
+
+import { AuthModal, useAuthModal } from '@/features/auth'
 
 export const Navbar = () => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
@@ -18,6 +21,8 @@ export const Navbar = () => {
   const [products, setProducts] = useState<Array<Product>>([])
   const items = useCartStore((state) => state.items)
   const totalItems = items.reduce((acc: number, item) => acc + item.quantity, 0)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { open } = useAuthModal()
 
   const currentLang = lang || 'en'
 
@@ -101,6 +106,27 @@ export const Navbar = () => {
             <Search className="w-5 h-5" />
           </Button>
 
+          {isAuthenticated ? (
+            <Link to="/$lang/account" params={{ lang: currentLang }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-primary/5"
+              >
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-primary/5"
+              onClick={() => open('login')}
+            >
+              <User className="w-5 h-5" />
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             size="icon"
@@ -131,6 +157,7 @@ export const Navbar = () => {
         onOpenChange={setIsCartOpen}
         products={products}
       />
+      <AuthModal />
     </nav>
   )
 }

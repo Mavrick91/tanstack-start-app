@@ -57,6 +57,13 @@
       "when": 1767077109023,
       "tag": "0007_parallel_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1767253034181,
+      "tag": "0008_glossy_tana_nile",
+      "breakpoints": true
     }
   ]
 }

@@ -7,12 +7,14 @@ Implement customer-facing login/register functionality with email/password and G
 ## Authentication Methods
 
 ### Email + Password
+
 - Customer registers with email only
 - System sends verification email via SendGrid
 - Customer clicks link to set password and activate account
 - Login with email + password after activation
 
 ### Google OAuth
+
 - Direct OAuth 2.0 implementation (no library)
 - Single "Continue with Google" button for login/register
 - Auto-creates account if new, links if existing
@@ -20,6 +22,7 @@ Implement customer-facing login/register functionality with email/password and G
 ## User Flows
 
 ### Registration Flow
+
 ```
 User clicks "Create Account"
   → Enters email
@@ -36,6 +39,7 @@ User clicks "Create Account"
 ```
 
 ### Login Flow
+
 ```
 User clicks "Login"
   → Enters email + password
@@ -44,6 +48,7 @@ User clicks "Login"
 ```
 
 ### Google OAuth Flow
+
 ```
 User clicks "Continue with Google"
   → Redirect to Google consent screen
@@ -57,6 +62,7 @@ User clicks "Continue with Google"
 ```
 
 ### Password Reset Flow
+
 ```
 User clicks "Forgot password?"
   → Enters email
@@ -68,12 +74,14 @@ User clicks "Forgot password?"
 ## Database Schema Changes
 
 ### Users Table (add columns)
+
 ```sql
 ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN google_id TEXT;
 ```
 
 ### New Table: email_verification_tokens
+
 ```sql
 CREATE TABLE email_verification_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -89,25 +97,29 @@ CREATE TABLE email_verification_tokens (
 ## API Routes
 
 ### New Routes
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /api/auth/register | Create unverified user, send email |
-| POST | /api/auth/verify-email | Validate token, set password, activate |
-| POST | /api/auth/forgot-password | Send password reset email |
-| POST | /api/auth/reset-password | Validate token, update password |
-| GET | /api/auth/google | Redirect to Google OAuth |
-| GET | /api/auth/google/callback | Handle Google callback |
+
+| Method | Path                      | Description                            |
+| ------ | ------------------------- | -------------------------------------- |
+| POST   | /api/auth/register        | Create unverified user, send email     |
+| POST   | /api/auth/verify-email    | Validate token, set password, activate |
+| POST   | /api/auth/forgot-password | Send password reset email              |
+| POST   | /api/auth/reset-password  | Validate token, update password        |
+| GET    | /api/auth/google          | Redirect to Google OAuth               |
+| GET    | /api/auth/google/callback | Handle Google callback                 |
 
 ### Existing Routes (no changes)
+
 - POST /api/auth/login - Works for email/password
 - GET /api/auth/me - Works for session check
 
 ### Deprecated
+
 - POST /api/customers/register - Replaced by new flow
 
 ## UI Components
 
 ### Folder Structure
+
 ```
 /src/features/auth/
   ├── components/
@@ -126,6 +138,7 @@ CREATE TABLE email_verification_tokens (
 ```
 
 ### Auth Layout Pattern (TanStack Best Practice)
+
 ```tsx
 // /src/routes/$lang/_authenticated.tsx
 function AuthenticatedLayout() {
@@ -149,6 +162,7 @@ function AuthenticatedLayout() {
 ```
 
 ### Page Routes
+
 ```
 /$lang/auth/              # Login/register page (fallback)
 /$lang/auth/verify        # Password setup (?token=xxx)
@@ -157,12 +171,14 @@ function AuthenticatedLayout() {
 ```
 
 ### Modal Trigger Points
+
 - Header login button
 - Account page auth guard (shows modal, keeps URL)
 
 ## Email Integration
 
 ### SendGrid Setup
+
 ```typescript
 // /src/lib/email.ts
 import sgMail from '@sendgrid/mail'
@@ -181,12 +197,14 @@ export async function sendEmail({ to, subject, html, text }) {
 ```
 
 ### Email Templates
+
 - **Verification**: "Verify your email" - Link expires in 24 hours
 - **Password Reset**: "Reset your password" - Link expires in 1 hour
 
 ## Google OAuth Implementation
 
 ### OAuth URL Builder
+
 ```typescript
 function getGoogleAuthUrl(returnUrl?: string) {
   const params = new URLSearchParams({
@@ -201,6 +219,7 @@ function getGoogleAuthUrl(returnUrl?: string) {
 ```
 
 ### Callback Handler Logic
+
 1. Get code and state from query params
 2. Exchange code for tokens
 3. Get user info from Google
@@ -211,20 +230,24 @@ function getGoogleAuthUrl(returnUrl?: string) {
 ## Security
 
 ### Token Security
+
 - Generate 32-byte random tokens
 - Store hashed (SHA-256) in database
 - Send raw token in email
 
 ### Rate Limiting
+
 - Register: 5 attempts per minute
 - Login: 10 attempts per minute
 - Forgot password: 3 attempts per minute
 
 ### Password Requirements
+
 - Minimum 8 characters
 - At least one number
 
 ### CSRF Protection
+
 - Existing middleware applies to all POST endpoints
 - Google OAuth uses state parameter
 
@@ -246,6 +269,7 @@ BASE_URL=http://localhost:3000
 ## Guest Customer Linking
 
 When a guest customer (created during checkout) registers with the same email:
+
 1. System auto-links guest customer to new user account
 2. Previous orders become visible in account
 3. If checkout had `pendingSaveAddress=true`, address is saved

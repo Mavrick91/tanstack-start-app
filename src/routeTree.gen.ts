@@ -24,6 +24,7 @@ import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/ind
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
 import { Route as LangCollectionsIndexRouteImport } from './routes/$lang/collections/index'
 import { Route as LangCheckoutIndexRouteImport } from './routes/$lang/checkout/index'
+import { Route as LangAuthIndexRouteImport } from './routes/$lang/auth/index'
 import { Route as LangAccountIndexRouteImport } from './routes/$lang/account/index'
 import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as ApiWebhooksPaypalRouteImport } from './routes/api/webhooks/paypal'
@@ -33,22 +34,31 @@ import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiCustomersRegisterRouteImport } from './routes/api/customers/register'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
+import { Route as ApiAuthVerifyEmailRouteImport } from './routes/api/auth/verify-email'
+import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/reset-password'
+import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangCollectionsHandleRouteImport } from './routes/$lang/collections/$handle'
 import { Route as LangCheckoutShippingRouteImport } from './routes/$lang/checkout/shipping'
 import { Route as LangCheckoutPaymentRouteImport } from './routes/$lang/checkout/payment'
 import { Route as LangCheckoutInformationRouteImport } from './routes/$lang/checkout/information'
 import { Route as LangCheckoutConfirmationRouteImport } from './routes/$lang/checkout/confirmation'
+import { Route as LangAuthVerifyRouteImport } from './routes/$lang/auth/verify'
+import { Route as LangAuthResetPasswordRouteImport } from './routes/$lang/auth/reset-password'
+import { Route as LangAuthForgotPasswordRouteImport } from './routes/$lang/auth/forgot-password'
 import { Route as LangAccountOrdersRouteImport } from './routes/$lang/account/orders'
 import { Route as LangAccountAddressesRouteImport } from './routes/$lang/account/addresses'
+import { Route as ApiAuthGoogleIndexRouteImport } from './routes/api/auth/google/index'
 import { Route as AdminAuthedProductsIndexRouteImport } from './routes/admin/_authed/products/index'
 import { Route as AdminAuthedOrdersIndexRouteImport } from './routes/admin/_authed/orders/index'
 import { Route as AdminAuthedCollectionsIndexRouteImport } from './routes/admin/_authed/collections/index'
 import { Route as ApiOrdersOrderIdRefundRouteImport } from './routes/api/orders/$orderId/refund'
 import { Route as ApiOrdersOrderIdHistoryRouteImport } from './routes/api/orders/$orderId/history'
+import { Route as ApiAuthGoogleCallbackRouteImport } from './routes/api/auth/google/callback'
 import { Route as AdminAuthedProductsNewRouteImport } from './routes/admin/_authed/products/new'
 import { Route as AdminAuthedProductsProductIdRouteImport } from './routes/admin/_authed/products/$productId'
 import { Route as AdminAuthedOrdersOrderIdRouteImport } from './routes/admin/_authed/orders/$orderId'
@@ -139,6 +149,11 @@ const LangCheckoutIndexRoute = LangCheckoutIndexRouteImport.update({
   path: '/checkout/',
   getParentRoute: () => LangRoute,
 } as any)
+const LangAuthIndexRoute = LangAuthIndexRouteImport.update({
+  id: '/auth/',
+  path: '/auth/',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangAccountIndexRoute = LangAccountIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -184,6 +199,21 @@ const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
   path: '/api/cron/cleanup-checkouts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthVerifyEmailRoute = ApiAuthVerifyEmailRouteImport.update({
+  id: '/api/auth/verify-email',
+  path: '/api/auth/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
+  id: '/api/auth/reset-password',
+  path: '/api/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRegisterRoute = ApiAuthRegisterRouteImport.update({
+  id: '/api/auth/register',
+  path: '/api/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
   id: '/api/auth/me',
   path: '/api/auth/me',
@@ -197,6 +227,11 @@ const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   id: '/api/auth/login',
   path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthForgotPasswordRoute = ApiAuthForgotPasswordRouteImport.update({
+  id: '/api/auth/forgot-password',
+  path: '/api/auth/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
@@ -230,6 +265,21 @@ const LangCheckoutConfirmationRoute =
     path: '/checkout/confirmation',
     getParentRoute: () => LangRoute,
   } as any)
+const LangAuthVerifyRoute = LangAuthVerifyRouteImport.update({
+  id: '/auth/verify',
+  path: '/auth/verify',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAuthResetPasswordRoute = LangAuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAuthForgotPasswordRoute = LangAuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangAccountOrdersRoute = LangAccountOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -239,6 +289,11 @@ const LangAccountAddressesRoute = LangAccountAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
   getParentRoute: () => LangAccountRoute,
+} as any)
+const ApiAuthGoogleIndexRoute = ApiAuthGoogleIndexRouteImport.update({
+  id: '/api/auth/google/',
+  path: '/api/auth/google/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuthedProductsIndexRoute =
   AdminAuthedProductsIndexRouteImport.update({
@@ -266,6 +321,11 @@ const ApiOrdersOrderIdHistoryRoute = ApiOrdersOrderIdHistoryRouteImport.update({
   id: '/history',
   path: '/history',
   getParentRoute: () => ApiOrdersOrderIdRoute,
+} as any)
+const ApiAuthGoogleCallbackRoute = ApiAuthGoogleCallbackRouteImport.update({
+  id: '/api/auth/google/callback',
+  path: '/api/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuthedProductsNewRoute = AdminAuthedProductsNewRouteImport.update({
   id: '/products/new',
@@ -362,15 +422,22 @@ export interface FileRoutesByFullPath {
   '/$lang/': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
+  '/$lang/auth/forgot-password': typeof LangAuthForgotPasswordRoute
+  '/$lang/auth/reset-password': typeof LangAuthResetPasswordRoute
+  '/$lang/auth/verify': typeof LangAuthVerifyRoute
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
   '/$lang/checkout/information': typeof LangCheckoutInformationRoute
   '/$lang/checkout/payment': typeof LangCheckoutPaymentRoute
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -380,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account/': typeof LangAccountIndexRoute
+  '/$lang/auth': typeof LangAuthIndexRoute
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
@@ -396,11 +464,13 @@ export interface FileRoutesByFullPath {
   '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
+  '/api/auth/google': typeof ApiAuthGoogleIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -416,15 +486,22 @@ export interface FileRoutesByTo {
   '/$lang': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
+  '/$lang/auth/forgot-password': typeof LangAuthForgotPasswordRoute
+  '/$lang/auth/reset-password': typeof LangAuthResetPasswordRoute
+  '/$lang/auth/verify': typeof LangAuthVerifyRoute
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
   '/$lang/checkout/information': typeof LangCheckoutInformationRoute
   '/$lang/checkout/payment': typeof LangCheckoutPaymentRoute
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -434,6 +511,7 @@ export interface FileRoutesByTo {
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account': typeof LangAccountIndexRoute
+  '/$lang/auth': typeof LangAuthIndexRoute
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
@@ -449,11 +527,13 @@ export interface FileRoutesByTo {
   '/admin/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
+  '/api/auth/google': typeof ApiAuthGoogleIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -473,15 +553,22 @@ export interface FileRoutesById {
   '/$lang/': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
   '/$lang/account/orders': typeof LangAccountOrdersRouteWithChildren
+  '/$lang/auth/forgot-password': typeof LangAuthForgotPasswordRoute
+  '/$lang/auth/reset-password': typeof LangAuthResetPasswordRoute
+  '/$lang/auth/verify': typeof LangAuthVerifyRoute
   '/$lang/checkout/confirmation': typeof LangCheckoutConfirmationRoute
   '/$lang/checkout/information': typeof LangCheckoutInformationRoute
   '/$lang/checkout/payment': typeof LangCheckoutPaymentRoute
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -491,6 +578,7 @@ export interface FileRoutesById {
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account/': typeof LangAccountIndexRoute
+  '/$lang/auth/': typeof LangAuthIndexRoute
   '/$lang/checkout/': typeof LangCheckoutIndexRoute
   '/$lang/collections/': typeof LangCollectionsIndexRoute
   '/$lang/products/': typeof LangProductsIndexRoute
@@ -507,11 +595,13 @@ export interface FileRoutesById {
   '/admin/_authed/orders/$orderId': typeof AdminAuthedOrdersOrderIdRoute
   '/admin/_authed/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/_authed/products/new': typeof AdminAuthedProductsNewRoute
+  '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
   '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/_authed/collections/': typeof AdminAuthedCollectionsIndexRoute
   '/admin/_authed/orders/': typeof AdminAuthedOrdersIndexRoute
   '/admin/_authed/products/': typeof AdminAuthedProductsIndexRoute
+  '/api/auth/google/': typeof ApiAuthGoogleIndexRoute
   '/$lang/demo/start/ssr/data-only': typeof LangDemoStartSsrDataOnlyRoute
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
@@ -531,15 +621,22 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
+    | '/$lang/auth/forgot-password'
+    | '/$lang/auth/reset-password'
+    | '/$lang/auth/verify'
     | '/$lang/checkout/confirmation'
     | '/$lang/checkout/information'
     | '/$lang/checkout/payment'
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -549,6 +646,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account/'
+    | '/$lang/auth'
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
@@ -565,11 +663,13 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
+    | '/api/auth/google/callback'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
+    | '/api/auth/google'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -585,15 +685,22 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
+    | '/$lang/auth/forgot-password'
+    | '/$lang/auth/reset-password'
+    | '/$lang/auth/verify'
     | '/$lang/checkout/confirmation'
     | '/$lang/checkout/information'
     | '/$lang/checkout/payment'
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -603,6 +710,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account'
+    | '/$lang/auth'
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
@@ -618,11 +726,13 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
+    | '/api/auth/google/callback'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
+    | '/api/auth/google'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -641,15 +751,22 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/$lang/account/addresses'
     | '/$lang/account/orders'
+    | '/$lang/auth/forgot-password'
+    | '/$lang/auth/reset-password'
+    | '/$lang/auth/verify'
     | '/$lang/checkout/confirmation'
     | '/$lang/checkout/information'
     | '/$lang/checkout/payment'
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
+    | '/api/auth/forgot-password'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -659,6 +776,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account/'
+    | '/$lang/auth/'
     | '/$lang/checkout/'
     | '/$lang/collections/'
     | '/$lang/products/'
@@ -675,11 +793,13 @@ export interface FileRouteTypes {
     | '/admin/_authed/orders/$orderId'
     | '/admin/_authed/products/$productId'
     | '/admin/_authed/products/new'
+    | '/api/auth/google/callback'
     | '/api/orders/$orderId/history'
     | '/api/orders/$orderId/refund'
     | '/admin/_authed/collections/'
     | '/admin/_authed/orders/'
     | '/admin/_authed/products/'
+    | '/api/auth/google/'
     | '/$lang/demo/start/ssr/data-only'
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
@@ -693,9 +813,13 @@ export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   ApiUploadRoute: typeof ApiUploadRoute
+  ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
+  ApiAuthRegisterRoute: typeof ApiAuthRegisterRoute
+  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
+  ApiAuthVerifyEmailRoute: typeof ApiAuthVerifyEmailRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
   ApiCustomersRegisterRoute: typeof ApiCustomersRegisterRoute
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
@@ -707,6 +831,8 @@ export interface RootRouteChildren {
   ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
   ApiMediaIndexRoute: typeof ApiMediaIndexRoute
   ApiOrdersIndexRoute: typeof ApiOrdersIndexRoute
+  ApiAuthGoogleCallbackRoute: typeof ApiAuthGoogleCallbackRoute
+  ApiAuthGoogleIndexRoute: typeof ApiAuthGoogleIndexRoute
   ApiCheckoutCheckoutIdPaymentPaypalRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
 }
 
@@ -817,6 +943,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCheckoutIndexRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/auth/': {
+      id: '/$lang/auth/'
+      path: '/auth'
+      fullPath: '/$lang/auth'
+      preLoaderRoute: typeof LangAuthIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/account/': {
       id: '/$lang/account/'
       path: '/'
@@ -880,6 +1013,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronCleanupCheckoutsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/verify-email': {
+      id: '/api/auth/verify-email'
+      path: '/api/auth/verify-email'
+      fullPath: '/api/auth/verify-email'
+      preLoaderRoute: typeof ApiAuthVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/reset-password': {
+      id: '/api/auth/reset-password'
+      path: '/api/auth/reset-password'
+      fullPath: '/api/auth/reset-password'
+      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/register': {
+      id: '/api/auth/register'
+      path: '/api/auth/register'
+      fullPath: '/api/auth/register'
+      preLoaderRoute: typeof ApiAuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/me': {
       id: '/api/auth/me'
       path: '/api/auth/me'
@@ -899,6 +1053,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/login'
       fullPath: '/api/auth/login'
       preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/forgot-password': {
+      id: '/api/auth/forgot-password'
+      path: '/api/auth/forgot-password'
+      fullPath: '/api/auth/forgot-password'
+      preLoaderRoute: typeof ApiAuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$lang/products/$productId': {
@@ -943,6 +1104,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCheckoutConfirmationRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/auth/verify': {
+      id: '/$lang/auth/verify'
+      path: '/auth/verify'
+      fullPath: '/$lang/auth/verify'
+      preLoaderRoute: typeof LangAuthVerifyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/auth/reset-password': {
+      id: '/$lang/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/$lang/auth/reset-password'
+      preLoaderRoute: typeof LangAuthResetPasswordRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/auth/forgot-password': {
+      id: '/$lang/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/$lang/auth/forgot-password'
+      preLoaderRoute: typeof LangAuthForgotPasswordRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/account/orders': {
       id: '/$lang/account/orders'
       path: '/orders'
@@ -956,6 +1138,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/account/addresses'
       preLoaderRoute: typeof LangAccountAddressesRouteImport
       parentRoute: typeof LangAccountRoute
+    }
+    '/api/auth/google/': {
+      id: '/api/auth/google/'
+      path: '/api/auth/google'
+      fullPath: '/api/auth/google'
+      preLoaderRoute: typeof ApiAuthGoogleIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/_authed/products/': {
       id: '/admin/_authed/products/'
@@ -991,6 +1180,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$orderId/history'
       preLoaderRoute: typeof ApiOrdersOrderIdHistoryRouteImport
       parentRoute: typeof ApiOrdersOrderIdRoute
+    }
+    '/api/auth/google/callback': {
+      id: '/api/auth/google/callback'
+      path: '/api/auth/google/callback'
+      fullPath: '/api/auth/google/callback'
+      preLoaderRoute: typeof ApiAuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/_authed/products/new': {
       id: '/admin/_authed/products/new'
@@ -1130,12 +1326,16 @@ const LangAccountRouteWithChildren = LangAccountRoute._addFileChildren(
 interface LangRouteChildren {
   LangAccountRoute: typeof LangAccountRouteWithChildren
   LangIndexRoute: typeof LangIndexRoute
+  LangAuthForgotPasswordRoute: typeof LangAuthForgotPasswordRoute
+  LangAuthResetPasswordRoute: typeof LangAuthResetPasswordRoute
+  LangAuthVerifyRoute: typeof LangAuthVerifyRoute
   LangCheckoutConfirmationRoute: typeof LangCheckoutConfirmationRoute
   LangCheckoutInformationRoute: typeof LangCheckoutInformationRoute
   LangCheckoutPaymentRoute: typeof LangCheckoutPaymentRoute
   LangCheckoutShippingRoute: typeof LangCheckoutShippingRoute
   LangCollectionsHandleRoute: typeof LangCollectionsHandleRoute
   LangProductsProductIdRoute: typeof LangProductsProductIdRoute
+  LangAuthIndexRoute: typeof LangAuthIndexRoute
   LangCheckoutIndexRoute: typeof LangCheckoutIndexRoute
   LangCollectionsIndexRoute: typeof LangCollectionsIndexRoute
   LangProductsIndexRoute: typeof LangProductsIndexRoute
@@ -1151,12 +1351,16 @@ interface LangRouteChildren {
 const LangRouteChildren: LangRouteChildren = {
   LangAccountRoute: LangAccountRouteWithChildren,
   LangIndexRoute: LangIndexRoute,
+  LangAuthForgotPasswordRoute: LangAuthForgotPasswordRoute,
+  LangAuthResetPasswordRoute: LangAuthResetPasswordRoute,
+  LangAuthVerifyRoute: LangAuthVerifyRoute,
   LangCheckoutConfirmationRoute: LangCheckoutConfirmationRoute,
   LangCheckoutInformationRoute: LangCheckoutInformationRoute,
   LangCheckoutPaymentRoute: LangCheckoutPaymentRoute,
   LangCheckoutShippingRoute: LangCheckoutShippingRoute,
   LangCollectionsHandleRoute: LangCollectionsHandleRoute,
   LangProductsProductIdRoute: LangProductsProductIdRoute,
+  LangAuthIndexRoute: LangAuthIndexRoute,
   LangCheckoutIndexRoute: LangCheckoutIndexRoute,
   LangCollectionsIndexRoute: LangCollectionsIndexRoute,
   LangProductsIndexRoute: LangProductsIndexRoute,
@@ -1245,9 +1449,13 @@ const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   ApiUploadRoute: ApiUploadRoute,
+  ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
+  ApiAuthRegisterRoute: ApiAuthRegisterRoute,
+  ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
+  ApiAuthVerifyEmailRoute: ApiAuthVerifyEmailRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
   ApiCustomersRegisterRoute: ApiCustomersRegisterRoute,
   ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,
@@ -1259,6 +1467,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
   ApiMediaIndexRoute: ApiMediaIndexRoute,
   ApiOrdersIndexRoute: ApiOrdersIndexRoute,
+  ApiAuthGoogleCallbackRoute: ApiAuthGoogleCallbackRoute,
+  ApiAuthGoogleIndexRoute: ApiAuthGoogleIndexRoute,
   ApiCheckoutCheckoutIdPaymentPaypalRoute:
     ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren,
 }

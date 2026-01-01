@@ -13,6 +13,7 @@
 ## Task 1: Database Schema - Add User Columns
 
 **Files:**
+
 - Modify: `src/db/schema.ts:15-22`
 - Create: `drizzle/XXXX_add_auth_columns.sql` (generated)
 
@@ -57,6 +58,7 @@ git commit -m "feat(auth): add emailVerified and googleId columns to users"
 ## Task 2: Database Schema - Create Email Verification Tokens Table
 
 **Files:**
+
 - Modify: `src/db/schema.ts` (add after sessions table)
 
 **Step 1: Add emailVerificationTokens table**
@@ -95,6 +97,7 @@ git commit -m "feat(auth): add email_verification_tokens table"
 ## Task 3: Token Utilities
 
 **Files:**
+
 - Create: `src/lib/tokens.ts`
 - Test: `src/lib/tokens.test.ts`
 
@@ -223,6 +226,7 @@ git commit -m "feat(auth): add token generation utilities"
 ## Task 4: Email Verification Email Template
 
 **Files:**
+
 - Modify: `src/lib/email.ts`
 
 **Step 1: Add email verification types and function**
@@ -341,6 +345,7 @@ git commit -m "feat(auth): add email verification email template"
 ## Task 5: Auth Server Functions - Register
 
 **Files:**
+
 - Create: `src/server/auth-customer.ts`
 - Test: `src/server/auth-customer.test.ts`
 
@@ -421,7 +426,8 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => registerSchema.parse(data))
   .handler(async ({ data }) => {
     const { getRequest } = await import('@tanstack/react-start/server')
-    const { checkRateLimit, getRateLimitKey } = await import('../lib/rate-limit')
+    const { checkRateLimit, getRateLimitKey } =
+      await import('../lib/rate-limit')
 
     // Rate limiting
     const request = getRequest()
@@ -443,7 +449,9 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
 
     if (existingUser) {
       if (existingUser.emailVerified) {
-        throw new Error('An account with this email already exists. Please login.')
+        throw new Error(
+          'An account with this email already exists. Please login.',
+        )
       }
       // User exists but not verified - resend verification email
       const token = generateToken()
@@ -529,6 +537,7 @@ git commit -m "feat(auth): add customer registration server function"
 ## Task 6: Auth Server Functions - Verify Email
 
 **Files:**
+
 - Modify: `src/server/auth-customer.ts`
 
 **Step 1: Add verify email schema and function**
@@ -663,6 +672,7 @@ git commit -m "feat(auth): add email verification server function"
 ## Task 7: Auth Server Functions - Forgot Password
 
 **Files:**
+
 - Modify: `src/server/auth-customer.ts`
 
 **Step 1: Add forgot password function**
@@ -682,7 +692,8 @@ export const forgotPasswordFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => forgotPasswordSchema.parse(data))
   .handler(async ({ data }) => {
     const { getRequest } = await import('@tanstack/react-start/server')
-    const { checkRateLimit, getRateLimitKey } = await import('../lib/rate-limit')
+    const { checkRateLimit, getRateLimitKey } =
+      await import('../lib/rate-limit')
     const { sendPasswordResetEmail } = await import('../lib/email')
 
     // Rate limiting (stricter for password reset)
@@ -692,21 +703,24 @@ export const forgotPasswordFn = createServerFn({ method: 'POST' })
       const rateLimit = await checkRateLimit('auth', key)
       if (!rateLimit.allowed) {
         // Always return success to prevent email enumeration
-        return { success: true, message: 'If an account exists, a reset email has been sent' }
+        return {
+          success: true,
+          message: 'If an account exists, a reset email has been sent',
+        }
       }
     }
 
     const email = data.email.toLowerCase().trim()
 
     // Find user
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
+    const [user] = await db.select().from(users).where(eq(users.email, email))
 
     // Always return success to prevent email enumeration
     if (!user || !user.emailVerified) {
-      return { success: true, message: 'If an account exists, a reset email has been sent' }
+      return {
+        success: true,
+        message: 'If an account exists, a reset email has been sent',
+      }
     }
 
     // Create reset token
@@ -728,7 +742,10 @@ export const forgotPasswordFn = createServerFn({ method: 'POST' })
       resetUrl,
     })
 
-    return { success: true, message: 'If an account exists, a reset email has been sent' }
+    return {
+      success: true,
+      message: 'If an account exists, a reset email has been sent',
+    }
   })
 ```
 
@@ -744,6 +761,7 @@ git commit -m "feat(auth): add forgot password server function"
 ## Task 8: Auth Server Functions - Reset Password
 
 **Files:**
+
 - Modify: `src/server/auth-customer.ts`
 
 **Step 1: Add reset password function**
@@ -834,6 +852,7 @@ git commit -m "feat(auth): add reset password server function"
 ## Task 9: Google OAuth - URL Builder & Callback Handler
 
 **Files:**
+
 - Create: `src/features/auth/lib/google-oauth.ts`
 
 **Step 1: Create Google OAuth utilities**
@@ -937,6 +956,7 @@ git commit -m "feat(auth): add Google OAuth utilities"
 ## Task 10: Google OAuth API Routes
 
 **Files:**
+
 - Create: `src/routes/api/auth/google/index.ts`
 - Create: `src/routes/api/auth/google/callback.ts`
 
@@ -983,11 +1003,15 @@ export const Route = createFileRoute('/api/auth/google/callback')({
     const error = url.searchParams.get('error')
 
     if (error) {
-      return Response.redirect(`${process.env.BASE_URL}/en/auth?error=oauth_denied`)
+      return Response.redirect(
+        `${process.env.BASE_URL}/en/auth?error=oauth_denied`,
+      )
     }
 
     if (!code) {
-      return Response.redirect(`${process.env.BASE_URL}/en/auth?error=missing_code`)
+      return Response.redirect(
+        `${process.env.BASE_URL}/en/auth?error=missing_code`,
+      )
     }
 
     try {
@@ -1012,7 +1036,11 @@ export const Route = createFileRoute('/api/auth/google/callback')({
           // Link Google ID to existing user
           await db
             .update(users)
-            .set({ googleId: googleUser.id, emailVerified: true, updatedAt: new Date() })
+            .set({
+              googleId: googleUser.id,
+              emailVerified: true,
+              updatedAt: new Date(),
+            })
             .where(eq(users.id, existingUser.id))
           user = existingUser
         } else {
@@ -1079,7 +1107,9 @@ export const Route = createFileRoute('/api/auth/google/callback')({
       return response
     } catch (err) {
       console.error('Google OAuth error:', err)
-      return Response.redirect(`${process.env.BASE_URL}/en/auth?error=oauth_failed`)
+      return Response.redirect(
+        `${process.env.BASE_URL}/en/auth?error=oauth_failed`,
+      )
     }
   },
 })
@@ -1097,6 +1127,7 @@ git commit -m "feat(auth): add Google OAuth API routes"
 ## Task 11: Customer Auth API Routes
 
 **Files:**
+
 - Create: `src/routes/api/auth/register.ts`
 - Create: `src/routes/api/auth/verify-email.ts`
 - Create: `src/routes/api/auth/forgot-password.ts`
@@ -1120,7 +1151,8 @@ export const Route = createFileRoute('/api/auth/register')({
           const result = await registerCustomerFn({ data: body })
           return Response.json(result)
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Registration failed'
+          const message =
+            error instanceof Error ? error.message : 'Registration failed'
           return Response.json({ error: message }, { status: 400 })
         }
       },
@@ -1147,7 +1179,8 @@ export const Route = createFileRoute('/api/auth/verify-email')({
           const result = await verifyEmailFn({ data: body })
           return Response.json(result)
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Verification failed'
+          const message =
+            error instanceof Error ? error.message : 'Verification failed'
           return Response.json({ error: message }, { status: 400 })
         }
       },
@@ -1174,9 +1207,10 @@ export const Route = createFileRoute('/api/auth/forgot-password')({
           const result = await forgotPasswordFn({ data: body })
           return Response.json(result)
         } catch (error) {
-          return Response.json(
-            { success: true, message: 'If an account exists, a reset email has been sent' },
-          )
+          return Response.json({
+            success: true,
+            message: 'If an account exists, a reset email has been sent',
+          })
         }
       },
     },
@@ -1202,7 +1236,8 @@ export const Route = createFileRoute('/api/auth/reset-password')({
           const result = await resetPasswordFn({ data: body })
           return Response.json(result)
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Password reset failed'
+          const message =
+            error instanceof Error ? error.message : 'Password reset failed'
           return Response.json({ error: message }, { status: 400 })
         }
       },
@@ -1223,6 +1258,7 @@ git commit -m "feat(auth): add customer auth API routes"
 ## Task 12: Auth Modal Store
 
 **Files:**
+
 - Create: `src/features/auth/hooks/useAuthModal.ts`
 
 **Step 1: Create auth modal Zustand store**
@@ -1272,6 +1308,7 @@ git commit -m "feat(auth): add auth modal Zustand store"
 ## Task 13: Google Button Component
 
 **Files:**
+
 - Create: `src/features/auth/components/GoogleButton.tsx`
 
 **Step 1: Create Google OAuth button**
@@ -1340,6 +1377,7 @@ git commit -m "feat(auth): add Google OAuth button component"
 ## Task 14: Login Form Component
 
 **Files:**
+
 - Create: `src/features/auth/components/LoginForm.tsx`
 
 **Step 1: Create login form**
@@ -1444,6 +1482,7 @@ git commit -m "feat(auth): add login form component"
 ## Task 15: Register Form Component
 
 **Files:**
+
 - Create: `src/features/auth/components/RegisterForm.tsx`
 
 **Step 1: Create register form**
@@ -1546,6 +1585,7 @@ git commit -m "feat(auth): add register form component"
 ## Task 16: Forgot Password Form Component
 
 **Files:**
+
 - Create: `src/features/auth/components/ForgotPasswordForm.tsx`
 
 **Step 1: Create forgot password form**
@@ -1651,6 +1691,7 @@ git commit -m "feat(auth): add forgot password form component"
 ## Task 17: Password Setup Form Component
 
 **Files:**
+
 - Create: `src/features/auth/components/PasswordSetupForm.tsx`
 
 **Step 1: Create password setup form**
@@ -1769,6 +1810,7 @@ git commit -m "feat(auth): add password setup form component"
 ## Task 18: Auth Form Component (Tabs)
 
 **Files:**
+
 - Create: `src/features/auth/components/AuthForm.tsx`
 
 **Step 1: Create auth form with tabs**
@@ -1851,6 +1893,7 @@ git commit -m "feat(auth): add auth form component with tabs"
 ## Task 19: Auth Modal Component
 
 **Files:**
+
 - Create: `src/features/auth/components/AuthModal.tsx`
 
 **Step 1: Create auth modal**
@@ -1903,6 +1946,7 @@ git commit -m "feat(auth): add auth modal component"
 ## Task 20: Feature Index Export
 
 **Files:**
+
 - Create: `src/features/auth/index.ts`
 
 **Step 1: Create public exports**
@@ -1938,6 +1982,7 @@ git commit -m "feat(auth): add feature index exports"
 ## Task 21: Auth Page Routes
 
 **Files:**
+
 - Create: `src/routes/$lang/auth/index.tsx`
 - Create: `src/routes/$lang/auth/verify.tsx`
 - Create: `src/routes/$lang/auth/forgot-password.tsx`
@@ -2134,6 +2179,7 @@ git commit -m "feat(auth): add auth page routes"
 ## Task 22: Update Account Layout (Modal Pattern)
 
 **Files:**
+
 - Modify: `src/routes/$lang/account.tsx`
 
 **Step 1: Update account layout to use modal pattern**
@@ -2204,6 +2250,7 @@ git commit -m "feat(auth): update account layout to use modal pattern"
 ## Task 23: Add Login Button to Header
 
 **Files:**
+
 - Modify: `src/components/layout/Header.tsx` (or equivalent header component)
 
 **Step 1: Find and update header component**
@@ -2369,6 +2416,7 @@ BASE_URL=http://localhost:3000
 ```
 
 To get Google OAuth credentials:
+
 1. Go to https://console.cloud.google.com
 2. Create project or select existing
 3. Go to APIs & Services > Credentials

@@ -66,6 +66,11 @@ export const loginFn = createServerFn({ method: 'POST' })
       throw json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
+    // Check if user has a password (Google OAuth users don't)
+    if (!user.passwordHash) {
+      throw json({ error: 'Invalid email or password' }, { status: 401 })
+    }
+
     // Verify password
     const validPassword = await verifyPassword(data.password, user.passwordHash)
     if (!validPassword) {

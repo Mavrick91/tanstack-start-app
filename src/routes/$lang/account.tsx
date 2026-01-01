@@ -1,33 +1,72 @@
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 import {
   getCustomerSessionFn,
   type CustomerProfile,
 } from '../../server/customers'
 
-const AccountLayout = (): React.ReactNode => {
-  return <Outlet />
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { AuthForm } from '@/features/auth'
+
+const AccountLayout = () => {
+  // useQuery for reactivity - will hit cache from beforeLoad on initial render
+  const { data, isLoading } = useQuery({
+    queryKey: ['customer', 'session'],
+    queryFn: getCustomerSessionFn,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const customer = data?.customer
+  const showAuthDialog = !isLoading && !customer
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {/* Show auth dialog directly based on customer state - no modal store needed */}
+      <Dialog open={showAuthDialog}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="sr-only">Login</DialogTitle>
+          </DialogHeader>
+          <AuthForm />
+        </DialogContent>
+      </Dialog>
+      {customer ? (
+        <Outlet />
+      ) : (
+        <div className="pointer-events-none opacity-50">
+          <Outlet />
+        </div>
+      )}
+    </>
+  )
 }
 
 export const Route = createFileRoute('/$lang/account')({
-  beforeLoad: async ({ params, context }) => {
-    // Use TanStack Query to cache customer session across navigations (5 min stale time)
-    const session = await context.queryClient.ensureQueryData({
+  // Prefetch for SSR - data will be in cache when component renders
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.ensureQueryData({
       queryKey: ['customer', 'session'],
       queryFn: getCustomerSessionFn,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     })
-
-    if (!session.customer) {
-      throw redirect({ to: '/$lang', params })
-    }
-
-    return { customer: session.customer }
   },
   component: AccountLayout,
 })
 
-// Export type for child routes to use
 export type AccountRouteContext = {
   customer: CustomerProfile
 }

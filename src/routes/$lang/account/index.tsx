@@ -1,8 +1,9 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
   useNavigate,
   useParams,
+  useRouter,
   Link,
 } from '@tanstack/react-router'
 import { Package, MapPin, User, LogOut, ChevronRight } from 'lucide-react'
@@ -10,21 +11,28 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
 import { logoutFn } from '../../../server/auth'
+import { getCustomerSessionFn } from '../../../server/customers'
 
 const AccountPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const { t } = useTranslation()
 
-  // Customer is guaranteed by parent layout's beforeLoad
-  const { customer } = Route.useRouteContext()
+  // Get customer from query (parent layout ensures customer exists)
+  const { data } = useQuery({
+    queryKey: ['customer', 'session'],
+    queryFn: getCustomerSessionFn,
+    staleTime: 5 * 60 * 1000,
+  })
+  const customer = data?.customer
 
   const handleLogout = async () => {
-    // Call server function directly instead of Zustand action
     await logoutFn()
-    // Invalidate cached customer session to force re-fetch on next login
+    // Clear customer session and invalidate router
     queryClient.removeQueries({ queryKey: ['customer', 'session'] })
+    await router.invalidate()
     navigate({ to: '/$lang', params: { lang } })
   }
 
