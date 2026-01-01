@@ -41,7 +41,6 @@ describe('Auth Guard Logic', () => {
     }
 
     vi.mocked(loginFn).mockResolvedValue({
-      success: true,
       user: mockUser,
     })
 
@@ -60,7 +59,6 @@ describe('Auth Guard Logic', () => {
     }
 
     vi.mocked(loginFn).mockResolvedValue({
-      success: true,
       user: mockUser,
     })
 
@@ -82,7 +80,6 @@ describe('Auth Guard Logic', () => {
     }
 
     vi.mocked(loginFn).mockResolvedValue({
-      success: true,
       user: mockUser,
     })
 

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { OrderStatusBadge } from '../../../../components/admin/orders/OrderStatusBadge'
 import { Separator } from '../../../../components/ui/separator'
 import { formatCurrency } from '../../../../lib/format'
-import { getCustomerOrdersFn } from '../../../../server/customers'
+import { getCustomerOrderByIdFn } from '../../../../server/customers'
 
 type OrderDetail = {
   id: string
@@ -19,7 +19,7 @@ type OrderDetail = {
   status: string
   paymentStatus: string
   fulfillmentStatus: string
-  shippingMethod?: string
+  shippingMethod?: string | null
   shippingAddress: {
     firstName: string
     lastName: string
@@ -30,15 +30,15 @@ type OrderDetail = {
     zip: string
     country: string
   }
-  createdAt: string
+  createdAt: Date
   items: Array<{
     id: string
     title: string
-    variantTitle?: string
+    variantTitle?: string | null
     price: number
     quantity: number
     total: number
-    imageUrl?: string
+    imageUrl?: string | null
   }>
 }
 
@@ -50,8 +50,8 @@ const AccountOrderDetailPage = (): React.ReactNode => {
   // Data is loaded via route loader
   const { order } = Route.useLoaderData()
 
-  const formatDate = (date: string): string => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -139,7 +139,7 @@ const AccountOrderDetailPage = (): React.ReactNode => {
             <div className="space-y-4">
               {order.items.map((item) => (
                 <div key={item.id} className="flex gap-4">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-white/10 shrink-0">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
@@ -258,11 +258,10 @@ const AccountOrderDetailPage = (): React.ReactNode => {
 
 export const Route = createFileRoute('/$lang/account/orders/$orderId')({
   loader: async ({ params }) => {
-    const data = await getCustomerOrdersFn({ data: { page: 1, limit: 100 } })
-    const order = data.orders.find((o) => o.id === params.orderId) as
-      | OrderDetail
-      | undefined
-    return { order: order ?? null }
+    const data = await getCustomerOrderByIdFn({
+      data: { orderId: params.orderId },
+    })
+    return { order: (data.order as OrderDetail) ?? null }
   },
   component: AccountOrderDetailPage,
 })

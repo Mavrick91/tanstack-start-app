@@ -21,7 +21,6 @@ import {
   type FNFormRef,
 } from '../../../components/ui/fn-form'
 import { Label } from '../../../components/ui/label'
-import { useAuthStore } from '../../../hooks/useAuth'
 import { useCartStore } from '../../../hooks/useCart'
 import {
   useCheckoutIdStore,
@@ -31,6 +30,11 @@ import {
   useSaveShippingAddress,
 } from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
+import { getMeFn } from '../../../server/auth'
+import {
+  getCheckoutIdFromCookieFn,
+  validateCheckoutForRouteFn,
+} from '../../../server/checkout'
 
 import type { AddressFormData } from '../../../lib/checkout-schemas'
 
@@ -38,16 +42,15 @@ const CheckoutInformationPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { isAuthenticated, serverCheckout } = Route.useRouteContext()
 
-  const { isAuthenticated, checkSession } = useAuthStore()
-  const checkoutId = useCheckoutIdStore((s) => s.checkoutId)
+  // Initialize checkout ID from server (cookie) or Zustand
+  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
+  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
+  const checkoutId = serverCheckout?.id || storedCheckoutId
+
   const cartItems = useCartStore((s) => s.items)
   const clearCart = useCartStore((s) => s.clearCart)
-
-  // Check auth session on mount
-  useEffect(() => {
-    checkSession()
-  }, [checkSession])
 
   const {
     data: checkout,
@@ -62,7 +65,10 @@ const CheckoutInformationPage = () => {
   const addressFormRef = useRef<{ submit: () => void } | null>(null)
   const emailFormRef = useRef<FNFormRef | null>(null)
 
-  // Email form definition
+  // Get email from server checkout or fetched checkout
+  const initialEmail = serverCheckout?.email || checkout?.email || ''
+
+  // Email form definition with dynamic default
   const emailFormDefinition: FormDefinition = {
     fields: [
       {
@@ -83,33 +89,48 @@ const CheckoutInformationPage = () => {
     ],
   }
 
-  // Sync email from checkout when it loads
+  // Single initialization effect: sync Zustand and create checkout if needed
   useEffect(() => {
-    if (checkout?.email && emailFormRef.current) {
-      emailFormRef.current.setFieldValue('email', checkout.email)
+    // Sync Zustand with server-provided checkout ID
+    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
+      setCheckoutId(serverCheckout.id)
     }
-  }, [checkout?.email])
 
-  // Create checkout if needed
-  useEffect(() => {
-    const init = async () => {
-      if (!checkoutId && cartItems.length > 0) {
-        try {
-          await createCheckoutMutation.mutateAsync(cartItems)
-        } catch (err) {
-          console.error('Failed to create checkout:', err)
-          const errorMessage =
-            err instanceof Error ? err.message : 'Failed to create checkout'
-          if (errorMessage.includes('not found')) {
-            clearCart()
-          }
-        }
-      } else if (!checkoutId && cartItems.length === 0) {
+    // Create checkout if needed (cart is client-only, must be done here)
+    const initCheckout = async () => {
+      if (checkoutId) return
+
+      if (cartItems.length === 0) {
         navigate({ to: '/$lang', params: { lang } })
+        return
+      }
+
+      try {
+        await createCheckoutMutation.mutateAsync(cartItems)
+      } catch (err) {
+        console.error('Failed to create checkout:', err)
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to create checkout'
+        if (errorMessage.includes('not found')) {
+          clearCart()
+        }
       }
     }
-    init()
-  }, [checkoutId, cartItems, clearCart, createCheckoutMutation, lang, navigate])
+
+    if (!checkoutId) {
+      initCheckout()
+    }
+  }, [
+    serverCheckout?.id,
+    storedCheckoutId,
+    setCheckoutId,
+    checkoutId,
+    cartItems,
+    clearCart,
+    createCheckoutMutation,
+    lang,
+    navigate,
+  ])
 
   const handleSubmit = async () => {
     if (!emailFormRef.current) return
@@ -229,9 +250,10 @@ const CheckoutInformationPage = () => {
             </div>
 
             <FNForm
+              key={initialEmail} // Reset form when email changes
               formDefinition={emailFormDefinition}
               onSubmit={() => {}}
-              defaultValues={{ email: checkout?.email || '' }}
+              defaultValues={{ email: initialEmail }}
               formRef={emailFormRef}
               hideSubmitButton
             />
@@ -302,5 +324,28 @@ const CheckoutInformationPage = () => {
 }
 
 export const Route = createFileRoute('/$lang/checkout/information')({
+  beforeLoad: async () => {
+    // Check auth status for route context
+    const user = await getMeFn()
+    const isAuthenticated = !!user
+
+    // Try to get checkout ID from cookie (server-side)
+    const { checkoutId } = await getCheckoutIdFromCookieFn()
+
+    if (checkoutId) {
+      const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
+
+      // If checkout is invalid/expired, let client-side create a new one
+      if (!result.valid) {
+        return { serverCheckout: null, isAuthenticated }
+      }
+
+      return { serverCheckout: result.checkout, isAuthenticated }
+    }
+
+    // No cookie - let client-side handle checkout creation
+    // (Cart is in localStorage, not accessible on server)
+    return { serverCheckout: null, isAuthenticated }
+  },
   component: CheckoutInformationPage,
 })

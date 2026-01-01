@@ -384,3 +384,60 @@ export const getCustomerOrdersFn = createServerFn()
       totalPages: Math.ceil(total / limit),
     }
   })
+
+// Get single customer order by ID
+const getCustomerOrderByIdInputSchema = z.object({
+  orderId: z.string(),
+})
+
+export const getCustomerOrderByIdFn = createServerFn()
+  .inputValidator(getCustomerOrderByIdInputSchema.parse)
+  .handler(async ({ data }) => {
+    const { customer } = await requireCustomer()
+    const { orderId } = data
+
+    // Fetch order and verify it belongs to the customer
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.customerId, customer.id)))
+      .limit(1)
+
+    if (!order) {
+      return { order: null }
+    }
+
+    // Fetch order items
+    const items = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId))
+
+    return {
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        email: order.email,
+        subtotal: parseDecimal(order.subtotal),
+        shippingTotal: parseDecimal(order.shippingTotal),
+        taxTotal: parseDecimal(order.taxTotal),
+        total: parseDecimal(order.total),
+        currency: order.currency,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        fulfillmentStatus: order.fulfillmentStatus,
+        shippingMethod: order.shippingMethod,
+        shippingAddress: order.shippingAddress,
+        createdAt: order.createdAt,
+        items: items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          variantTitle: item.variantTitle,
+          quantity: item.quantity,
+          price: parseDecimal(item.price),
+          total: parseDecimal(item.total),
+          imageUrl: item.imageUrl,
+        })),
+      },
+    }
+  })

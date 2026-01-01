@@ -11,7 +11,7 @@ import {
   ProductTableSkeleton,
 } from '../../../../components/admin/products/components/ProductTable'
 import { Button } from '../../../../components/ui/button'
-import { useDataTable } from '../../../../hooks/useDataTable'
+import { useDataTable, type TableState } from '../../../../hooks/useDataTable'
 import { useProductStats } from '../../../../hooks/useProductStats'
 import { fetchProducts } from '../../../../lib/api/products'
 
@@ -32,6 +32,20 @@ const searchSchema = z.object({
 })
 
 type SortKey = 'name' | 'price' | 'inventory' | 'status' | 'createdAt'
+
+// Build table state from search params
+const buildTableState = (
+  search: z.infer<typeof searchSchema>,
+): TableState<SortKey> => ({
+  search: search.q || '',
+  page: search.page || 1,
+  limit: 10,
+  sortKey: search.sort || 'createdAt',
+  sortOrder: search.order || 'desc',
+  filters: {
+    status: search.status || 'all',
+  },
+})
 
 // Wrapper for fetchProducts for useDataTable
 const fetchProductsForTable = async (state: {
@@ -226,8 +240,17 @@ const AdminProductsPage = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/admin/_authed/products/')({
-  component: AdminProductsPage,
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ search }),
+  loader: async ({ deps: { search }, context: { queryClient } }) => {
+    const tableState = buildTableState(search)
+    // Pre-fetch products data for SSR and link preloading
+    await queryClient.ensureQueryData({
+      queryKey: ['products', tableState],
+      queryFn: () => fetchProductsForTable(tableState),
+    })
+  },
+  component: AdminProductsPage,
 })
 
 const EmptyState = (): React.ReactNode => {

@@ -26,7 +26,6 @@ describe('useAuthStore', () => {
     it('should set user on successful login', async () => {
       const mockUser = { id: '1', email: 'test@example.com', role: 'admin' }
       vi.mocked(loginFn).mockResolvedValueOnce({
-        success: true,
         user: mockUser,
       })
 
@@ -45,10 +44,10 @@ describe('useAuthStore', () => {
     })
 
     it('should return error on failed login', async () => {
-      vi.mocked(loginFn).mockResolvedValueOnce({
-        success: false,
-        error: 'Invalid email or password',
-      })
+      // Errors are now thrown via json()
+      vi.mocked(loginFn).mockRejectedValueOnce(
+        new Error('Invalid email or password'),
+      )
 
       const { result } = renderHook(() => useAuthStore())
 

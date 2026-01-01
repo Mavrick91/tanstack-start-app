@@ -1,16 +1,8 @@
 import { Outlet, createFileRoute, notFound } from '@tanstack/react-router'
-import { useEffect } from 'react'
 
 import { changeLanguage } from '../lib/i18n'
 
 const RouteComponent = () => {
-  const { lang } = Route.useParams()
-
-  useEffect(() => {
-    // Ensure language is synced when URL changes
-    changeLanguage(lang)
-  }, [lang])
-
   return <Outlet />
 }
 

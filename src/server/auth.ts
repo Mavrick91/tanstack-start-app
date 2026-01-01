@@ -1,12 +1,5 @@
-import { createServerFn } from '@tanstack/react-start'
-import { getRequest, useSession } from '@tanstack/react-start/server'
-import { eq } from 'drizzle-orm'
+import { createServerFn, json } from '@tanstack/react-start'
 import { z } from 'zod'
-
-import { db } from '../db'
-import { sessions, users } from '../db/schema'
-import { verifyPassword } from '../lib/auth'
-import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit'
 
 // Session data type
 export type SessionUser = {
@@ -15,8 +8,11 @@ export type SessionUser = {
   role: string
 }
 
-// Session helper
-export const useAppSession = () => {
+// Session helper - uses dynamic import to prevent server code leaking to client
+// Note: useSession here is TanStack Start's server session helper, not a React hook
+const getAppSession = async () => {
+  const { useSession } = await import('@tanstack/react-start/server')
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- TanStack Start server session, not a React hook
   return useSession<SessionUser>({
     name: 'app-session',
     password: process.env.SESSION_SECRET!,
@@ -39,16 +35,25 @@ const loginSchema = z.object({
 export const loginFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => loginSchema.parse(data))
   .handler(async ({ data }) => {
+    // Dynamic imports to prevent server code leaking to client
+    const { getRequest } = await import('@tanstack/react-start/server')
+    const { eq } = await import('drizzle-orm')
+    const { db } = await import('../db')
+    const { sessions, users } = await import('../db/schema')
+    const { verifyPassword } = await import('../lib/auth')
+    const { checkRateLimit, getRateLimitKey } =
+      await import('../lib/rate-limit')
+
     // Rate limiting
     const request = getRequest()
-    if (!request) throw new Error('No request found')
+    if (!request) throw json({ error: 'No request found' }, { status: 500 })
     const key = getRateLimitKey(request)
     const rateLimit = await checkRateLimit('auth', key)
     if (!rateLimit.allowed) {
-      return {
-        success: false as const,
-        error: 'Too many attempts. Please try again later.',
-      }
+      throw json(
+        { error: 'Too many attempts. Please try again later.' },
+        { status: 429 },
+      )
     }
 
     // Find user
@@ -58,13 +63,13 @@ export const loginFn = createServerFn({ method: 'POST' })
       .where(eq(users.email, data.email))
 
     if (!user) {
-      return { success: false as const, error: 'Invalid email or password' }
+      throw json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
     // Verify password
     const validPassword = await verifyPassword(data.password, user.passwordHash)
     if (!validPassword) {
-      return { success: false as const, error: 'Invalid email or password' }
+      throw json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
     // Create DB session (for audit/revocation)
@@ -72,22 +77,24 @@ export const loginFn = createServerFn({ method: 'POST' })
     await db.insert(sessions).values({ userId: user.id, expiresAt })
 
     // Set cookie session
-    const session = await useAppSession()
+    const session = await getAppSession()
     await session.update({
       userId: user.id,
       email: user.email,
       role: user.role,
     })
 
-    return {
-      success: true as const,
-      user: { id: user.id, email: user.email, role: user.role },
-    }
+    return { user: { id: user.id, email: user.email, role: user.role } }
   })
 
 // Logout server function
 export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
-  const session = await useAppSession()
+  // Dynamic imports to prevent server code leaking to client
+  const { eq } = await import('drizzle-orm')
+  const { db } = await import('../db')
+  const { sessions } = await import('../db/schema')
+
+  const session = await getAppSession()
   const data = await session.data
 
   if (data?.userId) {
@@ -101,7 +108,7 @@ export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
 
 // Get current user server function
 export const getMeFn = createServerFn().handler(async () => {
-  const session = await useAppSession()
+  const session = await getAppSession()
   const data = await session.data
 
   if (!data?.userId || !data.email || !data.role) {

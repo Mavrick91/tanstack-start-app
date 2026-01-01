@@ -3,23 +3,40 @@
  * Provides type-safe server functions for checkout operations.
  */
 
-import { createServerFn } from '@tanstack/react-start'
-import { asc, eq, inArray } from 'drizzle-orm'
+import { createServerFn, json } from '@tanstack/react-start'
 import { z } from 'zod'
 
-import { db } from '../db'
-import {
-  checkouts,
-  products,
-  productVariants,
-  productImages,
-  customers,
-  orders,
-  orderItems,
-} from '../db/schema'
 import { calculateTax } from '../lib/tax'
 import { normalizeEmail } from '../lib/validation'
 import { SHIPPING_RATES, FREE_SHIPPING_THRESHOLD } from '../types/checkout'
+
+// Helper to dynamically import database context (prevents server code leaking to client)
+const getDbContext = async () => {
+  const { db } = await import('../db')
+  const { eq, inArray, asc } = await import('drizzle-orm')
+  const {
+    checkouts,
+    products,
+    productVariants,
+    productImages,
+    customers,
+    orders,
+    orderItems,
+  } = await import('../db/schema')
+  return {
+    db,
+    eq,
+    inArray,
+    asc,
+    checkouts,
+    products,
+    productVariants,
+    productImages,
+    customers,
+    orders,
+    orderItems,
+  }
+}
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -80,6 +97,17 @@ export const createCheckout = async (input: CreateCheckoutInput) => {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return { success: false, error: 'Cart items are required', status: 400 }
   }
+
+  // Dynamic import to prevent server code leaking to client
+  const {
+    db,
+    inArray,
+    asc,
+    products,
+    productVariants,
+    productImages,
+    checkouts,
+  } = await getDbContext()
 
   // Get all product and variant data
   const productIds = [...new Set(items.map((item) => item.productId))]
@@ -230,6 +258,9 @@ export type SaveCustomerResult = {
 export const saveCustomerInfo = async (input: SaveCustomerInput) => {
   const { checkoutId, email, firstName, lastName } = input
 
+  // Dynamic import to prevent server code leaking to client
+  const { db, eq, checkouts, customers } = await getDbContext()
+
   // Get checkout
   const [checkout] = await db
     .select()
@@ -331,6 +362,9 @@ export type SaveShippingAddressResult = {
 export const saveShippingAddress = async (input: ShippingAddressInput) => {
   const { checkoutId, address } = input
 
+  // Dynamic import to prevent server code leaking to client
+  const { db, eq, checkouts } = await getDbContext()
+
   // Get checkout
   const [checkout] = await db
     .select()
@@ -411,6 +445,9 @@ export type SaveShippingMethodResult = {
 
 export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
   const { checkoutId, shippingRateId } = input
+
+  // Dynamic import to prevent server code leaking to client
+  const { db, eq, checkouts } = await getDbContext()
 
   // Get checkout
   const [checkout] = await db
@@ -494,6 +531,9 @@ export type CompleteCheckoutResult = {
 
 export const completeCheckout = async (input: CompleteCheckoutInput) => {
   const { checkoutId, paymentProvider, paymentId } = input
+
+  // Dynamic import to prevent server code leaking to client
+  const { db, eq, checkouts, orders, orderItems } = await getDbContext()
 
   // Get checkout
   const [checkout] = await db
@@ -654,7 +694,7 @@ export const createCheckoutFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const result = await createCheckout(data)
     if (!result.success) {
-      throw new Error(result.error)
+      throw json({ error: result.error }, { status: result.status })
     }
     return { checkout: result.checkout }
   })
@@ -665,6 +705,9 @@ export const getCheckoutFn = createServerFn()
   .handler(async ({ data }) => {
     const { checkoutId } = data
 
+    // Dynamic import to prevent server code leaking to client
+    const { db, eq, checkouts } = await getDbContext()
+
     const [checkout] = await db
       .select()
       .from(checkouts)
@@ -672,15 +715,15 @@ export const getCheckoutFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw new Error('Checkout not found')
+      throw json({ error: 'Checkout not found' }, { status: 404 })
     }
 
     if (checkout.completedAt) {
-      throw new Error('Checkout already completed')
+      throw json({ error: 'Checkout already completed' }, { status: 410 })
     }
 
     if (checkout.expiresAt < new Date()) {
-      throw new Error('Checkout expired')
+      throw json({ error: 'Checkout expired' }, { status: 410 })
     }
 
     return {
@@ -709,6 +752,9 @@ export const getShippingRatesFn = createServerFn()
   .handler(async ({ data }) => {
     const { checkoutId } = data
 
+    // Dynamic import to prevent server code leaking to client
+    const { db, eq, checkouts } = await getDbContext()
+
     const [checkout] = await db
       .select()
       .from(checkouts)
@@ -716,7 +762,7 @@ export const getShippingRatesFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw new Error('Checkout not found')
+      throw json({ error: 'Checkout not found' }, { status: 404 })
     }
 
     const subtotal = parseFloat(checkout.subtotal)
@@ -755,7 +801,7 @@ export const saveCustomerInfoFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw new Error(result.error)
+      throw json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -770,7 +816,7 @@ export const saveShippingAddressFn = createServerFn({ method: 'POST' })
     const result = await saveShippingAddress({ checkoutId, address })
 
     if (!result.success) {
-      throw new Error(result.error)
+      throw json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -785,7 +831,7 @@ export const saveShippingMethodFn = createServerFn({ method: 'POST' })
     const result = await saveShippingMethod({ checkoutId, shippingRateId })
 
     if (!result.success) {
-      throw new Error(result.error)
+      throw json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -804,8 +850,179 @@ export const completeCheckoutFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw new Error(result.error)
+      throw json({ error: result.error }, { status: result.status })
     }
 
     return { order: result.order }
   })
+
+// Create Stripe payment intent server function
+export const createStripePaymentIntentFn = createServerFn({ method: 'POST' })
+  .inputValidator(checkoutIdSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId } = data
+
+    // Dynamic import to prevent server code leaking to client
+    const { db, eq, checkouts } = await getDbContext()
+
+    // Fetch checkout
+    const [checkout] = await db
+      .select()
+      .from(checkouts)
+      .where(eq(checkouts.id, checkoutId))
+      .limit(1)
+
+    if (!checkout) {
+      throw json({ error: 'Checkout not found' }, { status: 404 })
+    }
+
+    if (checkout.completedAt) {
+      throw json({ error: 'Checkout already completed' }, { status: 410 })
+    }
+
+    if (checkout.expiresAt < new Date()) {
+      throw json({ error: 'Checkout expired' }, { status: 410 })
+    }
+
+    // Validate checkout is ready for payment
+    if (!checkout.email) {
+      throw json({ error: 'Customer email is required' }, { status: 400 })
+    }
+
+    if (!checkout.shippingAddress) {
+      throw json({ error: 'Shipping address is required' }, { status: 400 })
+    }
+
+    if (!checkout.shippingRateId) {
+      throw json({ error: 'Shipping method is required' }, { status: 400 })
+    }
+
+    // Dynamic import to prevent Node.js code from leaking into client bundle
+    const { createPaymentIntent, dollarsToCents, getStripePublishableKey } =
+      await import('../lib/stripe')
+
+    // Create Stripe PaymentIntent
+    const totalInCents = dollarsToCents(parseFloat(checkout.total))
+
+    const { clientSecret, paymentIntentId } = await createPaymentIntent({
+      amount: totalInCents,
+      currency: checkout.currency.toLowerCase(),
+      metadata: {
+        checkoutId: checkout.id,
+        email: checkout.email,
+      },
+    })
+
+    return {
+      clientSecret,
+      paymentIntentId,
+      publishableKey: getStripePublishableKey(),
+    }
+  })
+
+// =============================================================================
+// Server Functions for beforeLoad (SSR validation)
+// =============================================================================
+
+/**
+ * Get checkout ID from cookies (for use in beforeLoad)
+ */
+export const getCheckoutIdFromCookieFn = createServerFn().handler(async () => {
+  // Dynamic imports to prevent server code from leaking into client bundle
+  const { getRequest } = await import('@tanstack/react-start/server')
+  const { getCheckoutIdFromRequest } = await import('../lib/checkout-auth')
+
+  const request = getRequest()
+  if (!request) return { checkoutId: null }
+
+  const checkoutId = getCheckoutIdFromRequest(request)
+  return { checkoutId }
+})
+
+/**
+ * Validate checkout exists and return it (for use in beforeLoad)
+ * Returns null if checkout doesn't exist or is invalid
+ */
+export const validateCheckoutForRouteFn = createServerFn()
+  .inputValidator(checkoutIdSchema.parse)
+  .handler(async ({ data }) => {
+    const { checkoutId } = data
+
+    // Dynamic import to prevent server code leaking to client
+    const { db, eq, checkouts } = await getDbContext()
+
+    const [checkout] = await db
+      .select()
+      .from(checkouts)
+      .where(eq(checkouts.id, checkoutId))
+      .limit(1)
+
+    if (!checkout) {
+      return { valid: false, error: 'Checkout not found', checkout: null }
+    }
+
+    if (checkout.completedAt) {
+      return { valid: false, error: 'Checkout completed', checkout: null }
+    }
+
+    if (checkout.expiresAt < new Date()) {
+      return { valid: false, error: 'Checkout expired', checkout: null }
+    }
+
+    return {
+      valid: true,
+      checkout: {
+        id: checkout.id,
+        email: checkout.email,
+        customerId: checkout.customerId,
+        cartItems: checkout.cartItems as CheckoutCartItem[],
+        subtotal: parseFloat(checkout.subtotal),
+        shippingTotal: parseFloat(checkout.shippingTotal || '0'),
+        taxTotal: parseFloat(checkout.taxTotal || '0'),
+        total: parseFloat(checkout.total),
+        currency: checkout.currency,
+        shippingAddress: checkout.shippingAddress,
+        billingAddress: checkout.billingAddress,
+        shippingRateId: checkout.shippingRateId,
+        shippingMethod: checkout.shippingMethod,
+        expiresAt: checkout.expiresAt,
+      },
+    }
+  })
+
+/**
+ * Set checkout ID cookie (called after creating checkout)
+ */
+export const setCheckoutIdCookieFn = createServerFn({ method: 'POST' })
+  .inputValidator(checkoutIdSchema.parse)
+  .handler(async ({ data }) => {
+    // Dynamic import to prevent Node.js code from leaking into client bundle
+    const { createCheckoutIdCookie, createCheckoutSessionCookie } =
+      await import('../lib/checkout-auth')
+
+    const { checkoutId } = data
+    // Return cookies to be set by the caller
+    return {
+      cookies: [
+        createCheckoutIdCookie(checkoutId),
+        createCheckoutSessionCookie(checkoutId),
+      ],
+    }
+  })
+
+/**
+ * Clear checkout cookies (called after completing checkout)
+ */
+export const clearCheckoutCookiesFn = createServerFn({
+  method: 'POST',
+}).handler(async () => {
+  // Dynamic import to prevent Node.js code from leaking into client bundle
+  const { clearCheckoutIdCookie } = await import('../lib/checkout-auth')
+
+  return {
+    cookies: [
+      clearCheckoutIdCookie(),
+      'checkout_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0',
+    ],
+  }
+})

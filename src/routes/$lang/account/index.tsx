@@ -1,4 +1,9 @@
-import { createFileRoute, useNavigate, useParams, Link } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  useNavigate,
+  useParams,
+  Link,
+} from '@tanstack/react-router'
 import { Package, MapPin, User, LogOut, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 

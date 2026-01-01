@@ -21,6 +21,7 @@ import {
   saveShippingAddressFn,
   saveShippingMethodFn,
   completeCheckoutFn,
+  createStripePaymentIntentFn,
 } from '../server/checkout'
 
 import { renderHook, waitFor, act } from '@/test/test-utils'
@@ -34,11 +35,8 @@ vi.mock('../server/checkout', () => ({
   saveShippingAddressFn: vi.fn(),
   saveShippingMethodFn: vi.fn(),
   completeCheckoutFn: vi.fn(),
+  createStripePaymentIntentFn: vi.fn(),
 }))
-
-// Mock fetch for Stripe payment intent (still uses fetch)
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
 
 // Create wrapper with QueryClient
 const createWrapper = () => {
@@ -388,19 +386,17 @@ describe('useSaveShippingMethod', () => {
 })
 
 describe('useCreateStripePaymentIntent', () => {
+  const mockCreateStripePaymentIntentFn = vi.mocked(createStripePaymentIntentFn)
+
   beforeEach(() => {
-    mockFetch.mockReset()
+    mockCreateStripePaymentIntentFn.mockReset()
   })
 
   it('should create Stripe payment intent', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          clientSecret: 'pi_secret_123',
-          publishableKey: 'pk_test_123',
-          paymentIntentId: 'pi_123',
-        }),
+    mockCreateStripePaymentIntentFn.mockResolvedValue({
+      clientSecret: 'pi_secret_123',
+      publishableKey: 'pk_test_123',
+      paymentIntentId: 'pi_123',
     })
 
     const wrapper = createWrapper()
@@ -409,24 +405,24 @@ describe('useCreateStripePaymentIntent', () => {
       { wrapper },
     )
 
-    let data: { clientSecret: string; publishableKey: string } | undefined
+    let data:
+      | { clientSecret: string | null; publishableKey: string }
+      | undefined
     await act(async () => {
       data = await result.current.mutateAsync()
     })
 
     expect(data?.clientSecret).toBe('pi_secret_123')
     expect(data?.publishableKey).toBe('pk_test_123')
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/checkout/checkout-123/payment/stripe',
-      expect.objectContaining({ method: 'POST' }),
-    )
+    expect(mockCreateStripePaymentIntentFn).toHaveBeenCalledWith({
+      data: { checkoutId: 'checkout-123' },
+    })
   })
 
   it('should handle payment intent error', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'Checkout incomplete' }),
-    })
+    mockCreateStripePaymentIntentFn.mockRejectedValue(
+      new Error('Checkout incomplete'),
+    )
 
     const wrapper = createWrapper()
     const { result } = renderHook(

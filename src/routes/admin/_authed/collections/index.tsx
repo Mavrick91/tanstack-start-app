@@ -10,7 +10,7 @@ import {
 } from '../../../../components/admin/collections/components/CollectionTable'
 import { Pagination } from '../../../../components/admin/products/components/Pagination'
 import { Button } from '../../../../components/ui/button'
-import { useDataTable } from '../../../../hooks/useDataTable'
+import { useDataTable, type TableState } from '../../../../hooks/useDataTable'
 import { getCollectionsFn } from '../../../../server/collections'
 
 import type { CollectionListItem } from '../../../../components/admin/collections/types'
@@ -25,6 +25,20 @@ const searchSchema = z.object({
 })
 
 type SortKey = 'name' | 'productCount' | 'createdAt'
+
+// Build table state from search params
+const buildTableState = (
+  search: z.infer<typeof searchSchema>,
+): TableState<SortKey> => ({
+  search: search.q || '',
+  page: search.page || 1,
+  limit: 10,
+  sortKey: (search.sort as SortKey) || 'createdAt',
+  sortOrder: search.order || 'desc',
+  filters: {
+    status: search.status || 'all',
+  },
+})
 
 // Fetcher using server function
 const fetchCollections = async (state: {
@@ -208,8 +222,17 @@ const CollectionsPage = () => {
 }
 
 export const Route = createFileRoute('/admin/_authed/collections/')({
-  component: CollectionsPage,
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ search }),
+  loader: async ({ deps: { search }, context: { queryClient } }) => {
+    const tableState = buildTableState(search)
+    // Pre-fetch collections data for SSR and link preloading
+    await queryClient.ensureQueryData({
+      queryKey: ['collections', tableState],
+      queryFn: () => fetchCollections(tableState),
+    })
+  },
+  component: CollectionsPage,
 })
 
 const EmptyState = () => {

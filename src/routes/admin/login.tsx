@@ -8,6 +8,7 @@ import {
   type FNFormRef,
 } from '../../components/ui/fn-form'
 import { useAuthStore } from '../../hooks/useAuth'
+import { getMeFn } from '../../server/auth'
 
 const LoginPage = (): React.ReactNode => {
   const router = useRouter()
@@ -70,10 +71,10 @@ const LoginPage = (): React.ReactNode => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100 dark:from-zinc-900 dark:to-zinc-800">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-pink-50 to-rose-100 dark:from-zinc-900 dark:to-zinc-800">
       <div className="w-full max-w-md p-8 bg-card rounded-2xl shadow-xl border border-border">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white font-black">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white font-black">
             FN
           </div>
           <span className="text-2xl font-bold">Admin</span>
@@ -87,7 +88,7 @@ const LoginPage = (): React.ReactNode => {
           renderSubmitButton={(isSubmitting) => (
             <Button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700"
+              className="w-full py-3 bg-linear-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Signing in...' : 'Sign In'}
@@ -100,9 +101,9 @@ const LoginPage = (): React.ReactNode => {
 }
 
 export const Route = createFileRoute('/admin/login')({
-  beforeLoad: () => {
-    const { isAuthenticated } = useAuthStore.getState()
-    if (isAuthenticated) {
+  beforeLoad: async () => {
+    const user = await getMeFn()
+    if (user) {
       throw redirect({ to: '/admin' })
     }
   },

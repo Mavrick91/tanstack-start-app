@@ -1,9 +1,19 @@
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 
-// Server-side Stripe instance
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-})
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined'
+
+// Server-side Stripe instance - only initialize on server
+let _stripe: Stripe | null = null
+
+if (!isBrowser) {
+  const StripeClass = (await import('stripe')).default
+  _stripe = new StripeClass(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2025-12-15.clover',
+  })
+}
+
+export const stripe = _stripe as NonNullable<typeof _stripe>
 
 // Get publishable key for client
 export const getStripePublishableKey = () => {

@@ -59,7 +59,6 @@ import { Route as LangDemoStartApiRequestRouteImport } from './routes/$lang/demo
 import { Route as LangDemoApiNamesRouteImport } from './routes/$lang/demo/api.names'
 import { Route as LangAccountOrdersOrderIdRouteImport } from './routes/$lang/account/orders/$orderId'
 import { Route as LangDemoStartSsrIndexRouteImport } from './routes/$lang/demo/start.ssr.index'
-import { Route as ApiCheckoutCheckoutIdPaymentStripeRouteImport } from './routes/api/checkout/$checkoutId/payment/stripe'
 import { Route as ApiCheckoutCheckoutIdPaymentPaypalRouteImport } from './routes/api/checkout/$checkoutId/payment/paypal'
 import { Route as LangDemoStartSsrSpaModeRouteImport } from './routes/$lang/demo/start.ssr.spa-mode'
 import { Route as LangDemoStartSsrFullSsrRouteImport } from './routes/$lang/demo/start.ssr.full-ssr'
@@ -324,12 +323,6 @@ const LangDemoStartSsrIndexRoute = LangDemoStartSsrIndexRouteImport.update({
   path: '/demo/start/ssr/',
   getParentRoute: () => LangRoute,
 } as any)
-const ApiCheckoutCheckoutIdPaymentStripeRoute =
-  ApiCheckoutCheckoutIdPaymentStripeRouteImport.update({
-    id: '/api/checkout/$checkoutId/payment/stripe',
-    path: '/api/checkout/$checkoutId/payment/stripe',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiCheckoutCheckoutIdPaymentPaypalRoute =
   ApiCheckoutCheckoutIdPaymentPaypalRouteImport.update({
     id: '/api/checkout/$checkoutId/payment/paypal',
@@ -412,7 +405,6 @@ export interface FileRoutesByFullPath {
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
   '/api/checkout/$checkoutId/payment/paypal': typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
-  '/api/checkout/$checkoutId/payment/stripe': typeof ApiCheckoutCheckoutIdPaymentStripeRoute
   '/$lang/demo/start/ssr': typeof LangDemoStartSsrIndexRoute
   '/api/checkout/$checkoutId/payment/paypal/capture': typeof ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute
 }
@@ -466,7 +458,6 @@ export interface FileRoutesByTo {
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
   '/api/checkout/$checkoutId/payment/paypal': typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
-  '/api/checkout/$checkoutId/payment/stripe': typeof ApiCheckoutCheckoutIdPaymentStripeRoute
   '/$lang/demo/start/ssr': typeof LangDemoStartSsrIndexRoute
   '/api/checkout/$checkoutId/payment/paypal/capture': typeof ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute
 }
@@ -525,7 +516,6 @@ export interface FileRoutesById {
   '/$lang/demo/start/ssr/full-ssr': typeof LangDemoStartSsrFullSsrRoute
   '/$lang/demo/start/ssr/spa-mode': typeof LangDemoStartSsrSpaModeRoute
   '/api/checkout/$checkoutId/payment/paypal': typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
-  '/api/checkout/$checkoutId/payment/stripe': typeof ApiCheckoutCheckoutIdPaymentStripeRoute
   '/$lang/demo/start/ssr/': typeof LangDemoStartSsrIndexRoute
   '/api/checkout/$checkoutId/payment/paypal/capture': typeof ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute
 }
@@ -584,7 +574,6 @@ export interface FileRouteTypes {
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
     | '/api/checkout/$checkoutId/payment/paypal'
-    | '/api/checkout/$checkoutId/payment/stripe'
     | '/$lang/demo/start/ssr'
     | '/api/checkout/$checkoutId/payment/paypal/capture'
   fileRoutesByTo: FileRoutesByTo
@@ -638,7 +627,6 @@ export interface FileRouteTypes {
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
     | '/api/checkout/$checkoutId/payment/paypal'
-    | '/api/checkout/$checkoutId/payment/stripe'
     | '/$lang/demo/start/ssr'
     | '/api/checkout/$checkoutId/payment/paypal/capture'
   id:
@@ -696,7 +684,6 @@ export interface FileRouteTypes {
     | '/$lang/demo/start/ssr/full-ssr'
     | '/$lang/demo/start/ssr/spa-mode'
     | '/api/checkout/$checkoutId/payment/paypal'
-    | '/api/checkout/$checkoutId/payment/stripe'
     | '/$lang/demo/start/ssr/'
     | '/api/checkout/$checkoutId/payment/paypal/capture'
   fileRoutesById: FileRoutesById
@@ -721,7 +708,6 @@ export interface RootRouteChildren {
   ApiMediaIndexRoute: typeof ApiMediaIndexRoute
   ApiOrdersIndexRoute: typeof ApiOrdersIndexRoute
   ApiCheckoutCheckoutIdPaymentPaypalRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
-  ApiCheckoutCheckoutIdPaymentStripeRoute: typeof ApiCheckoutCheckoutIdPaymentStripeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1076,13 +1062,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangDemoStartSsrIndexRouteImport
       parentRoute: typeof LangRoute
     }
-    '/api/checkout/$checkoutId/payment/stripe': {
-      id: '/api/checkout/$checkoutId/payment/stripe'
-      path: '/api/checkout/$checkoutId/payment/stripe'
-      fullPath: '/api/checkout/$checkoutId/payment/stripe'
-      preLoaderRoute: typeof ApiCheckoutCheckoutIdPaymentStripeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/checkout/$checkoutId/payment/paypal': {
       id: '/api/checkout/$checkoutId/payment/paypal'
       path: '/api/checkout/$checkoutId/payment/paypal'
@@ -1282,8 +1261,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersIndexRoute: ApiOrdersIndexRoute,
   ApiCheckoutCheckoutIdPaymentPaypalRoute:
     ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren,
-  ApiCheckoutCheckoutIdPaymentStripeRoute:
-    ApiCheckoutCheckoutIdPaymentStripeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

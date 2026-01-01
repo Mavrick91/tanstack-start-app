@@ -238,6 +238,37 @@ interface FieldDefinition {
 }
 ```
 
+## Critical: Server Module Stubbing (DO NOT REMOVE)
+
+The `vite.config.ts` contains a critical `stubServerModules` plugin that **MUST NOT BE REMOVED OR MODIFIED**.
+
+### Why It Exists
+
+The `postgres` package uses Node.js `Buffer` which doesn't exist in browsers. TanStack Start's file-based routing generates `routeTree.gen.ts` which imports ALL routes. Some routes import hooks that eventually import `db/index.ts`, causing `postgres` to be bundled into the client bundle.
+
+### The Problem Chain
+
+```
+routeTree.gen.ts → checkout routes → useCheckout → server/checkout.ts → db/index.ts → postgres → "Buffer is not defined"
+```
+
+### What the Plugin Does
+
+It intercepts imports of `postgres` and `drizzle-orm/postgres-js` in **client bundles only** (not SSR) and replaces them with no-op stubs. Server-side code gets the real implementations.
+
+### Symptoms If Removed
+
+- "Buffer is not defined" errors in browser console
+- "Cannot read properties of undefined (reading 'parsers')" from drizzle
+- Login and checkout pages fail to load or function
+
+### Related Files
+
+- `vite.config.ts` - The stubbing plugin
+- `src/db/index.ts` - Database client initialization
+- `src/server/*.ts` - Server functions (use dynamic imports pattern)
+- `src/data/storefront.ts` - Uses `getDbContext()` pattern
+
 ## Code Style
 
 - No semicolons, single quotes, trailing commas (Prettier)

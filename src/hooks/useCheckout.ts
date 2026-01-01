@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
+import {
+  setCheckoutIdCookieClient,
+  clearCheckoutIdCookieClient,
+  getCheckoutIdFromCookie,
+} from '../lib/checkout-cookies.client'
 import {
   createCheckoutFn,
   getCheckoutFn,
@@ -10,29 +14,40 @@ import {
   saveShippingAddressFn,
   saveShippingMethodFn,
   completeCheckoutFn,
+  createStripePaymentIntentFn,
 } from '../server/checkout'
 
 import type { Checkout, AddressInput, ShippingRate } from '../types/checkout'
 
-// Zustand store for checkout ID persistence
+// Zustand store for checkout ID (synced with cookie as single source of truth)
 type CheckoutIdStore = {
   checkoutId: string | null
   setCheckoutId: (id: string | null) => void
   clearCheckoutId: () => void
+  initFromCookie: () => void
 }
 
-export const useCheckoutIdStore = create<CheckoutIdStore>()(
-  persist(
-    (set) => ({
-      checkoutId: null,
-      setCheckoutId: (id) => set({ checkoutId: id }),
-      clearCheckoutId: () => set({ checkoutId: null }),
-    }),
-    {
-      name: 'checkout-id',
-    },
-  ),
-)
+export const useCheckoutIdStore = create<CheckoutIdStore>()((set) => ({
+  checkoutId: null,
+  setCheckoutId: (id) => {
+    set({ checkoutId: id })
+    // Sync to cookie (single source of truth)
+    if (id) {
+      setCheckoutIdCookieClient(id)
+    } else {
+      clearCheckoutIdCookieClient()
+    }
+  },
+  clearCheckoutId: () => {
+    set({ checkoutId: null })
+    clearCheckoutIdCookieClient()
+  },
+  // Initialize from cookie on app load
+  initFromCookie: () => {
+    const id = getCheckoutIdFromCookie()
+    set({ checkoutId: id })
+  },
+}))
 
 // API functions using server functions
 const createCheckoutApi = async (
@@ -157,6 +172,7 @@ export const useCreateCheckout = () => {
   return useMutation({
     mutationFn: createCheckoutApi,
     onSuccess: (checkout) => {
+      // setCheckoutId handles both store update and cookie sync
       setCheckoutId(checkout.id)
       queryClient.setQueryData(checkoutKeys.detail(checkout.id), checkout)
     },
@@ -296,21 +312,9 @@ export const useSaveShippingMethod = (checkoutId: string) => {
   })
 }
 
-// Stripe payment intent - still uses fetch because it needs special handling
-// for returning client secret to the browser
+// Stripe payment intent API using server function
 const createStripePaymentIntentApi = async (checkoutId: string) => {
-  const response = await fetch(`/api/checkout/${checkoutId}/payment/stripe`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to create payment intent')
-  }
-
-  return await response.json()
+  return await createStripePaymentIntentFn({ data: { checkoutId } })
 }
 
 export const useCreateStripePaymentIntent = (checkoutId: string) => {
@@ -332,6 +336,7 @@ export const useCompleteCheckout = (checkoutId: string) => {
       paymentId: string
     }) => completeCheckoutApi(checkoutId, paymentProvider, paymentId),
     onSuccess: () => {
+      // clearCheckoutId handles both store update and cookie clear
       clearCheckoutId()
       queryClient.removeQueries({ queryKey: checkoutKeys.detail(checkoutId) })
     },

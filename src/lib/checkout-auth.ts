@@ -105,3 +105,31 @@ export const createCheckoutSessionCookie = (checkoutId: string): string => {
   const secureFlag = isProduction ? ' Secure;' : ''
   return `checkout_session=${token}; Path=/; HttpOnly; SameSite=Strict;${secureFlag} Expires=${expires.toUTCString()}`
 }
+
+/**
+ * Create a cookie to store the checkout ID (for server-side access in beforeLoad)
+ * Note: Not HttpOnly so it can be set from client-side after checkout creation
+ * The checkout ID itself is not sensitive - the session token validates ownership
+ */
+export const createCheckoutIdCookie = (checkoutId: string): string => {
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const isProduction = process.env.NODE_ENV === 'production'
+  const secureFlag = isProduction ? ' Secure;' : ''
+  return `checkout_id=${checkoutId}; Path=/; SameSite=Strict;${secureFlag} Expires=${expires.toUTCString()}`
+}
+
+/**
+ * Get checkout ID from request cookies (server-side)
+ */
+export const getCheckoutIdFromRequest = (request: Request): string | null => {
+  const cookieHeader = request.headers.get('Cookie') || ''
+  const match = cookieHeader.match(/checkout_id=([^;]+)/)
+  return match?.[1] || null
+}
+
+/**
+ * Create a cookie to clear the checkout ID
+ */
+export const clearCheckoutIdCookie = (): string => {
+  return 'checkout_id=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'
+}

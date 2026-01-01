@@ -13,10 +13,10 @@ import {
   ShoppingCart,
   User,
 } from 'lucide-react'
-import { useEffect } from 'react'
 
 import { Button } from '../components/ui/button'
 import { useAuthStore } from '../hooks/useAuth'
+import { getMeFn } from '../server/auth'
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
@@ -28,37 +28,19 @@ const navItems = [
 const AdminLayout = () => {
   const router = useRouter()
   const { location } = useRouterState()
-  const { user, logout, isAuthenticated, isLoading, checkSession } =
-    useAuthStore()
+  const { user } = Route.useRouteContext()
+  const logout = useAuthStore((state) => state.logout)
   const isLoginPage = location.pathname === '/admin/login'
-
-  useEffect(() => {
-    if (!isLoginPage) checkSession()
-  }, [isLoginPage, checkSession])
-
-  useEffect(() => {
-    if (!isLoginPage && !isLoading && !isAuthenticated) {
-      router.navigate({ to: '/admin/login' })
-    }
-  }, [isLoginPage, isLoading, isAuthenticated, router])
 
   const handleLogout = async () => {
     await logout()
     router.navigate({ to: '/admin/login' })
   }
 
+  // Login page renders without the admin layout chrome
   if (isLoginPage) return <Outlet />
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full size-10 border-2 border-pink-500/20 border-t-pink-500" />
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) return null
-
+  // Auth is handled by _authed.tsx beforeLoad - if we get here, user is authenticated
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       <aside className="w-72 bg-card border-r border-border/50 p-4 pt-8 flex flex-col shrink-0 z-20">
@@ -137,8 +119,10 @@ const AdminLayout = () => {
 }
 
 export const Route = createFileRoute('/admin')({
-  beforeLoad: ({ location }) => {
-    if (location.pathname === '/admin/login') return
+  beforeLoad: async () => {
+    // Fetch user for the layout (non-blocking, user may be null on login page)
+    const user = await getMeFn()
+    return { user }
   },
   component: AdminLayout,
 })

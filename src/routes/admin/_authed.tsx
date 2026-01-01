@@ -1,14 +1,13 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
-import { getMeFn } from '../../server/auth'
-
 const AdminAuthLayout = (): React.ReactNode => {
   return <Outlet />
 }
 
 export const Route = createFileRoute('/admin/_authed')({
-  beforeLoad: async () => {
-    const user = await getMeFn()
+  beforeLoad: async ({ context }) => {
+    // Use user from parent context (admin.tsx) to avoid duplicate fetch
+    const user = context.user
 
     if (!user) {
       throw redirect({ to: '/admin/login' })
@@ -18,6 +17,7 @@ export const Route = createFileRoute('/admin/_authed')({
       throw redirect({ to: '/' })
     }
 
+    // Pass user through to child routes
     return { user }
   },
   component: AdminAuthLayout,

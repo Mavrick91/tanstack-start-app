@@ -3,6 +3,7 @@ import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import {
   createFileRoute,
+  redirect,
   useNavigate,
   useParams,
   Link,
@@ -32,13 +33,29 @@ import {
   useCompleteCheckout,
 } from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
+import {
+  getCheckoutIdFromCookieFn,
+  validateCheckoutForRouteFn,
+} from '../../../server/checkout'
 
 const CheckoutPaymentPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { serverCheckout } = Route.useRouteContext()
 
-  const checkoutId = useCheckoutIdStore((s) => s.checkoutId)
+  // Initialize checkout ID from server (cookie) or Zustand
+  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
+  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
+  const checkoutId = serverCheckout?.id || storedCheckoutId
+
+  // Sync Zustand with server-provided checkout ID
+  useEffect(() => {
+    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
+      setCheckoutId(serverCheckout.id)
+    }
+  }, [serverCheckout?.id, storedCheckoutId, setCheckoutId])
+
   const clearCheckoutId = useCheckoutIdStore((s) => s.clearCheckoutId)
   const { data: checkout, isLoading: isLoadingCheckout } =
     useCheckout(checkoutId)
@@ -57,16 +74,6 @@ const CheckoutPaymentPage = () => {
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Redirect if no checkout or missing shipping info
-  if (!checkoutId) {
-    navigate({ to: '/$lang/checkout', params: { lang } })
-  }
-
-  if (checkout && (!checkout.shippingAddress || !checkout.shippingRateId)) {
-    navigate({ to: '/$lang/checkout/information', params: { lang } })
-  }
-
-  // Initialize payment once checkout is loaded
   useEffect(() => {
     const init = async () => {
       if (!checkoutId || !checkout || isInitialized) return
@@ -75,9 +82,8 @@ const CheckoutPaymentPage = () => {
       try {
         const stripeData = await createPaymentIntentMutation.mutateAsync()
         setClientSecret(stripeData.clientSecret)
-        setPaypalClientId(
-          stripeData.paypalClientId || import.meta.env.VITE_PAYPAL_CLIENT_ID,
-        )
+        // PayPal client ID comes from env, not from Stripe API
+        setPaypalClientId(import.meta.env.VITE_PAYPAL_CLIENT_ID || null)
 
         const stripe = loadStripe(stripeData.publishableKey)
         setStripePromise(stripe)
@@ -94,6 +100,19 @@ const CheckoutPaymentPage = () => {
     init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout, checkoutId, isInitialized])
+
+  // Redirect if no checkout or missing shipping info
+  if (!checkoutId) {
+    navigate({ to: '/$lang/checkout', params: { lang } })
+    return null
+  }
+
+  if (checkout && (!checkout.shippingAddress || !checkout.shippingRateId)) {
+    navigate({ to: '/$lang/checkout/information', params: { lang } })
+    return null
+  }
+
+  // Initialize payment once checkout is loaded
 
   const handlePaymentSuccess = async (
     paymentProvider: 'stripe' | 'paypal',
@@ -359,5 +378,32 @@ const CheckoutPaymentPage = () => {
 }
 
 export const Route = createFileRoute('/$lang/checkout/payment')({
+  beforeLoad: async ({ params }) => {
+    // Try to get checkout ID from cookie (server-side)
+    const { checkoutId } = await getCheckoutIdFromCookieFn()
+
+    // If no checkout ID in cookie, redirect to checkout start
+    // (Client-side will also check localStorage via Zustand as fallback)
+    if (checkoutId) {
+      const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
+
+      if (!result.valid) {
+        throw redirect({ to: '/$lang/checkout', params })
+      }
+
+      // Check if checkout has required shipping info for payment step
+      if (
+        !result.checkout?.shippingAddress ||
+        !result.checkout?.shippingRateId
+      ) {
+        throw redirect({ to: '/$lang/checkout/information', params })
+      }
+
+      return { serverCheckout: result.checkout }
+    }
+
+    // No cookie - let client-side handle (localStorage fallback)
+    return { serverCheckout: null }
+  },
   component: CheckoutPaymentPage,
 })

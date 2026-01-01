@@ -1,17 +1,35 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, asc, desc, eq, isNotNull, sql } from 'drizzle-orm'
-
-import { db } from '../db'
-import {
-  collectionProducts,
-  collections,
-  productImages,
-  productOptions,
-  products,
-  productVariants,
-} from '../db/schema'
 
 import type { ProductOption, ProductVariant } from '../types/store'
+
+// Helper to dynamically import database context (prevents server code leaking to client)
+const getDbContext = async () => {
+  const { db } = await import('../db')
+  const { and, asc, desc, eq, isNotNull, sql } = await import('drizzle-orm')
+  const {
+    collectionProducts,
+    collections,
+    productImages,
+    productOptions,
+    products,
+    productVariants,
+  } = await import('../db/schema')
+  return {
+    db,
+    and,
+    asc,
+    desc,
+    eq,
+    isNotNull,
+    sql,
+    collectionProducts,
+    collections,
+    productImages,
+    productOptions,
+    products,
+    productVariants,
+  }
+}
 
 type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -21,7 +39,11 @@ const getLocalizedText = (value: LocalizedString | null, lang = 'en') => {
 }
 
 // Fetch first variant for a product (for price)
-const fetchProductFirstVariant = async (productId: string) => {
+const fetchProductFirstVariant = async (
+  productId: string,
+  ctx: Awaited<ReturnType<typeof getDbContext>>,
+) => {
+  const { db, eq, asc, productVariants } = ctx
   const [variant] = await db
     .select({ price: productVariants.price })
     .from(productVariants)
@@ -66,7 +88,11 @@ const toStorefrontProduct = (
   }
 }
 
-const fetchProductImages = async (productId: string) => {
+const fetchProductImages = async (
+  productId: string,
+  ctx: Awaited<ReturnType<typeof getDbContext>>,
+) => {
+  const { db, eq, productImages } = ctx
   return db
     .select({ url: productImages.url })
     .from(productImages)
@@ -74,7 +100,11 @@ const fetchProductImages = async (productId: string) => {
     .orderBy(productImages.position)
 }
 
-const fetchProductOptionsAndVariants = async (productId: string) => {
+const fetchProductOptionsAndVariants = async (
+  productId: string,
+  ctx: Awaited<ReturnType<typeof getDbContext>>,
+) => {
+  const { db, eq, asc, productOptions, productVariants } = ctx
   // Fetch options
   const dbOptions = await db
     .select({
@@ -124,6 +154,18 @@ export const getCollections = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const lang = data?.lang || 'en'
 
+    // Dynamic import to prevent server code leaking to client
+    const ctx = await getDbContext()
+    const {
+      db,
+      desc,
+      isNotNull,
+      sql,
+      collections,
+      collectionProducts,
+      productImages,
+    } = ctx
+
     const dbCollections = await db
       .select({
         id: collections.id,
@@ -131,7 +173,7 @@ export const getCollections = createServerFn({ method: 'GET' })
         name: collections.name,
         description: collections.description,
         productCount: sql<number>`(
-          SELECT COUNT(*) FROM collection_products 
+          SELECT COUNT(*) FROM collection_products
           WHERE collection_id = ${collections.id}
         )::int`,
         previewImages: sql<string[]>`(
@@ -171,6 +213,10 @@ export const getProducts = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const lang = data?.lang || 'en'
 
+    // Dynamic import to prevent server code leaking to client
+    const ctx = await getDbContext()
+    const { db, eq, desc, products } = ctx
+
     const dbProducts = await db
       .select()
       .from(products)
@@ -179,8 +225,8 @@ export const getProducts = createServerFn({ method: 'GET' })
 
     return Promise.all(
       dbProducts.map(async (product) => {
-        const images = await fetchProductImages(product.id)
-        const variant = await fetchProductFirstVariant(product.id)
+        const images = await fetchProductImages(product.id, ctx)
+        const variant = await fetchProductFirstVariant(product.id, ctx)
         return toStorefrontProduct(
           product,
           images,
@@ -196,6 +242,10 @@ export const getFeaturedProducts = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const lang = data?.lang || 'en'
 
+    // Dynamic import to prevent server code leaking to client
+    const ctx = await getDbContext()
+    const { db, eq, desc, products } = ctx
+
     const dbProducts = await db
       .select()
       .from(products)
@@ -205,8 +255,8 @@ export const getFeaturedProducts = createServerFn({ method: 'GET' })
 
     return Promise.all(
       dbProducts.map(async (product) => {
-        const images = await fetchProductImages(product.id)
-        const variant = await fetchProductFirstVariant(product.id)
+        const images = await fetchProductImages(product.id, ctx)
+        const variant = await fetchProductFirstVariant(product.id, ctx)
         return toStorefrontProduct(
           product,
           images,
@@ -222,6 +272,10 @@ export const getProductBySlug = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const { slug, lang = 'en' } = data
 
+    // Dynamic import to prevent server code leaking to client
+    const ctx = await getDbContext()
+    const { db, eq, products } = ctx
+
     const [dbProduct] = await db
       .select()
       .from(products)
@@ -231,9 +285,10 @@ export const getProductBySlug = createServerFn({ method: 'GET' })
       throw new Error('Product not found')
     }
 
-    const images = await fetchProductImages(dbProduct.id)
+    const images = await fetchProductImages(dbProduct.id, ctx)
     const { options, variants } = await fetchProductOptionsAndVariants(
       dbProduct.id,
+      ctx,
     )
 
     // Use first available variant price, or 0 if no variants
@@ -254,6 +309,19 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
   .inputValidator((d: { handle: string; lang?: string; sort?: string }) => d)
   .handler(async ({ data }) => {
     const { handle, lang = 'en', sort } = data
+
+    // Dynamic import to prevent server code leaking to client
+    const ctx = await getDbContext()
+    const {
+      db,
+      eq,
+      and,
+      asc,
+      desc,
+      collections,
+      collectionProducts,
+      products,
+    } = ctx
 
     const [collection] = await db
       .select()
@@ -308,8 +376,8 @@ export const getCollectionByHandle = createServerFn({ method: 'GET' })
 
     let productsList = await Promise.all(
       collectionProductsList.map(async ({ product }) => {
-        const images = await fetchProductImages(product.id)
-        const variant = await fetchProductFirstVariant(product.id)
+        const images = await fetchProductImages(product.id, ctx)
+        const variant = await fetchProductFirstVariant(product.id, ctx)
         return toStorefrontProduct(
           product,
           images,

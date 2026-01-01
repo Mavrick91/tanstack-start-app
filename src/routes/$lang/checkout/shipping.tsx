@@ -1,12 +1,13 @@
 import {
   createFileRoute,
+  redirect,
   useNavigate,
   useParams,
   Link,
 } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, Loader2 } from 'lucide-react'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -27,13 +28,29 @@ import {
   useSaveShippingMethod,
 } from '../../../hooks/useCheckout'
 import { formatCurrency } from '../../../lib/format'
+import {
+  getCheckoutIdFromCookieFn,
+  validateCheckoutForRouteFn,
+} from '../../../server/checkout'
 
 const CheckoutShippingPage = () => {
   const { lang } = useParams({ strict: false }) as { lang: string }
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { serverCheckout } = Route.useRouteContext()
 
-  const checkoutId = useCheckoutIdStore((s) => s.checkoutId)
+  // Initialize checkout ID from server (cookie) or Zustand
+  const storedCheckoutId = useCheckoutIdStore((s) => s.checkoutId)
+  const setCheckoutId = useCheckoutIdStore((s) => s.setCheckoutId)
+  const checkoutId = serverCheckout?.id || storedCheckoutId
+
+  // Sync Zustand with server-provided checkout ID
+  useEffect(() => {
+    if (serverCheckout?.id && serverCheckout.id !== storedCheckoutId) {
+      setCheckoutId(serverCheckout.id)
+    }
+  }, [serverCheckout?.id, storedCheckoutId, setCheckoutId])
+
   const { data: checkout, isLoading: isLoadingCheckout } =
     useCheckout(checkoutId)
   const { data: shippingRates = [], isLoading: isLoadingRates } =
@@ -51,6 +68,7 @@ const CheckoutShippingPage = () => {
   // Redirect if no checkout
   if (!checkoutId) {
     navigate({ to: '/$lang/checkout', params: { lang } })
+    return null
   }
 
   const handleSubmit = async (values: Record<string, unknown>) => {
@@ -231,5 +249,27 @@ const CheckoutShippingPage = () => {
 }
 
 export const Route = createFileRoute('/$lang/checkout/shipping')({
+  beforeLoad: async ({ params }) => {
+    // Try to get checkout ID from cookie (server-side)
+    const { checkoutId } = await getCheckoutIdFromCookieFn()
+
+    if (checkoutId) {
+      const result = await validateCheckoutForRouteFn({ data: { checkoutId } })
+
+      if (!result.valid) {
+        throw redirect({ to: '/$lang/checkout', params })
+      }
+
+      // Shipping step requires email and shipping address from information step
+      if (!result.checkout?.email || !result.checkout?.shippingAddress) {
+        throw redirect({ to: '/$lang/checkout/information', params })
+      }
+
+      return { serverCheckout: result.checkout }
+    }
+
+    // No cookie - let client-side handle (localStorage fallback)
+    return { serverCheckout: null }
+  },
   component: CheckoutShippingPage,
 })

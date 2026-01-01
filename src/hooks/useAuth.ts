@@ -22,18 +22,16 @@ export const useAuthStore = create<AuthState>()((set) => ({
   login: async (email, password) => {
     try {
       const result = await loginFn({ data: { email, password } })
-
-      if (result.success) {
-        set({
-          isAuthenticated: true,
-          user: result.user,
-        })
-        return { success: true }
-      }
-      return { success: false, error: result.error }
+      set({
+        isAuthenticated: true,
+        user: result.user,
+      })
+      return { success: true }
     } catch (error) {
       console.error('Login failed:', error)
-      return { success: false, error: 'Login failed' }
+      // Extract error message from json response or fallback
+      const message = error instanceof Error ? error.message : 'Login failed'
+      return { success: false, error: message }
     }
   },
 
