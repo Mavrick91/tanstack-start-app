@@ -25,8 +25,8 @@ const OrderErrorComponent = ({ error }: { error: Error }) => {
         <Button
           variant="ghost"
           className="text-muted-foreground hover:text-foreground"
+          icon={<ArrowLeft className="w-4 h-4" />}
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
           {t('Back to Orders')}
         </Button>
       </Link>
@@ -95,8 +95,8 @@ const AdminOrderDetailPage = () => {
         <Button
           variant="ghost"
           className="text-muted-foreground hover:text-foreground"
+          icon={<ArrowLeft className="w-4 h-4" />}
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
           {t('Back to Orders')}
         </Button>
       </Link>

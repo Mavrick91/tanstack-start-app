@@ -47,7 +47,7 @@ export const ProductVariantsTable = ({
     if (!search.trim()) return variants
     const searchLower = search.toLowerCase()
     return variants.filter((variant) =>
-      variant.title.toLowerCase().includes(searchLower)
+      variant.title.toLowerCase().includes(searchLower),
     )
   }, [variants, search])
 
@@ -57,7 +57,9 @@ export const ProductVariantsTable = ({
     const searchLower = search.toLowerCase()
     return variants
       .map((variant, i) => ({ variant, index: i }))
-      .filter(({ variant }) => variant.title.toLowerCase().includes(searchLower))
+      .filter(({ variant }) =>
+        variant.title.toLowerCase().includes(searchLower),
+      )
       .map(({ index }) => index)
   }, [variants, search])
 
@@ -178,106 +180,110 @@ export const ProductVariantsTable = ({
             {filteredVariants.map((variant, filteredIndex) => {
               const originalIndex = variantIndices[filteredIndex]
               return (
-              <TableRow key={originalIndex} className="group">
-                <TableCell className="font-medium">{variant.title}</TableCell>
+                <TableRow key={originalIndex} className="group">
+                  <TableCell className="font-medium">{variant.title}</TableCell>
 
-                {editingIndex === originalIndex ? (
-                  <>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={editValues.price || ''}
-                        onChange={(e) =>
-                          setEditValues((prev) => ({
-                            ...prev,
-                            price: e.target.value,
-                          }))
-                        }
-                        className="h-8 w-full"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={editValues.available !== false}
-                        onCheckedChange={(checked) =>
-                          setEditValues((prev) => ({
-                            ...prev,
-                            available: checked,
-                          }))
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={editValues.sku || ''}
-                        onChange={(e) =>
-                          setEditValues((prev) => ({
-                            ...prev,
-                            sku: e.target.value,
-                          }))
-                        }
-                        className="h-8 w-full"
-                        placeholder="SKU"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
+                  {editingIndex === originalIndex ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editValues.price || ''}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              price: e.target.value,
+                            }))
+                          }
+                          className="h-8 w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={editValues.available !== false}
+                          onCheckedChange={(checked) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              available: checked,
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editValues.sku || ''}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              sku: e.target.value,
+                            }))
+                          }
+                          className="h-8 w-full"
+                          placeholder="SKU"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-emerald-600"
+                            onClick={saveEditing}
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={cancelEditing}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>
+                        <span className="font-mono">${variant.price}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={variant.available !== false}
+                          onCheckedChange={(checked) =>
+                            updateVariantField(
+                              originalIndex,
+                              'available',
+                              checked,
+                            )
+                          }
+                          disabled={disabled}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground font-mono text-sm">
+                          {variant.sku || '—'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-emerald-600"
-                          onClick={saveEditing}
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => startEditing(originalIndex)}
+                          disabled={disabled}
                         >
-                          <Check className="w-4 h-4" />
+                          {t('Edit')}
                         </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={cancelEditing}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </>
-                ) : (
-                  <>
-                    <TableCell>
-                      <span className="font-mono">${variant.price}</span>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={variant.available !== false}
-                        onCheckedChange={(checked) =>
-                          updateVariantField(originalIndex, 'available', checked)
-                        }
-                        disabled={disabled}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground font-mono text-sm">
-                        {variant.sku || '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => startEditing(originalIndex)}
-                        disabled={disabled}
-                      >
-                        {t('Edit')}
-                      </Button>
-                    </TableCell>
-                  </>
-                )}
-              </TableRow>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
               )
             })}
           </TableBody>

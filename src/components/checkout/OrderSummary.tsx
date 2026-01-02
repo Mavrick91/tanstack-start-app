@@ -33,7 +33,7 @@ export const OrderSummary = ({
         <div className="space-y-3">
           {items.map((item, index) => (
             <div key={index} className="flex items-start gap-3">
-              <div className="relative flex-shrink-0">
+              <div className="relative shrink-0">
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border">
                   {item.imageUrl ? (
                     <img
@@ -96,7 +96,7 @@ export const OrderSummary = ({
       <div className="border-t pt-4 flex justify-between">
         <span className="text-base font-medium">{t('Total')}</span>
         <div className="text-right">
-          <span className="text-xs text-gray-500 mr-2">{currency}</span>
+          <span className="text-xs text-gray-500">{currency}</span>
           <span className="text-xl font-semibold">
             {formatCurrency({ value: total, currency })}
           </span>

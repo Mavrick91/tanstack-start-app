@@ -140,7 +140,7 @@ export const MediaLibrary = ({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-7xl! w-[98vw] h-[95vh] flex flex-col p-0 overflow-hidden border-border/50 shadow-2xl bg-background">
+      <DialogContent className="max-w-7xl! w-[98vw] h-[95vh] flex flex-col p-0 overflow-hidden border-border bg-background rounded-lg">
         <Tabs defaultValue="library" className="flex-1 flex flex-col min-h-0">
           <DialogHeader className="px-6 py-4 border-b">
             <div className="flex items-center justify-between pr-8">
@@ -165,13 +165,13 @@ export const MediaLibrary = ({
                 <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1">
                   <TabsTrigger
                     value="library"
-                    className="data-[state=active]:bg-white data-[state=active]:text-pink-600 data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-white data-[state=active]:text-pink-600"
                   >
                     {t('Library')}
                   </TabsTrigger>
                   <TabsTrigger
                     value="upload"
-                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-pink-600 data-[state=active]:shadow-sm"
+                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-pink-600"
                   >
                     <Upload className="w-4 h-4" />
                     {t('Upload')}
@@ -294,8 +294,8 @@ export const MediaLibrary = ({
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                icon={<Trash2 className="w-4 h-4" />}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
                 {t('Delete')}
               </Button>
             )}

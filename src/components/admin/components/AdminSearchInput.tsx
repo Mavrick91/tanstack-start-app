@@ -67,7 +67,7 @@ export const AdminSearchInput = ({
         value={displayValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full h-10 pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 transition-all text-sm"
+        className="w-full h-9 pl-10 pr-10 bg-background border border-border rounded-md outline-none focus:border-pink-500/40 focus:ring-pink-500/25 focus:ring-1 transition-[color,box-shadow] text-sm"
         aria-label={ariaLabel || placeholder}
       />
       {displayValue && (

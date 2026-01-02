@@ -85,8 +85,8 @@ export const AdminStatsCard = ({
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm animate-pulse">
-        <div className="p-3 rounded-xl bg-muted/50 w-11 h-11" />
+      <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 animate-pulse">
+        <div className="p-3 rounded-md bg-muted/50 w-11 h-11" />
         <div className="space-y-2">
           <div className="h-7 w-12 bg-muted/50 rounded" />
           <div className="h-3 w-20 bg-muted/50 rounded" />
@@ -98,11 +98,11 @@ export const AdminStatsCard = ({
   return (
     <div
       className={cn(
-        'bg-card border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow',
-        hasAttention ? styles.attention : 'border-border/50',
+        'bg-card border rounded-lg p-4 flex items-center gap-4',
+        hasAttention ? styles.attention : 'border-border',
       )}
     >
-      <div className={cn('p-3 rounded-xl', styles.bg)}>
+      <div className={cn('p-3 rounded-md', styles.bg)}>
         <Icon className={cn('w-5 h-5', styles.text)} />
       </div>
       <div>
@@ -130,9 +130,9 @@ export const AdminStatsGrid = ({
         {Array.from({ length: columns }).map((_, i) => (
           <div
             key={i}
-            className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm animate-pulse"
+            className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 animate-pulse"
           >
-            <div className="p-3 rounded-xl bg-muted/50 w-11 h-11" />
+            <div className="p-3 rounded-md bg-muted/50 w-11 h-11" />
             <div className="space-y-2">
               <div className="h-7 w-12 bg-muted/50 rounded" />
               <div className="h-3 w-20 bg-muted/50 rounded" />

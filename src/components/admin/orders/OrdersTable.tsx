@@ -78,7 +78,7 @@ export const OrdersTable = ({
   const someSelected = orders.some((o) => selectedIds.has(o.id)) && !allSelected
 
   return (
-    <div className="rounded-2xl border border-border/50 overflow-hidden bg-card shadow-sm">
+    <div className="rounded-lg border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow className="border-border hover:bg-muted/50">

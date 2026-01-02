@@ -17,11 +17,11 @@ interface UnsavedChangesDialogProps {
   onCancel: () => void
 }
 
-export function UnsavedChangesDialog({
+export const UnsavedChangesDialog = ({
   open,
   onProceed,
   onCancel,
-}: UnsavedChangesDialogProps) {
+}: UnsavedChangesDialogProps) => {
   const { t } = useTranslation()
 
   return (

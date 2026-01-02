@@ -125,15 +125,15 @@ describe('CollectionTable', () => {
   describe('Status badges', () => {
     it('renders active status for published collections', () => {
       renderComponent()
-      // AdminStatusBadge renders lowercase status with CSS uppercase styling
-      const activeBadges = screen.getAllByText('active')
+      // AdminStatusBadge renders capitalized status labels
+      const activeBadges = screen.getAllByText('Active')
       expect(activeBadges).toHaveLength(2) // coll-1 and coll-3 are published
     })
 
     it('renders draft status for unpublished collections', () => {
       renderComponent()
-      // AdminStatusBadge renders lowercase status with CSS uppercase styling
-      expect(screen.getByText('draft')).toBeInTheDocument() // coll-2 is draft
+      // AdminStatusBadge renders capitalized status labels
+      expect(screen.getByText('Draft')).toBeInTheDocument() // coll-2 is draft
     })
   })
 
@@ -173,16 +173,16 @@ describe('CollectionTable', () => {
 
     it('checks selected collections', () => {
       renderComponent({ selectedIds: new Set(['coll-1', 'coll-3']) })
-      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[]
-      expect(checkboxes[1].checked).toBe(true) // coll-1
-      expect(checkboxes[2].checked).toBe(false) // coll-2
-      expect(checkboxes[3].checked).toBe(true) // coll-3
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes[1]).toHaveAttribute('data-state', 'checked') // coll-1
+      expect(checkboxes[2]).toHaveAttribute('data-state', 'unchecked') // coll-2
+      expect(checkboxes[3]).toHaveAttribute('data-state', 'checked') // coll-3
     })
 
     it('checks header checkbox when all selected', () => {
       renderComponent({ isAllSelected: true })
-      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[]
-      expect(checkboxes[0].checked).toBe(true)
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes[0]).toHaveAttribute('data-state', 'checked')
     })
 
     it('highlights selected rows', () => {

@@ -1,8 +1,8 @@
 import { Clock, CreditCard, Package, DollarSign } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { AdminStatsGrid } from '../components/AdminStatsCard'
 import { formatCurrency } from '../../../lib/format'
+import { AdminStatsGrid } from '../components/AdminStatsCard'
 
 export interface OrderStats {
   pending: number

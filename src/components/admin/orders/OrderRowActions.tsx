@@ -1,10 +1,4 @@
-import {
-  Truck,
-  Package,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from 'lucide-react'
+import { Truck, Package, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -73,7 +67,8 @@ export const OrderRowActions = ({
         key: 'fulfilled',
         label: t('Mark Fulfilled'),
         icon: Package,
-        onClick: () => onStatusChange(orderId, { fulfillmentStatus: 'fulfilled' }),
+        onClick: () =>
+          onStatusChange(orderId, { fulfillmentStatus: 'fulfilled' }),
       })
     }
   }
@@ -90,7 +85,9 @@ export const OrderRowActions = ({
           : {
               label: t('Cancel Order'),
               icon: XCircle,
-              confirmTitle: t('Cancel Order #{{orderNumber}}?', { orderNumber }),
+              confirmTitle: t('Cancel Order #{{orderNumber}}?', {
+                orderNumber,
+              }),
               confirmDescription: t(
                 'This will mark the order as cancelled. This action cannot be easily undone.',
               ),

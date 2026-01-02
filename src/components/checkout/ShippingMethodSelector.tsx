@@ -39,7 +39,7 @@ export const ShippingMethodSelector = ({
               value={rate.id}
               checked={isSelected}
               onChange={() => onSelect(rate.id)}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="w-4 h-4 text-pink-500 border-border focus:ring-pink-500/25 focus:border-pink-500/40"
             />
             <div className="flex-1">
               <div className="flex items-center justify-between">

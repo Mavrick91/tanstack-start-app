@@ -43,10 +43,15 @@ const Button = ({
   variant = 'default',
   size = 'default',
   asChild = false,
+  icon,
+  iconPosition = 'before',
+  children,
   ...props
 }: React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    icon?: React.ReactNode
+    iconPosition?: 'before' | 'after'
   }) => {
   const Comp = asChild ? Slot : 'button'
 
@@ -57,7 +62,11 @@ const Button = ({
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {iconPosition === 'before' && icon}
+      {children}
+      {iconPosition === 'after' && icon}
+    </Comp>
   )
 }
 

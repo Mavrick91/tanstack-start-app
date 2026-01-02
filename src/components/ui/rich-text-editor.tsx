@@ -101,7 +101,7 @@ export const RichTextEditor = ({
   return (
     <div
       className={cn(
-        'border border-border rounded-xl overflow-hidden bg-background/50 focus-within:ring-2 focus-within:ring-pink-500/20 transition-all',
+        'border border-border rounded-md overflow-hidden bg-background/50 focus-within:border-pink-500/40 focus-within:ring-pink-500/25 focus-within:ring-1 transition-[color,box-shadow]',
         className,
       )}
     >

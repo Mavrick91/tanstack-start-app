@@ -10,9 +10,9 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
-import { cn } from '@/lib/utils'
-
 import { Badge } from './badge'
+
+import { cn } from '@/lib/utils'
 
 export interface TagInputProps {
   value: string[]
@@ -23,14 +23,14 @@ export interface TagInputProps {
   disabled?: boolean
 }
 
-export function TagInput({
+export const TagInput = ({
   value,
   onChange,
   suggestions = [],
   placeholder = 'Add tag...',
   className,
   disabled = false,
-}: TagInputProps) {
+}: TagInputProps) => {
   const [inputValue, setInputValue] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
@@ -55,7 +55,10 @@ export function TagInput({
   const addTag = useCallback(
     (tag: string) => {
       const trimmed = tag.trim()
-      if (trimmed && !value.some((v) => v.toLowerCase() === trimmed.toLowerCase())) {
+      if (
+        trimmed &&
+        !value.some((v) => v.toLowerCase() === trimmed.toLowerCase())
+      ) {
         onChange([...value, trimmed])
       }
       setInputValue('')
@@ -199,7 +202,7 @@ export function TagInput({
     <div ref={containerRef} className={cn('relative', className)}>
       <div
         className={cn(
-          'flex flex-wrap gap-1.5 min-h-[44px] p-2 bg-background/50 border border-border/50 rounded-xl focus-within:ring-2 focus-within:ring-pink-500/20 focus-within:border-pink-500/50 transition-colors',
+          'flex flex-wrap gap-1.5 min-h-[44px] p-2 bg-background/50 border border-border/50 rounded-md focus-within:border-pink-500/40 focus-within:ring-pink-500/25 focus-within:ring-1 transition-[color,box-shadow]',
           disabled && 'opacity-50 cursor-not-allowed',
         )}
         onClick={() => inputRef.current?.focus()}
@@ -246,7 +249,7 @@ export function TagInput({
             ref={listRef}
             role="listbox"
             style={dropdownStyle}
-            className="max-h-48 overflow-auto rounded-xl border border-border/50 bg-popover p-1 shadow-lg"
+            className="max-h-48 overflow-auto rounded-md border border-border/50 bg-popover p-1 shadow-md"
           >
             {filteredSuggestions.map((suggestion, index) => {
               const isHighlighted = index === highlightedIndex

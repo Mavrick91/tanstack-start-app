@@ -3,11 +3,11 @@ import { Archive, CheckCircle2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { bulkUpdateProductsFn } from '../../../../server/products'
 import {
   AdminBulkActionsBar,
   type BulkAction,
 } from '../../components/AdminBulkActionsBar'
-import { bulkUpdateProductsFn } from '../../../../server/products'
 
 interface BulkActionsBarProps {
   selectedCount: number
@@ -78,7 +78,9 @@ export const BulkActionsBar = ({
   ]
 
   const handleAction = (actionKey: string) => {
-    bulkMutation.mutate({ action: actionKey as 'delete' | 'archive' | 'activate' })
+    bulkMutation.mutate({
+      action: actionKey as 'delete' | 'archive' | 'activate',
+    })
   }
 
   return (

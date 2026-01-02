@@ -85,7 +85,7 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 mr-2 px-2 py-1 rounded-full bg-secondary/50 border border-border">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary/50 border border-border">
             {['en', 'fr', 'id'].map((l) => (
               <Link
                 key={l}
@@ -103,9 +103,12 @@ export const Navbar = () => {
             ))}
           </div>
 
-          <Button variant="ghost" size="icon" className="hover:bg-primary/5">
-            <Search className="w-5 h-5" />
-          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-primary/5"
+            icon={<Search className="w-5 h-5" />}
+          />
 
           {isAuthenticated ? (
             <Link to="/$lang/account" params={{ lang: currentLang }}>
@@ -113,9 +116,8 @@ export const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 className="hover:bg-primary/5"
-              >
-                <User className="w-5 h-5" />
-              </Button>
+                icon={<User className="w-5 h-5" />}
+              />
             </Link>
           ) : (
             <Button
@@ -123,9 +125,8 @@ export const Navbar = () => {
               size="icon"
               className="hover:bg-primary/5"
               onClick={() => open('login')}
-            >
-              <User className="w-5 h-5" />
-            </Button>
+              icon={<User className="w-5 h-5" />}
+            />
           )}
 
           <Button
@@ -134,8 +135,8 @@ export const Navbar = () => {
             className="relative hover:bg-primary/5"
             aria-label="cart"
             onClick={() => setIsCartOpen(true)}
+            icon={<ShoppingBag className="w-5 h-5" />}
           >
-            <ShoppingBag className="w-5 h-5" />
             {totalItems > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold">
                 {totalItems}
@@ -147,9 +148,8 @@ export const Navbar = () => {
             variant="ghost"
             size="icon"
             className="md:hidden hover:bg-primary/5"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+            icon={<Menu className="w-5 h-5" />}
+          />
         </div>
       </div>
 

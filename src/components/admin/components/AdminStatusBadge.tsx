@@ -125,12 +125,35 @@ const defaultStyle: StatusStyle = {
   dot: 'bg-gray-500',
 }
 
+// Human-readable labels for status values
+const statusLabels: Record<string, string> = {
+  // Product & Collection
+  active: 'Active',
+  draft: 'Draft',
+  archived: 'Archived',
+  // Order
+  pending: 'Pending',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  // Payment
+  paid: 'Paid',
+  failed: 'Failed',
+  refunded: 'Refunded',
+  // Fulfillment
+  unfulfilled: 'Unfulfilled',
+  partial: 'Partial',
+  fulfilled: 'Fulfilled',
+}
+
 export const AdminStatusBadge = ({
   status,
   showDot = true,
   className,
 }: AdminStatusBadgeProps) => {
   const style = statusStyles[status] || defaultStyle
+  const label = statusLabels[status] || status
 
   return (
     <span
@@ -149,7 +172,7 @@ export const AdminStatusBadge = ({
           style.text,
         )}
       >
-        {status}
+        {label}
       </span>
     </span>
   )

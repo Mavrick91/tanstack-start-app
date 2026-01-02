@@ -7,7 +7,7 @@ import {
   duplicateProductFn,
   updateProductStatusFn,
 } from '../../../../server/products'
-import { DataListDropdown } from '../../components/DataListDropdown'
+import { AdminRowActions } from '../../components/AdminRowActions'
 
 interface ProductListActionsProps {
   productId: string
@@ -68,17 +68,16 @@ export const ProductListActions = ({
   })
 
   return (
-    <DataListDropdown
-      itemId={productId}
-      itemName={productName}
-      status={status}
+    <AdminRowActions
       editUrl={`/admin/products/${productId}`}
       storefrontUrl={`/en/products/${handle}`}
-      onDelete={() => deleteMutation.mutate()}
       onDuplicate={() => duplicateMutation.mutate()}
-      onStatusChange={(newStatus) => statusMutation.mutate(newStatus)}
       isDuplicatePending={duplicateMutation.isPending}
+      status={status}
+      onStatusChange={(newStatus) => statusMutation.mutate(newStatus)}
       isStatusPending={statusMutation.isPending}
+      itemName={productName}
+      onDelete={() => deleteMutation.mutate()}
     />
   )
 }

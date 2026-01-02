@@ -70,7 +70,7 @@ const AccountOrderDetailPage = (): React.ReactNode => {
               params={{ lang }}
               className="inline-flex items-center text-white/60 hover:text-white mb-4"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               {t('Back to orders')}
             </Link>
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-8 text-center">
@@ -93,7 +93,7 @@ const AccountOrderDetailPage = (): React.ReactNode => {
               params={{ lang }}
               className="inline-flex items-center text-white/60 hover:text-white mb-4"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               {t('Back to orders')}
             </Link>
             <div className="flex items-start justify-between">

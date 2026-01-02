@@ -120,7 +120,7 @@ const AccountAddressesPage = (): React.ReactNode => {
               params={{ lang }}
               className="inline-flex items-center text-white/60 hover:text-white mb-4"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               {t('Back to account')}
             </Link>
             <div className="flex items-center justify-between">
@@ -129,8 +129,10 @@ const AccountAddressesPage = (): React.ReactNode => {
               </h1>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-white text-black hover:bg-white/90">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button
+                    className="bg-white text-black hover:bg-white/90"
+                    icon={<Plus className="w-4 h-4" />}
+                  >
                     {t('Add address')}
                   </Button>
                 </DialogTrigger>
@@ -158,12 +160,13 @@ const AccountAddressesPage = (): React.ReactNode => {
                         onClick={handleSubmitClick}
                         disabled={isSubmitting}
                         className="bg-white text-black hover:bg-white/90"
+                        icon={
+                          isSubmitting ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : undefined
+                        }
                       >
-                        {isSubmitting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          t('Save address')
-                        )}
+                        {isSubmitting ? '' : t('Save address')}
                       </Button>
                     </div>
                   </div>
@@ -213,9 +216,8 @@ const AccountAddressesPage = (): React.ReactNode => {
                       size="sm"
                       onClick={() => handleDeleteAddress(address.id)}
                       className="text-white/40 hover:text-red-400 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      icon={<Trash2 className="w-4 h-4" />}
+                    />
                   </div>
                 </div>
               ))}

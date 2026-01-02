@@ -111,8 +111,8 @@ const AccountPage = () => {
             variant="outline"
             onClick={handleLogout}
             className="w-full border-white/10 hover:bg-white/10 text-white"
+            icon={<LogOut className="w-4 h-4" />}
           >
-            <LogOut className="w-4 h-4 mr-2" />
             {t('Log out')}
           </Button>
         </div>

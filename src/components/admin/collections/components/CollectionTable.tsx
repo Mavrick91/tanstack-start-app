@@ -3,12 +3,11 @@ import { ArrowRight, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { CollectionListActions } from './CollectionListActions'
+import { formatDate } from '../../../../lib/format'
 import { CollectionThumbnail } from '../../../collections/CollectionThumbnail'
+import { Checkbox } from '../../../ui/checkbox'
 import { AdminStatusBadge } from '../../components/AdminStatusBadge'
-import {
-  SortableHeader,
-  type SortOrder,
-} from '../../components/SortableHeader'
+import { SortableHeader, type SortOrder } from '../../components/SortableHeader'
 
 import type { CollectionListItem } from '../types'
 
@@ -41,21 +40,19 @@ export const CollectionTable = ({
   const { t } = useTranslation()
 
   return (
-    <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted/30 border-b border-border/50">
+            <tr className="bg-muted/30 border-b border-border">
               {/* Checkbox column */}
-              <th className="w-12 px-8 py-4">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = isSomeSelected && !isAllSelected
-                  }}
-                  onChange={onToggleSelectAll}
-                  className="w-4 h-4 rounded border-border accent-pink-500 cursor-pointer"
+              <th className="w-12 px-4 py-3">
+                <Checkbox
+                  checked={
+                    isAllSelected || (isSomeSelected ? 'indeterminate' : false)
+                  }
+                  onCheckedChange={onToggleSelectAll}
+                  aria-label={t('Select all collections')}
                 />
               </th>
               <SortableHeader
@@ -65,10 +62,10 @@ export const CollectionTable = ({
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
-              <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+              <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 {t('Status')}
               </th>
-              <th className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+              <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 {t('Handle')}
               </th>
               <SortableHeader
@@ -85,7 +82,7 @@ export const CollectionTable = ({
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
-              <th className="px-8 py-4"></th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
@@ -94,15 +91,14 @@ export const CollectionTable = ({
                 key={collection.id}
                 className={`cursor-pointer hover:bg-muted/50 transition-all duration-200 group ${selectedIds.has(collection.id) ? 'bg-pink-500/5' : ''}`}
               >
-                <td className="px-8 py-5">
-                  <input
-                    type="checkbox"
+                <td className="px-4 py-3">
+                  <Checkbox
                     checked={selectedIds.has(collection.id)}
-                    onChange={() => onToggleSelect(collection.id)}
-                    className="w-4 h-4 rounded border-border accent-pink-500 cursor-pointer"
+                    onCheckedChange={() => onToggleSelect(collection.id)}
+                    aria-label={`Select ${collection.name.en}`}
                   />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-muted/50 overflow-hidden border border-border/50 shrink-0 group-hover:scale-105 transition-transform duration-300">
                       <CollectionThumbnail
@@ -126,18 +122,18 @@ export const CollectionTable = ({
                     </div>
                   </div>
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <AdminStatusBadge
                     status={collection.publishedAt ? 'active' : 'draft'}
                     variant="collection"
                   />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <span className="text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md font-mono">
                     /{collection.handle}
                   </span>
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Package className="w-3 h-3 text-muted-foreground" />
                     <span className="text-xs font-semibold tabular-nums">
@@ -145,15 +141,12 @@ export const CollectionTable = ({
                     </span>
                   </div>
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <span className="text-xs font-medium text-muted-foreground">
-                    {new Date(collection.createdAt).toLocaleDateString(
-                      undefined,
-                      { month: 'short', day: 'numeric', year: 'numeric' },
-                    )}
+                    {formatDate(collection.createdAt, 'short')}
                   </span>
                 </td>
-                <td className="px-8 py-5 text-right">
+                <td className="px-4 py-3 text-right">
                   <CollectionListActions
                     collectionId={collection.id}
                     handle={collection.handle}
@@ -172,12 +165,12 @@ export const CollectionTable = ({
 
 export const CollectionTableSkeleton = () => {
   return (
-    <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted/30 border-b border-border/50">
-              <th className="w-12 px-8 py-4">
+            <tr className="bg-muted/30 border-b border-border">
+              <th className="w-12 px-4 py-3">
                 <div className="w-4 h-4 bg-muted rounded" />
               </th>
               {[
@@ -190,7 +183,7 @@ export const CollectionTableSkeleton = () => {
               ].map((h, i) => (
                 <th
                   key={i}
-                  className="text-left px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
+                  className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
                 >
                   {h}
                 </th>
@@ -200,10 +193,10 @@ export const CollectionTableSkeleton = () => {
           <tbody className="divide-y divide-border/30">
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i} className="animate-pulse">
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="w-4 h-4 bg-muted rounded" />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-muted" />
                     <div className="space-y-1.5">
@@ -212,19 +205,19 @@ export const CollectionTableSkeleton = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="h-5 w-16 bg-muted rounded-full" />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="h-4 w-24 bg-muted rounded" />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="h-4 w-12 bg-muted rounded" />
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-4 py-3">
                   <div className="h-3 w-20 bg-muted rounded" />
                 </td>
-                <td className="px-8 py-5" />
+                <td className="px-4 py-3" />
               </tr>
             ))}
           </tbody>

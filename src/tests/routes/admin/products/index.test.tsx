@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { NoResults } from '@/routes/admin/_authed/products/index'
+import { AdminNoResults } from '@/components/admin/components/AdminNoResults'
 import { fireEvent, render, screen } from '@/test/test-utils'
 
-describe('NoResults component', () => {
+describe('AdminNoResults component', () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
@@ -23,7 +23,7 @@ describe('NoResults component', () => {
 
   it('should call onClear when clicking Clear Filters button', () => {
     const onClear = vi.fn()
-    renderWithProviders(<NoResults onClear={onClear} />)
+    renderWithProviders(<AdminNoResults onClear={onClear} />)
 
     const clearButton = screen.getByRole('button', { name: /clear filters/i })
     fireEvent.click(clearButton)
@@ -33,7 +33,7 @@ describe('NoResults component', () => {
 
   it('should have accessible button with aria-label', () => {
     const onClear = vi.fn()
-    renderWithProviders(<NoResults onClear={onClear} />)
+    renderWithProviders(<AdminNoResults onClear={onClear} />)
 
     const clearButton = screen.getByRole('button', { name: /clear filters/i })
     expect(clearButton).toBeInTheDocument()
@@ -42,7 +42,7 @@ describe('NoResults component', () => {
 
   it('should display the correct message', () => {
     const onClear = vi.fn()
-    renderWithProviders(<NoResults onClear={onClear} />)
+    renderWithProviders(<AdminNoResults onClear={onClear} />)
 
     expect(
       screen.getByText('No products match your filters.'),
@@ -51,7 +51,7 @@ describe('NoResults component', () => {
 
   it('should display "Clear Filters" button text', () => {
     const onClear = vi.fn()
-    renderWithProviders(<NoResults onClear={onClear} />)
+    renderWithProviders(<AdminNoResults onClear={onClear} />)
 
     expect(screen.getByText('Clear Filters')).toBeInTheDocument()
   })

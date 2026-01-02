@@ -434,19 +434,23 @@ export const unpublishCollectionFn = createServerFn({ method: 'POST' })
 export const getCollectionStatsFn = createServerFn({ method: 'GET' })
   .middleware([adminMiddleware])
   .handler(async () => {
-    const [totalResult, activeResult, draftResult, productsInCollectionsResult] =
-      await Promise.all([
-        db.select({ count: count() }).from(collections),
-        db
-          .select({ count: count() })
-          .from(collections)
-          .where(isNotNull(collections.publishedAt)),
-        db
-          .select({ count: count() })
-          .from(collections)
-          .where(isNull(collections.publishedAt)),
-        db.select({ count: count() }).from(collectionProducts),
-      ])
+    const [
+      totalResult,
+      activeResult,
+      draftResult,
+      productsInCollectionsResult,
+    ] = await Promise.all([
+      db.select({ count: count() }).from(collections),
+      db
+        .select({ count: count() })
+        .from(collections)
+        .where(isNotNull(collections.publishedAt)),
+      db
+        .select({ count: count() })
+        .from(collections)
+        .where(isNull(collections.publishedAt)),
+      db.select({ count: count() }).from(collectionProducts),
+    ])
 
     return {
       success: true,

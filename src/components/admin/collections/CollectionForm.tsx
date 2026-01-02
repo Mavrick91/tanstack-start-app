@@ -10,6 +10,7 @@ import { useCollectionForm } from './hooks/useCollectionForm'
 import { useCollectionMutations } from './hooks/useCollectionMutations'
 import { useProductPicker } from './hooks/useProductPicker'
 import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges'
+import { formatDate } from '../../../lib/format'
 import { cn } from '../../../lib/utils'
 import { getProductsFn } from '../../../server/products'
 import { Badge } from '../../ui/badge'
@@ -82,9 +83,8 @@ export const CollectionForm = ({
             size="icon"
             onClick={() => navigate({ to: '/admin/collections' })}
             className="rounded-full hover:bg-muted"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+            icon={<ArrowLeft className="h-5 w-5" />}
+          />
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-black tracking-tight text-foreground">
@@ -121,14 +121,14 @@ export const CollectionForm = ({
         </div>
         <div className="flex items-center gap-3">
           <Link to="/admin/collections">
-            <Button variant="outline" className="rounded-xl border-border/50">
+            <Button variant="outline" className="rounded-md border-border">
               {t('Cancel')}
             </Button>
           </Link>
           <Button
             onClick={form.handleSubmit}
             disabled={mutations.save.isPending}
-            className="rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-black px-6 shadow-lg shadow-pink-500/20"
+            className="rounded-md bg-pink-500 hover:bg-pink-600 text-white font-black px-6"
           >
             {isEdit ? t('Save Changes') : t('Create Collection')}
           </Button>
@@ -139,8 +139,8 @@ export const CollectionForm = ({
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Collection Details */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-pink-500 to-purple-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-pink-500 to-purple-500" />
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <LayoutGrid className="h-5 w-5 text-pink-500" />
@@ -174,7 +174,7 @@ export const CollectionForm = ({
                       onChange={(e) => {
                         handleNameChange(e.target.value)
                       }}
-                      className="h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-medium"
+                      className="bg-background border-border font-medium"
                     />
                     {field.state.meta.errors ? (
                       <p className="text-sm text-destructive font-medium">
@@ -203,7 +203,7 @@ export const CollectionForm = ({
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        className="pl-6 h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
+                        className="pl-6 bg-background border-border font-mono text-sm"
                       />
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export const CollectionForm = ({
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      className="min-h-[120px] rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 resize-none"
+                      className="min-h-[120px] bg-background border-border resize-none"
                       placeholder={t('Describe this collection...')}
                     />
                   </div>
@@ -247,8 +247,8 @@ export const CollectionForm = ({
           )}
 
           {/* SEO Settings */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-blue-500 to-cyan-500" />
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Globe className="h-5 w-5 text-blue-500" />
@@ -354,7 +354,7 @@ export const CollectionForm = ({
         {/* Sidebar */}
         <div className="space-y-8">
           <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden sticky top-8">
-            <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <div className="h-1 bg-linear-to-r from-emerald-500 to-teal-500" />
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Settings2 className="h-5 w-5 text-emerald-500" />
@@ -393,7 +393,7 @@ export const CollectionForm = ({
               {collection?.publishedAt && (
                 <div className="text-xs text-muted-foreground text-center font-medium">
                   {t('Published on')}{' '}
-                  {new Date(collection.publishedAt).toLocaleDateString()}
+                  {formatDate(collection.publishedAt, 'short')}
                 </div>
               )}
 
@@ -405,8 +405,8 @@ export const CollectionForm = ({
                       variant="outline"
                       onClick={() => mutations.unpublish.mutate()}
                       className="w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200"
+                      icon={<Globe className="h-4 w-4" />}
                     >
-                      <Globe className="h-4 w-4 mr-2" />
                       {t('Unpublish')}
                     </Button>
                   ) : (
@@ -415,8 +415,8 @@ export const CollectionForm = ({
                       variant="outline"
                       onClick={() => mutations.publish.mutate()}
                       className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                      icon={<Globe className="h-4 w-4" />}
                     >
-                      <Globe className="h-4 w-4 mr-2" />
                       {t('Publish')}
                     </Button>
                   )}
@@ -426,8 +426,8 @@ export const CollectionForm = ({
                     variant="outline"
                     onClick={() => mutations.duplicate.mutate()}
                     className="w-full justify-start"
+                    icon={<LayoutGrid className="h-4 w-4" />}
                   >
-                    <LayoutGrid className="h-4 w-4 mr-2" />
                     {t('Duplicate')}
                   </Button>
                 </div>

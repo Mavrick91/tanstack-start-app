@@ -1,5 +1,5 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { FolderOpen, Search } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { FolderOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
@@ -12,11 +12,12 @@ import {
   CollectionTable,
   CollectionTableSkeleton,
 } from '../../../../components/admin/collections/components/CollectionTable'
+import { AdminEmptyState } from '../../../../components/admin/components/AdminEmptyState'
+import { AdminNoResults } from '../../../../components/admin/components/AdminNoResults'
 import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
 import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
 import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
 import { StatusFilterTabs } from '../../../../components/admin/components/StatusFilterTabs'
-import { Button } from '../../../../components/ui/button'
 import { useDataTable, type TableState } from '../../../../hooks/useDataTable'
 import {
   getCollectionsFn,
@@ -150,9 +151,7 @@ const CollectionsPage = () => {
       />
 
       {/* Stats Cards */}
-      <div className="px-1">
-        <CollectionStats stats={stats} />
-      </div>
+      <CollectionStats stats={stats} />
 
       {/* Filter / Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 px-1">
@@ -174,9 +173,23 @@ const CollectionsPage = () => {
       {table.isLoading ? (
         <CollectionTableSkeleton />
       ) : isEmptyCatalog ? (
-        <EmptyState />
+        <AdminEmptyState
+          icon={FolderOpen}
+          title={t('Your collection gallery is empty')}
+          description={t(
+            'Start curating your products into beautiful, themed collections.',
+          )}
+          actionLabel={t('Add your first collection')}
+          actionHref="/admin/collections/new"
+        />
       ) : isNoFilterResults ? (
-        <NoResults onClear={() => table.setSearch('')} />
+        <AdminNoResults
+          message={t('No collections match your filters.')}
+          onClear={() => {
+            table.setSearch('')
+            table.setFilter('status', 'all')
+          }}
+        />
       ) : (
         <>
           <CollectionTable
@@ -229,51 +242,3 @@ export const Route = createFileRoute('/admin/_authed/collections/')({
   },
   component: CollectionsPage,
 })
-
-const EmptyState = () => {
-  const { t } = useTranslation()
-  return (
-    <div className="text-center py-24 bg-card border border-border/50 rounded-3xl shadow-sm">
-      <div className="w-16 h-16 bg-pink-500/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-        <FolderOpen className="w-8 h-8 text-pink-500/40" />
-      </div>
-      <h3 className="text-xl font-bold mb-1">
-        {t('Your collection gallery is empty')}
-      </h3>
-      <p className="text-muted-foreground text-xs font-medium mb-6 max-w-xs mx-auto">
-        {t('Start curating your products into beautiful, themed collections.')}
-      </p>
-      <Link to="/admin/collections/new">
-        <Button
-          variant="outline"
-          className="rounded-xl h-10 px-6 font-semibold"
-        >
-          {t('Add your first collection')}
-        </Button>
-      </Link>
-    </div>
-  )
-}
-
-const NoResults = ({ onClear }: { onClear: () => void }) => {
-  const { t } = useTranslation()
-  return (
-    <div className="text-center py-20 bg-card border border-border/50 rounded-3xl shadow-sm">
-      <div className="w-14 h-14 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border/50">
-        <Search className="w-6 h-6 text-muted-foreground/50" />
-      </div>
-      <h3 className="text-lg font-bold mb-1">{t('No collections found.')}</h3>
-      <p className="text-sm text-muted-foreground mb-6">
-        {t('No products match your filters.')}
-      </p>
-      <Button
-        variant="outline"
-        size="sm"
-        className="rounded-xl px-5"
-        onClick={onClear}
-      >
-        {t('Clear Search')}
-      </Button>
-    </div>
-  )
-}

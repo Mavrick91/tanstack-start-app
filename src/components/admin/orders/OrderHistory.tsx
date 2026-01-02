@@ -1,4 +1,5 @@
 import { Clock, Loader2, User, Bot, ArrowRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { OrderStatusBadge } from './OrderStatusBadge'
 import { formatDate } from '../../../lib/format'
@@ -40,6 +41,7 @@ export const OrderHistory = ({
   entries,
   isLoading = false,
 }: OrderHistoryProps) => {
+  const { t } = useTranslation()
   const isSystem = (changedBy: string) => {
     return changedBy === 'system' || changedBy.startsWith('webhook')
   }
@@ -53,18 +55,18 @@ export const OrderHistory = ({
     <div className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Clock className="w-5 h-5 text-pink-500" />
-        Order History
+        {t('Order History')}
       </h2>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8 text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-          Loading history...
+          <Loader2 className="w-5 h-5 animate-spin" />
+          {t('Loading history...')}
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p>No history available</p>
+          <p>{t('No history available')}</p>
         </div>
       ) : (
         <div className="relative">
@@ -127,7 +129,7 @@ export const OrderHistory = ({
                     {isSystem(entry.changedBy) ? (
                       <>
                         <Bot className="w-3 h-3" />
-                        <span>system</span>
+                        <span>{t('system')}</span>
                       </>
                     ) : (
                       <>

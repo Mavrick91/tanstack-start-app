@@ -3,6 +3,8 @@ import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { ProductListActions } from './ProductListActions'
+import { formatCurrency } from '../../../../lib/format'
+import { Checkbox } from '../../../ui/checkbox'
 import { AdminStatusBadge } from '../../components/AdminStatusBadge'
 import { SortableHeader } from '../../components/SortableHeader'
 
@@ -35,21 +37,19 @@ export const ProductTable = ({
   const { t } = useTranslation()
 
   return (
-    <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted/30 border-b border-border/50">
+            <tr className="bg-muted/30 border-b border-border">
               {/* Checkbox column */}
               <th className="w-12 px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = isSomeSelected && !isAllSelected
-                  }}
-                  onChange={onToggleSelectAll}
-                  className="w-4 h-4 rounded border-border accent-pink-500 cursor-pointer"
+                <Checkbox
+                  checked={
+                    isAllSelected || (isSomeSelected ? 'indeterminate' : false)
+                  }
+                  onCheckedChange={onToggleSelectAll}
+                  aria-label="Select all products"
                 />
               </th>
               <SortableHeader
@@ -73,10 +73,10 @@ export const ProductTable = ({
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
-              <th className="text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+              <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 {t('SKU')}
               </th>
-              <th className="px-6 py-3" />
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
@@ -85,15 +85,14 @@ export const ProductTable = ({
                 key={product.id}
                 className={`cursor-pointer hover:bg-muted/50 transition-colors group ${selectedIds.has(product.id) ? 'bg-pink-500/5' : ''}`}
               >
-                <td className="px-4 py-4">
-                  <input
-                    type="checkbox"
+                <td className="px-4 py-3">
+                  <Checkbox
                     checked={selectedIds.has(product.id)}
-                    onChange={() => onToggleSelect(product.id)}
-                    className="w-4 h-4 rounded border-border accent-pink-500 cursor-pointer"
+                    onCheckedChange={() => onToggleSelect(product.id)}
+                    aria-label={`Select ${product.name.en}`}
                   />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {product.firstImageUrl ? (
                       <img
@@ -121,21 +120,21 @@ export const ProductTable = ({
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <AdminStatusBadge status={product.status} variant="product" />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <PriceDisplay
                     price={product.price}
                     compareAtPrice={product.compareAtPrice}
                   />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <span className="text-xs font-medium text-muted-foreground">
                     {product.sku || '—'}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-4 py-3 text-right">
                   <ProductListActions
                     productId={product.id}
                     productName={product.name.en}
@@ -165,10 +164,12 @@ const PriceDisplay = ({
 
   return (
     <div className="flex flex-col">
-      <span className="text-sm font-semibold">${Number(price).toFixed(2)}</span>
+      <span className="text-sm font-semibold">
+        {formatCurrency({ value: price })}
+      </span>
       {compareAtPrice && (
         <span className="text-[10px] text-muted-foreground line-through">
-          ${Number(compareAtPrice).toFixed(2)}
+          {formatCurrency({ value: compareAtPrice })}
         </span>
       )}
     </div>
@@ -177,18 +178,18 @@ const PriceDisplay = ({
 
 export const ProductTableSkeleton = () => {
   return (
-    <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted/30 border-b border-border/50">
+            <tr className="bg-muted/30 border-b border-border">
               <th className="w-12 px-4 py-3">
                 <div className="w-4 h-4 bg-muted rounded" />
               </th>
               {['Product', 'Status', 'Price', 'SKU', ''].map((h, i) => (
                 <th
                   key={i}
-                  className="text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
+                  className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70"
                 >
                   {h}
                 </th>
@@ -198,10 +199,10 @@ export const ProductTableSkeleton = () => {
           <tbody className="divide-y divide-border/30">
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i} className="animate-pulse">
-                <td className="px-4 py-4">
+                <td className="px-4 py-3">
                   <div className="w-4 h-4 bg-muted rounded" />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-muted" />
                     <div className="space-y-1.5">
@@ -210,19 +211,19 @@ export const ProductTableSkeleton = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="h-5 w-16 bg-muted rounded-full" />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="h-1 w-14 bg-muted rounded-full" />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="h-4 w-12 bg-muted rounded" />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="h-3 w-16 bg-muted rounded" />
                 </td>
-                <td className="px-6 py-4" />
+                <td className="px-4 py-3" />
               </tr>
             ))}
           </tbody>

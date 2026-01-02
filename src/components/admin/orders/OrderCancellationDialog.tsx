@@ -1,5 +1,6 @@
 import { AlertTriangle, Loader2, XCircle, RefreshCw, Ban } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { formatCurrency } from '../../../lib/format'
 import { Button } from '../../ui/button'
@@ -36,6 +37,7 @@ export const OrderCancellationDialog = ({
   currency,
   isLoading = false,
 }: OrderCancellationDialogProps) => {
+  const { t } = useTranslation()
   const [reason, setReason] = useState('')
 
   const handleConfirm = () => {
@@ -107,7 +109,7 @@ export const OrderCancellationDialog = ({
                   : 'bg-muted text-muted-foreground'
               }`}
             >
-              <refundInfo.icon className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <refundInfo.icon className="h-5 w-5 shrink-0 mt-0.5" />
               <p className="text-sm">{refundInfo.message}</p>
             </div>
           )}
@@ -143,15 +145,13 @@ export const OrderCancellationDialog = ({
             variant="destructive"
             onClick={handleConfirm}
             disabled={!reason.trim() || isLoading}
+            icon={
+              isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : undefined
+            }
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Cancelling...
-              </>
-            ) : (
-              'Cancel Order'
-            )}
+            {t('Cancel Order')}
           </Button>
         </DialogFooter>
       </DialogContent>

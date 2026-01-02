@@ -33,7 +33,7 @@ export const AdminBulkActionsBar = ({
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-200">
-      <div className="flex items-center gap-3 px-5 py-3 bg-foreground text-background rounded-2xl shadow-2xl border border-background/10">
+      <div className="flex items-center gap-3 px-5 py-3 bg-foreground text-background rounded-lg border border-background/10">
         <span className="text-sm font-semibold">
           {t('{{count}} selected', { count: selectedCount })}
         </span>
@@ -54,8 +54,8 @@ export const AdminBulkActionsBar = ({
               }
               onClick={() => onAction(action.key)}
               disabled={isPending}
+              icon={<Icon className="w-4 h-4" />}
             >
-              <Icon className="w-3.5 h-3.5" />
               {action.label}
             </Button>
           )
@@ -63,7 +63,7 @@ export const AdminBulkActionsBar = ({
         <div className="w-px h-5 bg-background/20" />
         <button
           onClick={onClear}
-          className="p-1.5 hover:bg-background/10 rounded-lg transition-colors"
+          className="p-1.5 hover:bg-background/10 rounded-md transition-colors"
           disabled={isPending}
           aria-label={t('Clear selection')}
         >

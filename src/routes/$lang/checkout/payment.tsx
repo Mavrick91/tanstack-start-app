@@ -216,7 +216,7 @@ const CheckoutPaymentPage = () => {
                   value="card"
                   className="flex-1 h-full rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <CreditCard className="w-4 h-4 mr-2" />
+                  <CreditCard className="w-4 h-4" />
                   {t('Credit Card')}
                 </TabsTrigger>
                 <TabsTrigger

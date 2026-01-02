@@ -105,13 +105,12 @@ const SortableImage = ({
           size="icon"
           className="h-8 w-8 rounded-lg shadow-lg backdrop-blur-md bg-destructive/90"
           onClick={() => onRemove(image.id)}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+          icon={<Trash2 className="w-4 h-4" />}
+        />
       </div>
 
       {/* Alt Text Overlay (Bottom) */}
-      <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/60 to-transparent translate-y-[100%] group-hover:translate-y-0 transition-transform duration-200">
+      <div className="absolute bottom-0 inset-x-0 p-3 bg-linear-to-t from-black/60 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-200">
         <Input
           className="h-8 bg-white/10 backdrop-blur-md border-white/20 rounded-lg text-white placeholder:text-white/60 text-xs focus:ring-white/30"
           value={image.altText.en}

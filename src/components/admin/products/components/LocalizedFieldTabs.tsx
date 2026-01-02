@@ -24,8 +24,7 @@ interface LocalizedFieldTabsProps {
 const tabTriggerClass =
   'rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all'
 
-const inputBaseClass =
-  'h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500'
+const inputBaseClass = 'bg-background/50 border-border'
 
 /**
  * Reusable component for localized (en/fr/id) field input with tabs.

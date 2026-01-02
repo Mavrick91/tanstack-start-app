@@ -2,17 +2,6 @@ import { vi } from 'vitest'
 
 type TranslationFn = (key: string, options?: Record<string, unknown>) => string
 
-/**
- * Creates a mock translation function.
- * Returns the key by default, or a mapped value if translations are provided.
- *
- * Usage:
- * ```ts
- * const t = createMockT({ 'cart.empty': 'Your cart is empty' })
- * t('cart.empty') // 'Your cart is empty'
- * t('unknown.key') // 'unknown.key'
- * ```
- */
 export const createMockT = (
   translations?: Record<string, string>,
 ): TranslationFn => {

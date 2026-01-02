@@ -122,9 +122,8 @@ const SortableProductItem = ({
         size="icon"
         onClick={() => onRemove(product.id)}
         className="h-10 w-10 text-muted-foreground hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+        icon={<Trash2 className="h-4 w-4" />}
+      />
     </div>
   )
 }
@@ -167,7 +166,7 @@ export const ProductsCard = ({
 
   return (
     <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-rose-500 to-pink-500" />
+      <div className="h-1 bg-linear-to-r from-rose-500 to-pink-500" />
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="text-xl flex items-center gap-2">
@@ -183,8 +182,8 @@ export const ProductsCard = ({
           size="sm"
           onClick={onAddClick}
           className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-bold px-4"
+          icon={<Plus className="h-4 w-4" />}
         >
-          <Plus className="h-4 w-4 mr-2" />
           {t('Add Products')}
         </Button>
       </CardHeader>

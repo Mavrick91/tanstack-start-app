@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { OrderCancellationDialog } from './OrderCancellationDialog'
 import { OrderHistory, type OrderHistoryEntry } from './OrderHistory'
 import { OrderStatusBadge } from './OrderStatusBadge'
-import { formatCurrency } from '../../../lib/format'
+import { formatCurrency, formatDate } from '../../../lib/format'
 import { Button } from '../../ui/button'
 import {
   Select,
@@ -47,17 +47,6 @@ export const OrderDetail = ({
   const [fulfillmentStatus, setFulfillmentStatus] = useState(
     order.fulfillmentStatus,
   )
-
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return '—'
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
 
   const handleSaveStatus = async () => {
     // If user selected cancelled, show the confirmation dialog instead
@@ -108,7 +97,7 @@ export const OrderDetail = ({
             Order #{order.orderNumber}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Placed on {formatDate(order.createdAt)}
+            Placed on {formatDate(order.createdAt, 'long')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -247,7 +236,7 @@ export const OrderDetail = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Paid at</span>
-                <span>{formatDate(order.paidAt)}</span>
+                <span>{formatDate(order.paidAt, 'datetime')}</span>
               </div>
             </div>
           </div>
@@ -324,7 +313,7 @@ export const OrderDetail = ({
                 </div>
                 {order.cancelledAt && (
                   <p className="text-xs text-muted-foreground">
-                    Cancelled on {formatDate(order.cancelledAt)}
+                    Cancelled on {formatDate(order.cancelledAt, 'datetime')}
                   </p>
                 )}
               </div>

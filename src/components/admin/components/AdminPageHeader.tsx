@@ -32,7 +32,7 @@ export const AdminPageHeader = ({
       </div>
       {action && (
         <Link to={action.href}>
-          <Button className="h-10 px-5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-sm font-semibold gap-2 transition-all">
+          <Button className="h-9 px-5 rounded-md bg-pink-500 hover:bg-pink-600 text-white font-semibold gap-2">
             <ActionIcon className="w-4 h-4" />
             {action.label}
           </Button>

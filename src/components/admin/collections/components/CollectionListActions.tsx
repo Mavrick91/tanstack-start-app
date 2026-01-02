@@ -8,7 +8,7 @@ import {
   publishCollectionFn,
   unpublishCollectionFn,
 } from '../../../../server/collections'
-import { DataListDropdown } from '../../components/DataListDropdown'
+import { AdminRowActions } from '../../components/AdminRowActions'
 
 interface CollectionListActionsProps {
   collectionId: string
@@ -83,17 +83,16 @@ export const CollectionListActions = ({
   }
 
   return (
-    <DataListDropdown
-      itemId={collectionId}
-      itemName={name}
-      status={status}
+    <AdminRowActions
       editUrl={`/admin/collections/${collectionId}`}
       storefrontUrl={`/en/collections/${handle}`}
-      onDelete={() => deleteMutation.mutate()}
       onDuplicate={() => duplicateMutation.mutate()}
-      onStatusChange={handleStatusChange}
       isDuplicatePending={duplicateMutation.isPending}
+      status={status}
+      onStatusChange={handleStatusChange}
       isStatusPending={publishMutation.isPending || unpublishMutation.isPending}
+      itemName={name}
+      onDelete={() => deleteMutation.mutate()}
     />
   )
 }

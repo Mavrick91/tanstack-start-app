@@ -10,9 +10,9 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
-import { cn } from '@/lib/utils'
-
 import { Input } from './input'
+
+import { cn } from '@/lib/utils'
 
 export interface AutocompleteComboboxProps {
   value: string
@@ -26,7 +26,7 @@ export interface AutocompleteComboboxProps {
   allowCustom?: boolean
 }
 
-export function AutocompleteCombobox({
+export const AutocompleteCombobox = ({
   value,
   onChange,
   suggestions,
@@ -36,7 +36,7 @@ export function AutocompleteCombobox({
   inputClassName,
   disabled = false,
   allowCustom = true,
-}: AutocompleteComboboxProps) {
+}: AutocompleteComboboxProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(value)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
@@ -214,7 +214,7 @@ export function AutocompleteCombobox({
             ref={listRef}
             role="listbox"
             style={dropdownStyle}
-            className="max-h-60 overflow-auto rounded-xl border border-border/50 bg-popover p-1 shadow-lg"
+            className="max-h-60 overflow-auto rounded-md border border-border/50 bg-popover p-1 shadow-md"
           >
             {filteredSuggestions.map((suggestion, index) => {
               const isHighlighted = index === highlightedIndex

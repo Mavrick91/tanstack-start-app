@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form'
-import { useStore } from '@tanstack/react-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useStore } from '@tanstack/react-store'
 import {
   ArrowLeft,
   Sparkles,
@@ -32,6 +32,7 @@ import {
   updateProductFn,
   updateProductImagesFn,
 } from '../../../server/products'
+import { AutocompleteCombobox } from '../../ui/autocomplete-combobox'
 import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import {
@@ -44,18 +45,10 @@ import {
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { RichTextEditor } from '../../ui/rich-text-editor'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
+import { TagInput } from '../../ui/tag-input'
 import { Textarea } from '../../ui/textarea'
 import { UnsavedChangesDialog } from '../../ui/unsaved-changes-dialog'
-import { AutocompleteCombobox } from '../../ui/autocomplete-combobox'
-import { TagInput } from '../../ui/tag-input'
 import { MediaLibrary, type MediaItem } from '../media/MediaLibrary'
 
 // Suggested vendors for autocomplete
@@ -179,7 +172,6 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
   const isEditMode = !!product
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [aiProvider, setAiProvider] = useState<'gemini' | 'openai'>('gemini')
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false)
 
   // Images state for edit mode (tracks local state separately from form)
@@ -283,12 +275,12 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           data: {
             imageBase64: base64,
             mimeType: firstImage.file.type,
-            provider: aiProvider,
+            provider: 'openai',
           },
         })
       } else {
         result = await generateProductDetailsFn({
-          data: { imageUrl: firstImage.url, provider: aiProvider },
+          data: { imageUrl: firstImage.url, provider: 'openai' },
         })
       }
 
@@ -504,9 +496,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
             size="icon"
             onClick={onBack}
             className="rounded-full hover:bg-muted"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+            icon={<ArrowLeft className="h-5 w-5" />}
+          />
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-black tracking-tight text-foreground">
@@ -540,23 +531,21 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="rounded-xl border-border/50"
-          >
+          <Button variant="outline" onClick={onBack}>
             {t('Cancel')}
           </Button>
           <Button
             onClick={() => form.handleSubmit()}
             disabled={isSaving}
-            className="rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-black px-6 shadow-lg shadow-pink-500/20"
+            className="rounded-md bg-pink-500 hover:bg-pink-600 text-white font-black px-6"
+            icon={
+              isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )
+            }
           >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
             {isEditMode ? t('Save Changes') : t('Create Product')}
           </Button>
         </div>
@@ -565,8 +554,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Main Details Section */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-pink-500 to-purple-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-pink-500 to-purple-500" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-pink-500" />
@@ -594,29 +583,20 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   {(field) => (
                     <>
                       <Tabs defaultValue="en" className="w-full">
-                        <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
-                          <TabsTrigger
-                            value="en"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                          >
+                        <TabsList className="bg-muted/30 p-1 rounded-lg mb-3 flex-wrap h-auto">
+                          <TabsTrigger value="en">
                             EN
                             {field.state.value.en && (
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             )}
                           </TabsTrigger>
-                          <TabsTrigger
-                            value="fr"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                          >
+                          <TabsTrigger value="fr">
                             FR
                             {field.state.value.fr && (
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             )}
                           </TabsTrigger>
-                          <TabsTrigger
-                            value="id"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                          >
+                          <TabsTrigger value="id">
                             ID
                             {field.state.value.id && (
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -625,7 +605,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         </TabsList>
                         <TabsContent value="en" className="mt-0">
                           <Input
-                            className={`h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500 ${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
+                            className={`${field.state.meta.errors.length > 0 ? 'border-destructive' : ''}`}
                             value={field.state.value.en || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -639,7 +619,6 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         </TabsContent>
                         <TabsContent value="fr" className="mt-0">
                           <Input
-                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500"
                             value={field.state.value.fr || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -652,7 +631,6 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         </TabsContent>
                         <TabsContent value="id" className="mt-0">
                           <Input
-                            className="h-12 bg-background/50 border-border rounded-xl focus:ring-pink-500/20 focus:border-pink-500"
                             value={field.state.value.id || ''}
                             onChange={(e) =>
                               field.handleChange({
@@ -680,29 +658,20 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                 <form.Field name="description">
                   {(field) => (
                     <Tabs defaultValue="en" className="w-full">
-                      <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
-                        <TabsTrigger
-                          value="en"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                        >
+                      <TabsList className="bg-muted/30 p-1 rounded-lg mb-3 flex-wrap h-auto">
+                        <TabsTrigger value="en">
                           EN
                           {field.state.value.en && (
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           )}
                         </TabsTrigger>
-                        <TabsTrigger
-                          value="fr"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                        >
+                        <TabsTrigger value="fr">
                           FR
                           {field.state.value.fr && (
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           )}
                         </TabsTrigger>
-                        <TabsTrigger
-                          value="id"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
-                        >
+                        <TabsTrigger value="id">
                           ID
                           {field.state.value.id && (
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -755,27 +724,13 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                     form.getFieldValue('images')?.length > 0 &&
                     form.getFieldValue('images')?.[0]?.url)) && (
                   <div className="flex gap-2 pt-2">
-                    <Select
-                      value={aiProvider}
-                      onValueChange={(v) =>
-                        setAiProvider(v as 'gemini' | 'openai')
-                      }
-                    >
-                      <SelectTrigger className="w-32 h-10 rounded-xl bg-muted/50 border-border font-semibold text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="gemini">Gemini</SelectItem>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <Button
                       type="button"
-                      className="flex-1 h-10 rounded-xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
+                      className="flex-1 h-10 rounded-xl gap-2 font-semibold bg-linear-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
                       onClick={handleAIGenerate}
                       disabled={isGenerating}
+                      icon={<Wand2 className="w-4 h-4" />}
                     >
-                      <Wand2 className="w-4 h-4" />
                       {isGenerating
                         ? t('Generating...')
                         : t('Generate Details with AI')}
@@ -787,8 +742,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </Card>
 
           {/* Media Section */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-violet-500 to-fuchsia-500" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Image className="h-5 w-5 text-violet-500" />
@@ -807,8 +762,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                     variant="outline"
                     className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
                     onClick={() => setIsMediaLibraryOpen(true)}
+                    icon={<ImagePlus className="w-4 h-4" />}
                   >
-                    <ImagePlus className="w-4 h-4" />
                     {t('Add from Media Library')}
                   </Button>
                 </div>
@@ -840,8 +795,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         variant="outline"
                         className="w-full h-11 rounded-xl gap-2 font-semibold border-dashed"
                         onClick={() => setIsMediaLibraryOpen(true)}
+                        icon={<ImagePlus className="w-4 h-4" />}
                       >
-                        <ImagePlus className="w-4 h-4" />
                         {t('Add from Media Library')}
                       </Button>
                     </div>
@@ -877,8 +832,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </Card>
 
           {/* Options Section */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-blue-500 to-cyan-500" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Settings2 className="h-5 w-5 text-blue-500" />
@@ -951,8 +906,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </Card>
 
           {/* Variants Section */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-emerald-500 to-teal-500" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <LayoutGrid className="h-5 w-5 text-emerald-500" />
@@ -972,8 +927,8 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </Card>
 
           {/* SEO / Handle Section */}
-          <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+          <Card className="border-border bg-card overflow-hidden rounded-lg">
+            <div className="h-1 bg-linear-to-r from-amber-500 to-orange-500" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Globe className="h-5 w-5 text-amber-500" />
@@ -1007,7 +962,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        className="pl-6 h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 font-mono text-sm"
+                        className="pl-6 bg-background/50 border-border/50 font-mono text-sm"
                       />
                     </div>
                   )}
@@ -1024,7 +979,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   {(field) => (
                     <Input
                       id="metaTitle"
-                      className="h-12 rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500"
+                      className="bg-background/50 border-border/50"
                       value={field.state.value.en}
                       onChange={(e) =>
                         field.handleChange({
@@ -1051,7 +1006,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   {(field) => (
                     <Textarea
                       id="metaDescription"
-                      className="min-h-[100px] rounded-xl bg-background/50 border-border/50 focus:ring-pink-500/20 focus:border-pink-500 resize-none"
+                      className="min-h-[100px] bg-background/50 border-border/50 resize-none"
                       value={field.state.value.en}
                       onChange={(e) =>
                         field.handleChange({
@@ -1073,7 +1028,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
         {/* Sidebar */}
         <div className="space-y-8">
           <Card className="border-border/50 shadow-xl shadow-foreground/5 bg-card/50 backdrop-blur-sm overflow-hidden sticky top-8">
-            <div className="h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
+            <div className="h-1 bg-linear-to-r from-teal-500 to-emerald-500" />
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Settings2 className="h-5 w-5 text-teal-500" />
@@ -1170,7 +1125,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         onChange={field.handleChange}
                         suggestions={VENDOR_SUGGESTIONS}
                         placeholder={t('Brand name')}
-                        inputClassName="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
+                        inputClassName="bg-background/50 border-border/50"
                       />
                     )}
                   </form.Field>
@@ -1188,7 +1143,7 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         onChange={field.handleChange}
                         suggestions={PRODUCT_TYPE_SUGGESTIONS}
                         placeholder={t('e.g., Nail Polish')}
-                        inputClassName="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
+                        inputClassName="bg-background/50 border-border/50"
                       />
                     )}
                   </form.Field>

@@ -1,8 +1,10 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
+import { AdminEmptyState } from '../../../../components/admin/components/AdminEmptyState'
+import { AdminNoResults } from '../../../../components/admin/components/AdminNoResults'
 import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
 import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
 import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
@@ -13,7 +15,6 @@ import {
   ProductTable,
   ProductTableSkeleton,
 } from '../../../../components/admin/products/components/ProductTable'
-import { Button } from '../../../../components/ui/button'
 import { useDataTable, type TableState } from '../../../../hooks/useDataTable'
 import { useProductStats } from '../../../../hooks/useProductStats'
 import { fetchProducts } from '../../../../lib/api/products'
@@ -171,9 +172,20 @@ const AdminProductsPage = (): React.ReactNode => {
       {table.isLoading ? (
         <ProductTableSkeleton />
       ) : isEmptyCatalog ? (
-        <EmptyState />
+        <AdminEmptyState
+          icon={Package}
+          title={t('No products yet')}
+          description={t(
+            'Start building your catalog by adding your first product.',
+          )}
+          actionLabel={t('Create First Product')}
+          actionHref="/admin/products/new"
+        />
       ) : isNoFilterResults ? (
-        <NoResults onClear={handleClearFilters} />
+        <AdminNoResults
+          message={t('No products match your filters.')}
+          onClear={handleClearFilters}
+        />
       ) : (
         <>
           <ProductTable
@@ -234,47 +246,3 @@ export const Route = createFileRoute('/admin/_authed/products/')({
   },
   component: AdminProductsPage,
 })
-
-const EmptyState = (): React.ReactNode => {
-  const { t } = useTranslation()
-  return (
-    <div className="text-center py-20 bg-card border border-border/50 rounded-2xl shadow-sm">
-      <div className="w-14 h-14 bg-pink-500/5 rounded-xl flex items-center justify-center mx-auto mb-4">
-        <Package className="w-7 h-7 text-pink-500/40" />
-      </div>
-      <h3 className="text-lg font-bold mb-1">{t('No products yet')}</h3>
-      <p className="text-muted-foreground text-xs mb-5 max-w-xs mx-auto">
-        {t('Start building your catalog by adding your first product.')}
-      </p>
-      <Link to="/admin/products/new">
-        <Button variant="outline" className="rounded-xl h-9 px-5 font-semibold">
-          {t('Create First Product')}
-        </Button>
-      </Link>
-    </div>
-  )
-}
-
-export const NoResults = ({
-  onClear,
-}: {
-  onClear: () => void
-}): React.ReactNode => {
-  const { t } = useTranslation()
-  return (
-    <div className="text-center py-16 bg-card border border-border/50 rounded-2xl shadow-sm">
-      <p className="text-muted-foreground text-sm mb-3">
-        {t('No products match your filters.')}
-      </p>
-      <Button
-        variant="outline"
-        size="sm"
-        className="rounded-lg"
-        onClick={onClear}
-        aria-label={t('Clear filters')}
-      >
-        {t('Clear Filters')}
-      </Button>
-    </div>
-  )
-}

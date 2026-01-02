@@ -39,12 +39,11 @@ export const AdminPagination = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8 rounded-lg"
+          className="h-8 w-8 rounded-md"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
+          icon={<ChevronLeft className="w-4 h-4" />}
+        />
         {Array.from({ length: totalPages }, (_, i) => i + 1)
           .filter(
             (p) =>
@@ -64,7 +63,7 @@ export const AdminPagination = ({
                 <Button
                   variant={page === currentPage ? 'default' : 'outline'}
                   size="icon"
-                  className={`h-8 w-8 rounded-lg ${page === currentPage ? 'bg-pink-500 hover:bg-pink-600 text-white' : ''}`}
+                  className={`h-8 w-8 rounded-md ${page === currentPage ? 'bg-pink-500 hover:bg-pink-600 text-white' : ''}`}
                   onClick={() => onPageChange(page)}
                 >
                   {page}
@@ -75,12 +74,11 @@ export const AdminPagination = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8 rounded-lg"
+          className="h-8 w-8 rounded-md"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+          icon={<ChevronRight className="w-4 h-4" />}
+        />
       </div>
     </div>
   )

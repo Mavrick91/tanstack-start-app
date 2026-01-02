@@ -60,7 +60,7 @@ export const ProductPickerDialog = ({
               placeholder={t('Search products...')}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-12 h-12 rounded-2xl bg-background/50 border-border/50 focus:ring-pink-500/10 focus:border-pink-500"
+              className="pl-12 bg-background/50 border-border/50"
             />
           </div>
         </div>

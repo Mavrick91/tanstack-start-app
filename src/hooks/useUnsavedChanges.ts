@@ -15,9 +15,9 @@ interface UseUnsavedChangesReturn {
  * Hook to warn users about unsaved changes when navigating away from a page.
  * Uses TanStack Router's useBlocker for in-app navigation and beforeunload for browser events.
  */
-export function useUnsavedChanges({
+export const useUnsavedChanges = ({
   isDirty,
-}: UseUnsavedChangesOptions): UseUnsavedChangesReturn {
+}: UseUnsavedChangesOptions): UseUnsavedChangesReturn => {
   const router = useRouter()
 
   // Use TanStack Router's useBlocker for in-app navigation

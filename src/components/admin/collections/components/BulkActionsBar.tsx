@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import {
-  AdminBulkActionsBar,
-  type BulkAction,
-} from '../../components/AdminBulkActionsBar'
-import {
   bulkDeleteCollectionsFn,
   bulkUpdateCollectionsStatusFn,
 } from '../../../../server/collections'
+import {
+  AdminBulkActionsBar,
+  type BulkAction,
+} from '../../components/AdminBulkActionsBar'
 
 interface BulkActionsBarProps {
   selectedCount: number

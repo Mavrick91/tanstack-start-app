@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { MoreHorizontal, Package, Plus } from 'lucide-react'
 
 import { Button } from '../../../components/ui/button'
+import { formatCurrency } from '../../../lib/format'
 import { getAdminProductsFn } from '../../../server/products'
 import { AdminStatusBadge } from '../components/AdminStatusBadge'
 
@@ -118,16 +119,21 @@ export const ProductsListContent = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <AdminStatusBadge status={product.status} variant="product" />
+                    <AdminStatusBadge
+                      status={product.status}
+                      variant="product"
+                    />
                   </td>
                   <td className="px-6 py-4">
                     {product.minPrice !== null ? (
                       product.minPrice === product.maxPrice ? (
-                        <span>${product.minPrice.toFixed(2)}</span>
+                        <span>
+                          {formatCurrency({ value: product.minPrice })}
+                        </span>
                       ) : (
                         <span>
-                          ${product.minPrice.toFixed(2)} - $
-                          {product.maxPrice?.toFixed(2)}
+                          {formatCurrency({ value: product.minPrice })} -{' '}
+                          {formatCurrency({ value: product.maxPrice })}
                         </span>
                       )
                     ) : (
@@ -152,4 +158,3 @@ export const ProductsListContent = () => {
     </div>
   )
 }
-

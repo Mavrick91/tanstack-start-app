@@ -125,7 +125,11 @@ export const AdminRowActions = ({
   }
 
   const hasQuickActions =
-    viewUrl || editUrl || storefrontUrl || onDuplicate || (status && onStatusChange)
+    viewUrl ||
+    editUrl ||
+    storefrontUrl ||
+    onDuplicate ||
+    (status && onStatusChange)
   const hasStatusActions = statusActions && statusActions.length > 0
 
   return (
@@ -136,13 +140,14 @@ export const AdminRowActions = ({
             variant="ghost"
             size="icon"
             className="h-8 w-8 rounded-lg hover:bg-pink-500/5 group text-muted-foreground"
-          >
-            <MoreHorizontal className="w-4 h-4 transition-transform group-hover:scale-110" />
-          </Button>
+            icon={
+              <MoreHorizontal className="w-4 h-4 transition-transform group-hover:scale-110" />
+            }
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-56 rounded-2xl p-2 border-border/50 shadow-2xl backdrop-blur-xl bg-card/95"
+          className="w-56 rounded-lg p-1.5 border-border shadow-md bg-card"
         >
           {hasQuickActions && (
             <>
@@ -153,7 +158,7 @@ export const AdminRowActions = ({
               {viewUrl && (
                 <DropdownMenuItem
                   asChild
-                  className="rounded-xl cursor-pointer py-2.5"
+                  className="rounded-md cursor-pointer py-2.5"
                 >
                   <Link to={viewUrl} className="flex items-center gap-3">
                     <Eye className="w-4 h-4" />
@@ -167,11 +172,13 @@ export const AdminRowActions = ({
               {editUrl && (
                 <DropdownMenuItem
                   asChild
-                  className="rounded-xl cursor-pointer py-2.5"
+                  className="rounded-md cursor-pointer py-2.5"
                 >
                   <Link to={editUrl} className="flex items-center gap-3">
                     <Pencil className="w-4 h-4" />
-                    <span className="font-bold text-sm">{t('Edit Details')}</span>
+                    <span className="font-bold text-sm">
+                      {t('Edit Details')}
+                    </span>
                   </Link>
                 </DropdownMenuItem>
               )}
@@ -179,7 +186,7 @@ export const AdminRowActions = ({
               {storefrontUrl && (
                 <DropdownMenuItem
                   asChild
-                  className="rounded-xl cursor-pointer py-2.5"
+                  className="rounded-md cursor-pointer py-2.5"
                 >
                   <a
                     href={storefrontUrl}
@@ -199,7 +206,7 @@ export const AdminRowActions = ({
                 <DropdownMenuItem
                   onClick={onDuplicate}
                   disabled={isDuplicatePending || isLoading}
-                  className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3"
+                  className="rounded-md cursor-pointer py-2.5 flex items-center gap-3"
                 >
                   <Copy className="w-4 h-4" />
                   <span className="font-bold text-sm">{t('Duplicate')}</span>
@@ -210,7 +217,7 @@ export const AdminRowActions = ({
                 <DropdownMenuItem
                   onClick={handleArchiveToggle}
                   disabled={isStatusPending || isLoading}
-                  className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3"
+                  className="rounded-md cursor-pointer py-2.5 flex items-center gap-3"
                 >
                   {status === 'archived' ? (
                     <>
@@ -244,7 +251,7 @@ export const AdminRowActions = ({
                     key={action.key}
                     onClick={action.onClick}
                     disabled={action.disabled || isLoading}
-                    className={`rounded-xl cursor-pointer py-2.5 flex items-center gap-3 ${
+                    className={`rounded-md cursor-pointer py-2.5 flex items-center gap-3 ${
                       action.variant === 'destructive'
                         ? 'text-destructive focus:text-destructive focus:bg-destructive/5'
                         : ''
@@ -264,7 +271,7 @@ export const AdminRowActions = ({
               <DropdownMenuItem
                 onClick={() => setShowDestructiveDialog(true)}
                 disabled={isLoading}
-                className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3 text-destructive focus:text-destructive focus:bg-destructive/5"
+                className="rounded-md cursor-pointer py-2.5 flex items-center gap-3 text-destructive focus:text-destructive focus:bg-destructive/5"
               >
                 <destructiveAction.icon className="w-4 h-4" />
                 <span className="font-bold text-sm">
@@ -280,7 +287,7 @@ export const AdminRowActions = ({
               <DropdownMenuItem
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isLoading}
-                className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3 text-destructive focus:text-destructive focus:bg-destructive/5"
+                className="rounded-md cursor-pointer py-2.5 flex items-center gap-3 text-destructive focus:text-destructive focus:bg-destructive/5"
               >
                 <Trash2 className="w-4 h-4" />
                 <span className="font-bold text-sm">{t('Delete')}</span>

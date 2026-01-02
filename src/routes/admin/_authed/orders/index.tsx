@@ -261,7 +261,14 @@ const AdminOrdersPage = () => {
           onSelectionChange={setSelectedIds}
           onQuickStatusChange={handleQuickStatusChange}
           isUpdating={isUpdating}
-          sortKey={sortKey as 'orderNumber' | 'total' | 'status' | 'paymentStatus' | 'createdAt'}
+          sortKey={
+            sortKey as
+              | 'orderNumber'
+              | 'total'
+              | 'status'
+              | 'paymentStatus'
+              | 'createdAt'
+          }
           sortOrder={sortOrder as 'asc' | 'desc'}
           onSort={handleSort}
         />

@@ -49,9 +49,13 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     ...actual,
     useBlocker: () => ({ status: 'idle', proceed: vi.fn(), reset: vi.fn() }),
     // Mock Link to avoid router context requirement
-    Link: ({ children, ...props }: { children: React.ReactNode; to?: string }) => (
-      <a href={props.to || '#'}>{children}</a>
-    ),
+    Link: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode
+      to?: string
+    }) => <a href={props.to || '#'}>{children}</a>,
     useRouterState: () => ({ location: { pathname: '/admin/collections' } }),
   }
 })

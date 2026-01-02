@@ -120,17 +120,17 @@ describe('ProductTable', () => {
   describe('Status badges', () => {
     it('renders active status badge', () => {
       renderComponent()
-      expect(screen.getByText('active')).toBeInTheDocument()
+      expect(screen.getByText('Active')).toBeInTheDocument()
     })
 
     it('renders draft status badge', () => {
       renderComponent()
-      expect(screen.getByText('draft')).toBeInTheDocument()
+      expect(screen.getByText('Draft')).toBeInTheDocument()
     })
 
     it('renders archived status badge', () => {
       renderComponent()
-      expect(screen.getByText('archived')).toBeInTheDocument()
+      expect(screen.getByText('Archived')).toBeInTheDocument()
     })
   })
 
@@ -196,16 +196,16 @@ describe('ProductTable', () => {
 
     it('checks selected products', () => {
       renderComponent({ selectedIds: new Set(['prod-1', 'prod-3']) })
-      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[]
-      expect(checkboxes[1].checked).toBe(true) // prod-1
-      expect(checkboxes[2].checked).toBe(false) // prod-2
-      expect(checkboxes[3].checked).toBe(true) // prod-3
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes[1]).toHaveAttribute('data-state', 'checked') // prod-1
+      expect(checkboxes[2]).toHaveAttribute('data-state', 'unchecked') // prod-2
+      expect(checkboxes[3]).toHaveAttribute('data-state', 'checked') // prod-3
     })
 
     it('checks header checkbox when all selected', () => {
       renderComponent({ isAllSelected: true })
-      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[]
-      expect(checkboxes[0].checked).toBe(true)
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes[0]).toHaveAttribute('data-state', 'checked')
     })
 
     it('highlights selected rows', () => {

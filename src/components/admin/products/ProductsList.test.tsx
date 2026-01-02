@@ -92,8 +92,8 @@ describe('Products List Page', () => {
     })
 
     // Check status badges
-    expect(screen.getByText('active')).toBeInTheDocument()
-    expect(screen.getByText('draft')).toBeInTheDocument()
+    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(screen.getByText('Draft')).toBeInTheDocument()
 
     // Check variant counts
     expect(screen.getByText('2 variants')).toBeInTheDocument()
