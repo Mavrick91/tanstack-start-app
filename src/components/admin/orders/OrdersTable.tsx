@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 import { OrderRowActions } from './OrderRowActions'
-import { OrderStatusBadge } from './OrderStatusBadge'
 import { formatCurrency } from '../../../lib/format'
 import { Checkbox } from '../../ui/checkbox'
 import {
@@ -12,9 +12,19 @@ import {
   TableHeader,
   TableRow,
 } from '../../ui/table'
+import { AdminStatusBadge } from '../components/AdminStatusBadge'
+import { SortableHeader } from '../components/SortableHeader'
 
 import type { OrderStatus, FulfillmentStatus } from '../../../types/checkout'
 import type { OrderListItem } from '../../../types/order'
+
+export type OrderSortKey =
+  | 'orderNumber'
+  | 'total'
+  | 'status'
+  | 'paymentStatus'
+  | 'createdAt'
+export type SortOrder = 'asc' | 'desc'
 
 type OrdersTableProps = {
   orders: OrderListItem[]
@@ -25,6 +35,10 @@ type OrdersTableProps = {
     updates: { status?: OrderStatus; fulfillmentStatus?: FulfillmentStatus },
   ) => void
   isUpdating?: boolean
+  // Sorting props
+  sortKey?: OrderSortKey
+  sortOrder?: SortOrder
+  onSort?: (key: OrderSortKey) => void
 }
 
 export const OrdersTable = ({
@@ -33,7 +47,12 @@ export const OrdersTable = ({
   onSelectionChange,
   onQuickStatusChange,
   isUpdating = false,
+  sortKey = 'createdAt',
+  sortOrder = 'desc',
+  onSort,
 }: OrdersTableProps) => {
+  const { t } = useTranslation()
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -80,31 +99,81 @@ export const OrdersTable = ({
                     allSelected || (someSelected ? 'indeterminate' : false)
                   }
                   onCheckedChange={handleSelectAll}
-                  aria-label="Select all orders"
+                  aria-label={t('Select all orders')}
                 />
               </TableHead>
             )}
+            {onSort ? (
+              <SortableHeader
+                label={t('Order')}
+                sortKey="orderNumber"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              />
+            ) : (
+              <TableHead className="text-muted-foreground font-semibold">
+                {t('Order')}
+              </TableHead>
+            )}
             <TableHead className="text-muted-foreground font-semibold">
-              Order
+              {t('Customer')}
             </TableHead>
+            {onSort ? (
+              <SortableHeader
+                label={t('Total')}
+                sortKey="total"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              />
+            ) : (
+              <TableHead className="text-muted-foreground font-semibold">
+                {t('Total')}
+              </TableHead>
+            )}
+            {onSort ? (
+              <SortableHeader
+                label={t('Payment')}
+                sortKey="paymentStatus"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              />
+            ) : (
+              <TableHead className="text-muted-foreground font-semibold">
+                {t('Payment')}
+              </TableHead>
+            )}
             <TableHead className="text-muted-foreground font-semibold">
-              Customer
+              {t('Fulfillment')}
             </TableHead>
-            <TableHead className="text-muted-foreground font-semibold">
-              Total
-            </TableHead>
-            <TableHead className="text-muted-foreground font-semibold">
-              Payment
-            </TableHead>
-            <TableHead className="text-muted-foreground font-semibold">
-              Fulfillment
-            </TableHead>
-            <TableHead className="text-muted-foreground font-semibold">
-              Status
-            </TableHead>
-            <TableHead className="text-muted-foreground font-semibold">
-              Date
-            </TableHead>
+            {onSort ? (
+              <SortableHeader
+                label={t('Status')}
+                sortKey="status"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              />
+            ) : (
+              <TableHead className="text-muted-foreground font-semibold">
+                {t('Status')}
+              </TableHead>
+            )}
+            {onSort ? (
+              <SortableHeader
+                label={t('Date')}
+                sortKey="createdAt"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              />
+            ) : (
+              <TableHead className="text-muted-foreground font-semibold">
+                {t('Date')}
+              </TableHead>
+            )}
             {onQuickStatusChange && <TableHead className="w-12" />}
           </TableRow>
         </TableHeader>
@@ -115,14 +184,14 @@ export const OrdersTable = ({
                 colSpan={onSelectionChange ? 9 : 7}
                 className="text-center py-8 text-muted-foreground"
               >
-                No orders found
+                {t('No orders found')}
               </TableCell>
             </TableRow>
           ) : (
             orders.map((order) => (
               <TableRow
                 key={order.id}
-                className={`border-border hover:bg-muted/50 ${
+                className={`cursor-pointer border-border hover:bg-muted/50 ${
                   selectedIds.has(order.id) ? 'bg-pink-500/5' : ''
                 }`}
               >
@@ -146,7 +215,7 @@ export const OrdersTable = ({
                     #{order.orderNumber}
                   </Link>
                   <span className="text-muted-foreground text-xs ml-2">
-                    ({order.itemCount} items)
+                    ({order.itemCount} {t('items')})
                   </span>
                 </TableCell>
                 <TableCell className="text-foreground/80">
@@ -159,19 +228,19 @@ export const OrdersTable = ({
                   })}
                 </TableCell>
                 <TableCell>
-                  <OrderStatusBadge
+                  <AdminStatusBadge
                     status={order.paymentStatus}
-                    type="payment"
+                    variant="payment"
                   />
                 </TableCell>
                 <TableCell>
-                  <OrderStatusBadge
+                  <AdminStatusBadge
                     status={order.fulfillmentStatus}
-                    type="fulfillment"
+                    variant="fulfillment"
                   />
                 </TableCell>
                 <TableCell>
-                  <OrderStatusBadge status={order.status} type="order" />
+                  <AdminStatusBadge status={order.status} variant="order" />
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {formatDate(order.createdAt)}

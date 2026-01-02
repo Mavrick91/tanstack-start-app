@@ -1,22 +1,19 @@
 import { Link } from '@tanstack/react-router'
-import { TFunction } from 'i18next'
-import {
-  ArrowRight,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Package,
-} from 'lucide-react'
+import { ArrowRight, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { CollectionListActions } from './CollectionListActions'
-import { cn } from '../../../../lib/utils'
 import { CollectionThumbnail } from '../../../collections/CollectionThumbnail'
+import { AdminStatusBadge } from '../../components/AdminStatusBadge'
+import {
+  SortableHeader,
+  type SortOrder,
+} from '../../components/SortableHeader'
 
 import type { CollectionListItem } from '../types'
 
 export type SortKey = 'name' | 'productCount' | 'createdAt'
-export type SortOrder = 'asc' | 'desc'
+export type { SortOrder }
 
 interface CollectionTableProps {
   collections: CollectionListItem[]
@@ -64,7 +61,7 @@ export const CollectionTable = ({
               <SortableHeader
                 label={t('Collection')}
                 sortKey="name"
-                currentSort={sortKey}
+                currentSortKey={sortKey}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
@@ -77,14 +74,14 @@ export const CollectionTable = ({
               <SortableHeader
                 label={t('Products')}
                 sortKey="productCount"
-                currentSort={sortKey}
+                currentSortKey={sortKey}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
                 label={t('Created')}
                 sortKey="createdAt"
-                currentSort={sortKey}
+                currentSortKey={sortKey}
                 sortOrder={sortOrder}
                 onSort={onSort}
               />
@@ -95,7 +92,7 @@ export const CollectionTable = ({
             {collections.map((collection) => (
               <tr
                 key={collection.id}
-                className={`hover:bg-muted/20 transition-all duration-200 group ${selectedIds.has(collection.id) ? 'bg-pink-500/5' : ''}`}
+                className={`cursor-pointer hover:bg-muted/50 transition-all duration-200 group ${selectedIds.has(collection.id) ? 'bg-pink-500/5' : ''}`}
               >
                 <td className="px-8 py-5">
                   <input
@@ -130,7 +127,10 @@ export const CollectionTable = ({
                   </div>
                 </td>
                 <td className="px-8 py-5">
-                  <StatusBadge publishedAt={collection.publishedAt} t={t} />
+                  <AdminStatusBadge
+                    status={collection.publishedAt ? 'active' : 'draft'}
+                    variant="collection"
+                  />
                 </td>
                 <td className="px-8 py-5">
                   <span className="text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md font-mono">
@@ -167,88 +167,6 @@ export const CollectionTable = ({
         </table>
       </div>
     </div>
-  )
-}
-
-const StatusBadge = ({
-  publishedAt,
-  t,
-}: {
-  publishedAt: Date | null
-  t: TFunction
-}) => {
-  const status = publishedAt ? 'active' : 'draft'
-
-  const styles: Record<string, { bg: string; text: string; dot: string }> = {
-    active: {
-      bg: 'bg-emerald-500/5 border-emerald-500/10',
-      text: 'text-emerald-600',
-      dot: 'bg-emerald-500',
-    },
-    draft: {
-      bg: 'bg-amber-500/5 border-amber-500/10',
-      text: 'text-amber-600',
-      dot: 'bg-amber-500',
-    },
-  }
-
-  const current = styles[status]
-
-  return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border',
-        current.bg,
-      )}
-    >
-      <div className={cn('w-1 h-1 rounded-full', current.dot)} />
-      <span
-        className={cn(
-          'text-[9px] font-bold uppercase tracking-wider',
-          current.text,
-        )}
-      >
-        {status === 'active' ? t('Active') : t('Draft')}
-      </span>
-    </div>
-  )
-}
-
-const SortableHeader = ({
-  label,
-  sortKey,
-  currentSort,
-  sortOrder,
-  onSort,
-}: {
-  label: string
-  sortKey: SortKey
-  currentSort: SortKey
-  sortOrder: SortOrder
-  onSort: (key: SortKey) => void
-}) => {
-  const isActive = sortKey === currentSort
-
-  return (
-    <th className="text-left px-8 py-4">
-      <button
-        onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 hover:text-foreground transition-colors group/header"
-      >
-        {label}
-        <span className="w-3.5 h-3.5">
-          {isActive ? (
-            sortOrder === 'asc' ? (
-              <ArrowUp className="w-3.5 h-3.5 text-pink-500" />
-            ) : (
-              <ArrowDown className="w-3.5 h-3.5 text-pink-500" />
-            )
-          ) : (
-            <ArrowUpDown className="w-3.5 h-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />
-          )}
-        </span>
-      </button>
-    </th>
   )
 }
 

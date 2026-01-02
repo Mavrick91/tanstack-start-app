@@ -1,10 +1,13 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { Package, Plus, Search, X } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
+import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
+import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
+import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
+import { StatusFilterTabs } from '../../../../components/admin/components/StatusFilterTabs'
 import { BulkActionsBar } from '../../../../components/admin/products/components/BulkActionsBar'
-import { Pagination } from '../../../../components/admin/products/components/Pagination'
 import { ProductStats } from '../../../../components/admin/products/components/ProductStats'
 import {
   ProductTable,
@@ -136,68 +139,32 @@ const AdminProductsPage = (): React.ReactNode => {
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t('Product Catalog')}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {t('Manage your products and inventory')}
-          </p>
-        </div>
-        <Link to="/admin/products/new">
-          <Button className="h-10 px-5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-sm font-semibold gap-2">
-            <Plus className="w-4 h-4" />
-            {t('Add Product')}
-          </Button>
-        </Link>
-      </div>
+      <AdminPageHeader
+        title={t('Product Catalog')}
+        description={t('Manage your products')}
+        action={{
+          label: t('Add Product'),
+          href: '/admin/products/new',
+        }}
+      />
 
       {/* Stats - fetched independently, always shows aggregate totals */}
       {stats && stats.totalProducts > 0 && <ProductStats stats={stats} />}
 
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3 px-1">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-          <input
-            value={table.search}
-            onChange={(e) => table.setSearch(e.target.value)}
-            placeholder={t('Search products...')}
-            className="w-full h-10 pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 transition-all text-sm"
-            aria-label={t('Search products')}
-          />
-          {table.search && (
-            <button
-              onClick={() => table.setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={t('Clear search')}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div
-          className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50"
-          role="group"
-          aria-label={t('Filter by status')}
-        >
-          {statusOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => table.setFilter('status', opt.value)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                statusFilter === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={statusFilter === opt.value}
-              aria-label={t('Filter by {{status}}', { status: opt.label })}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <AdminSearchInput
+          value={table.search}
+          onChange={table.setSearch}
+          placeholder={t('Search products...')}
+          ariaLabel={t('Search products')}
+        />
+        <StatusFilterTabs
+          options={statusOptions}
+          value={statusFilter}
+          onChange={(value) => table.setFilter('status', value)}
+          ariaLabel={t('Filter by status')}
+        />
       </div>
 
       {/* Table / Empty / Loading */}
@@ -220,7 +187,7 @@ const AdminProductsPage = (): React.ReactNode => {
             sortOrder={table.sortOrder}
             onSort={table.handleSort}
           />
-          <Pagination
+          <AdminPagination
             currentPage={table.page}
             totalPages={table.totalPages}
             totalItems={table.total}

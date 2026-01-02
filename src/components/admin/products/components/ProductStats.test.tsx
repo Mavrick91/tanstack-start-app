@@ -149,8 +149,9 @@ describe('ProductStats', () => {
     it('renders four card elements', () => {
       const stats = createMockStats()
       const { container } = render(<ProductStats stats={stats} />)
-      const cards = container.querySelectorAll('.bg-card')
-      expect(cards).toHaveLength(4)
+      // The grid should contain 4 child card elements
+      const grid = container.querySelector('.grid')
+      expect(grid?.children).toHaveLength(4)
     })
   })
 })

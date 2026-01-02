@@ -97,25 +97,25 @@ describe('OrdersTable Component', () => {
     it('should render payment status badges', () => {
       render(<OrdersTable orders={MOCK_ORDERS} />)
 
-      // Both orders have 'paid' payment status (displayed capitalized)
-      const paidBadges = screen.getAllByText('Paid')
+      // AdminStatusBadge renders lowercase status with CSS uppercase styling
+      const paidBadges = screen.getAllByText('paid')
       expect(paidBadges.length).toBe(2)
     })
 
     it('should render fulfillment status badges', () => {
       render(<OrdersTable orders={MOCK_ORDERS} />)
 
-      // Status badges are displayed capitalized
-      expect(screen.getByText('Unfulfilled')).toBeInTheDocument()
-      expect(screen.getByText('Fulfilled')).toBeInTheDocument()
+      // AdminStatusBadge renders lowercase status with CSS uppercase styling
+      expect(screen.getByText('unfulfilled')).toBeInTheDocument()
+      expect(screen.getByText('fulfilled')).toBeInTheDocument()
     })
 
     it('should render order status badges', () => {
       render(<OrdersTable orders={MOCK_ORDERS} />)
 
-      // Status badges are displayed capitalized
-      expect(screen.getByText('Pending')).toBeInTheDocument()
-      expect(screen.getByText('Shipped')).toBeInTheDocument()
+      // AdminStatusBadge renders lowercase status with CSS uppercase styling
+      expect(screen.getByText('pending')).toBeInTheDocument()
+      expect(screen.getByText('shipped')).toBeInTheDocument()
     })
   })
 

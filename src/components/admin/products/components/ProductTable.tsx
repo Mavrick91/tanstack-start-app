@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { ProductListActions } from './ProductListActions'
-import { StatusBadge } from './StatusBadge'
+import { AdminStatusBadge } from '../../components/AdminStatusBadge'
+import { SortableHeader } from '../../components/SortableHeader'
 
 import type { SortKey, SortOrder } from '../hooks/useProductFilters'
 import type { Product } from '../types'
@@ -54,22 +55,22 @@ export const ProductTable = ({
               <SortableHeader
                 label={t('Product')}
                 sortKey="name"
-                currentKey={sortKey}
-                order={sortOrder}
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
                 label={t('Status')}
                 sortKey="status"
-                currentKey={sortKey}
-                order={sortOrder}
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
                 onSort={onSort}
               />
               <SortableHeader
                 label={t('Price')}
                 sortKey="price"
-                currentKey={sortKey}
-                order={sortOrder}
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
                 onSort={onSort}
               />
               <th className="text-left px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
@@ -82,7 +83,7 @@ export const ProductTable = ({
             {products.map((product) => (
               <tr
                 key={product.id}
-                className={`hover:bg-muted/20 transition-colors group ${selectedIds.has(product.id) ? 'bg-pink-500/5' : ''}`}
+                className={`cursor-pointer hover:bg-muted/50 transition-colors group ${selectedIds.has(product.id) ? 'bg-pink-500/5' : ''}`}
               >
                 <td className="px-4 py-4">
                   <input
@@ -121,7 +122,7 @@ export const ProductTable = ({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <StatusBadge status={product.status} />
+                  <AdminStatusBadge status={product.status} variant="product" />
                 </td>
                 <td className="px-6 py-4">
                   <PriceDisplay
@@ -148,44 +149,6 @@ export const ProductTable = ({
         </table>
       </div>
     </div>
-  )
-}
-
-const SortableHeader = ({
-  label,
-  sortKey,
-  currentKey,
-  order,
-  onSort,
-}: {
-  label: string
-  sortKey: SortKey
-  currentKey: SortKey
-  order: SortOrder
-  onSort: (key: SortKey) => void
-}) => {
-  const isActive = sortKey === currentKey
-
-  return (
-    <th className="text-left px-6 py-3">
-      <button
-        onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 hover:text-foreground transition-colors group/header"
-      >
-        {label}
-        <span className="w-3.5 h-3.5">
-          {isActive ? (
-            order === 'asc' ? (
-              <ArrowUp className="w-3.5 h-3.5 text-pink-500" />
-            ) : (
-              <ArrowDown className="w-3.5 h-3.5 text-pink-500" />
-            )
-          ) : (
-            <ArrowUpDown className="w-3.5 h-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />
-          )}
-        </span>
-      </button>
-    </th>
   )
 }
 

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { MoreHorizontal, Package, Plus } from 'lucide-react'
 
-import { Badge } from '../../../components/ui/badge'
 import { Button } from '../../../components/ui/button'
 import { getAdminProductsFn } from '../../../server/products'
+import { AdminStatusBadge } from '../components/AdminStatusBadge'
 
 type AdminProduct = Awaited<ReturnType<typeof getAdminProductsFn>>[number]
 
@@ -118,7 +118,7 @@ export const ProductsListContent = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <StatusBadge status={product.status} />
+                    <AdminStatusBadge status={product.status} variant="product" />
                   </td>
                   <td className="px-6 py-4">
                     {product.minPrice !== null ? (
@@ -153,23 +153,3 @@ export const ProductsListContent = () => {
   )
 }
 
-const StatusBadge = ({
-  status,
-}: {
-  status: 'draft' | 'active' | 'archived'
-}) => {
-  const variants: Record<
-    string,
-    'default' | 'secondary' | 'destructive' | 'outline'
-  > = {
-    active: 'default',
-    draft: 'secondary',
-    archived: 'outline',
-  }
-
-  return (
-    <Badge variant={variants[status]} className="capitalize">
-      {status}
-    </Badge>
-  )
-}

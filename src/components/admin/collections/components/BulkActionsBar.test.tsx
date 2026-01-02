@@ -69,11 +69,12 @@ describe('BulkActionsBar', () => {
 
     it('renders all action buttons', () => {
       renderComponent()
+      // Updated to use Activate/Archive terminology
       expect(
-        screen.getByRole('button', { name: /^Publish$/ }),
+        screen.getByRole('button', { name: /Activate/i }),
       ).toBeInTheDocument()
       expect(
-        screen.getByRole('button', { name: /Unpublish/i }),
+        screen.getByRole('button', { name: /Archive/i }),
       ).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: /Delete/i }),
@@ -83,15 +84,16 @@ describe('BulkActionsBar', () => {
     it('renders close button', () => {
       renderComponent()
       const buttons = screen.getAllByRole('button')
-      expect(buttons.length).toBe(4) // Publish, Unpublish, Delete, Close
+      expect(buttons.length).toBe(4) // Activate, Archive, Delete, Close
     })
   })
 
-  describe('Publish action', () => {
+  describe('Activate action', () => {
     it('calls bulkUpdateCollectionsStatusFn with publish action', async () => {
       const { user } = renderComponent()
 
-      await user.click(screen.getByRole('button', { name: /^Publish$/ }))
+      // UI shows "Activate" but maps to server's "publish" action
+      await user.click(screen.getByRole('button', { name: /Activate/i }))
 
       await waitFor(() => {
         expect(bulkUpdateCollectionsStatusFn).toHaveBeenCalled()
@@ -104,10 +106,10 @@ describe('BulkActionsBar', () => {
       })
     })
 
-    it('shows success toast for publish', async () => {
+    it('shows success toast for activate', async () => {
       const { user } = renderComponent()
 
-      await user.click(screen.getByRole('button', { name: /^Publish$/ }))
+      await user.click(screen.getByRole('button', { name: /Activate/i }))
 
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('3 items activated')
@@ -116,11 +118,12 @@ describe('BulkActionsBar', () => {
     })
   })
 
-  describe('Unpublish action', () => {
+  describe('Archive action', () => {
     it('calls bulkUpdateCollectionsStatusFn with unpublish action', async () => {
       const { user } = renderComponent()
 
-      await user.click(screen.getByRole('button', { name: /Unpublish/i }))
+      // UI shows "Archive" but maps to server's "unpublish" action
+      await user.click(screen.getByRole('button', { name: /Archive/i }))
 
       await waitFor(() => {
         expect(bulkUpdateCollectionsStatusFn).toHaveBeenCalled()
@@ -133,10 +136,10 @@ describe('BulkActionsBar', () => {
       })
     })
 
-    it('shows success toast for unpublish', async () => {
+    it('shows success toast for archive', async () => {
       const { user } = renderComponent()
 
-      await user.click(screen.getByRole('button', { name: /Unpublish/i }))
+      await user.click(screen.getByRole('button', { name: /Archive/i }))
 
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('3 items archived')
@@ -188,7 +191,7 @@ describe('BulkActionsBar', () => {
       )
       const { user } = renderComponent()
 
-      await user.click(screen.getByRole('button', { name: /^Publish$/ }))
+      await user.click(screen.getByRole('button', { name: /Activate/i }))
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Failed to update items')
@@ -243,7 +246,7 @@ describe('BulkActionsBar', () => {
         </QueryClientProvider>,
       )
 
-      await user.click(screen.getByRole('button', { name: /^Publish$/ }))
+      await user.click(screen.getByRole('button', { name: /Activate/i }))
 
       await waitFor(() => {
         expect(invalidateSpy).toHaveBeenCalledWith({

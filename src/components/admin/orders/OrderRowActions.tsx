@@ -1,23 +1,16 @@
-import { Link } from '@tanstack/react-router'
 import {
-  MoreHorizontal,
-  Eye,
   Truck,
   Package,
   CheckCircle,
   XCircle,
   Clock,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-import { Button } from '../../ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../../ui/dropdown-menu'
+  AdminRowActions,
+  type StatusAction,
+} from '../components/AdminRowActions'
 
 import type { OrderStatus, FulfillmentStatus } from '../../../types/checkout'
 
@@ -35,115 +28,76 @@ interface OrderRowActionsProps {
 
 export const OrderRowActions = ({
   orderId,
-  orderNumber: _orderNumber,
+  orderNumber,
   currentStatus,
   currentFulfillmentStatus,
   onStatusChange,
   isLoading = false,
 }: OrderRowActionsProps) => {
+  const { t } = useTranslation()
   const isCancelled = currentStatus === 'cancelled'
 
-  const statusOptions: {
-    status: OrderStatus
-    label: string
-    icon: React.ReactNode
-  }[] = [
-    {
-      status: 'processing',
-      label: 'Mark as Processing',
-      icon: <Clock className="w-4 h-4" />,
-    },
-    {
-      status: 'shipped',
-      label: 'Mark as Shipped',
-      icon: <Truck className="w-4 h-4" />,
-    },
-    {
-      status: 'delivered',
-      label: 'Mark as Delivered',
-      icon: <CheckCircle className="w-4 h-4" />,
-    },
-  ]
+  // Build status actions based on current state
+  const statusActions: StatusAction[] = []
 
-  const availableStatusOptions = statusOptions.filter(
-    (opt) => opt.status !== currentStatus && !isCancelled,
-  )
+  if (!isCancelled) {
+    if (currentStatus !== 'processing') {
+      statusActions.push({
+        key: 'processing',
+        label: t('Mark as Processing'),
+        icon: Clock,
+        onClick: () => onStatusChange(orderId, { status: 'processing' }),
+      })
+    }
+
+    if (currentStatus !== 'shipped') {
+      statusActions.push({
+        key: 'shipped',
+        label: t('Mark as Shipped'),
+        icon: Truck,
+        onClick: () => onStatusChange(orderId, { status: 'shipped' }),
+      })
+    }
+
+    if (currentStatus !== 'delivered') {
+      statusActions.push({
+        key: 'delivered',
+        label: t('Mark as Delivered'),
+        icon: CheckCircle,
+        onClick: () => onStatusChange(orderId, { status: 'delivered' }),
+      })
+    }
+
+    if (currentFulfillmentStatus !== 'fulfilled') {
+      statusActions.push({
+        key: 'fulfilled',
+        label: t('Mark Fulfilled'),
+        icon: Package,
+        onClick: () => onStatusChange(orderId, { fulfillmentStatus: 'fulfilled' }),
+      })
+    }
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-lg hover:bg-pink-500/5 group text-muted-foreground"
-        >
-          <MoreHorizontal className="w-4 h-4 transition-transform group-hover:scale-110" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-56 rounded-2xl p-2 border-border/50 shadow-2xl backdrop-blur-xl bg-card/95"
-      >
-        <DropdownMenuLabel className="px-3 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
-          Quick Actions
-        </DropdownMenuLabel>
-
-        <DropdownMenuItem asChild className="rounded-xl cursor-pointer py-2.5">
-          <Link
-            to="/admin/orders/$orderId"
-            params={{ orderId }}
-            className="flex items-center gap-3"
-          >
-            <Eye className="w-4 h-4" />
-            <span className="font-bold text-sm">View Details</span>
-          </Link>
-        </DropdownMenuItem>
-
-        {!isCancelled && (
-          <>
-            <DropdownMenuSeparator className="my-1 bg-border/50" />
-            <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
-              Update Status
-            </DropdownMenuLabel>
-
-            {availableStatusOptions.map((opt) => (
-              <DropdownMenuItem
-                key={opt.status}
-                onClick={() => onStatusChange(orderId, { status: opt.status })}
-                disabled={isLoading}
-                className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3"
-              >
-                {opt.icon}
-                <span className="font-bold text-sm">{opt.label}</span>
-              </DropdownMenuItem>
-            ))}
-
-            {currentFulfillmentStatus !== 'fulfilled' && (
-              <DropdownMenuItem
-                onClick={() =>
-                  onStatusChange(orderId, { fulfillmentStatus: 'fulfilled' })
-                }
-                disabled={isLoading}
-                className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3"
-              >
-                <Package className="w-4 h-4" />
-                <span className="font-bold text-sm">Mark Fulfilled</span>
-              </DropdownMenuItem>
-            )}
-
-            <DropdownMenuSeparator className="my-1 bg-border/50" />
-
-            <DropdownMenuItem
-              onClick={() => onStatusChange(orderId, { status: 'cancelled' })}
-              disabled={isLoading}
-              className="rounded-xl cursor-pointer py-2.5 flex items-center gap-3 text-destructive focus:text-destructive focus:bg-destructive/5"
-            >
-              <XCircle className="w-4 h-4" />
-              <span className="font-bold text-sm">Cancel Order</span>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <AdminRowActions
+      viewUrl={`/admin/orders/${orderId}`}
+      viewLabel={t('View Details')}
+      statusActions={isCancelled ? undefined : statusActions}
+      statusActionsLabel={t('Update Status')}
+      destructiveAction={
+        isCancelled
+          ? undefined
+          : {
+              label: t('Cancel Order'),
+              icon: XCircle,
+              confirmTitle: t('Cancel Order #{{orderNumber}}?', { orderNumber }),
+              confirmDescription: t(
+                'This will mark the order as cancelled. This action cannot be easily undone.',
+              ),
+              onConfirm: () => onStatusChange(orderId, { status: 'cancelled' }),
+            }
+      }
+      isLoading={isLoading}
+    />
   )
 }

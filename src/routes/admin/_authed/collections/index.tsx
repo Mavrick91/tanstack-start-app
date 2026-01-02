@@ -1,17 +1,27 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { FolderOpen, Plus, Search, X } from 'lucide-react'
+import { FolderOpen, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
 import { BulkActionsBar } from '../../../../components/admin/collections/components/BulkActionsBar'
 import {
+  CollectionStats,
+  type CollectionStatsData,
+} from '../../../../components/admin/collections/components/CollectionStats'
+import {
   CollectionTable,
   CollectionTableSkeleton,
 } from '../../../../components/admin/collections/components/CollectionTable'
-import { Pagination } from '../../../../components/admin/products/components/Pagination'
+import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
+import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
+import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
+import { StatusFilterTabs } from '../../../../components/admin/components/StatusFilterTabs'
 import { Button } from '../../../../components/ui/button'
 import { useDataTable, type TableState } from '../../../../hooks/useDataTable'
-import { getCollectionsFn } from '../../../../server/collections'
+import {
+  getCollectionsFn,
+  getCollectionStatsFn,
+} from '../../../../server/collections'
 
 import type { CollectionListItem } from '../../../../components/admin/collections/types'
 
@@ -74,6 +84,7 @@ const fetchCollections = async (state: {
 const CollectionsPage = () => {
   const { t } = useTranslation()
   const searchParams = Route.useSearch()
+  const { stats } = Route.useLoaderData()
 
   const table = useDataTable<CollectionListItem, SortKey>({
     id: 'collections',
@@ -129,57 +140,34 @@ const CollectionsPage = () => {
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t('Collections')}
-          </h1>
-          <p className="text-muted-foreground font-medium text-sm">
-            {t('Curate and organize your products for the storefront')}
-          </p>
-        </div>
-        <Link to="/admin/collections/new">
-          <Button className="h-11 px-6 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-sm font-semibold gap-2 transition-all">
-            <Plus className="w-4 h-4" />
-            {t('Create Collection')}
-          </Button>
-        </Link>
+      <AdminPageHeader
+        title={t('Collections')}
+        description={t('Manage your collections')}
+        action={{
+          label: t('Add Collection'),
+          href: '/admin/collections/new',
+        }}
+      />
+
+      {/* Stats Cards */}
+      <div className="px-1">
+        <CollectionStats stats={stats} />
       </div>
 
       {/* Filter / Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 px-1">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-          <input
-            value={table.search}
-            onChange={(e) => table.setSearch(e.target.value)}
-            placeholder={t('Search collections...')}
-            className="w-full h-11 pl-11 pr-4 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/10 transition-all font-medium text-sm shadow-sm"
-          />
-          {table.search && (
-            <button
-              onClick={() => table.setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50 h-11 items-center">
-          {statusOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => table.setFilter('status', opt.value)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all h-9 ${
-                statusFilter === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <AdminSearchInput
+          value={table.search}
+          onChange={table.setSearch}
+          placeholder={t('Search collections...')}
+          ariaLabel={t('Search collections')}
+        />
+        <StatusFilterTabs
+          options={statusOptions}
+          value={statusFilter}
+          onChange={(value) => table.setFilter('status', value)}
+          ariaLabel={t('Filter by status')}
+        />
       </div>
 
       {/* Collections Table */}
@@ -202,7 +190,7 @@ const CollectionsPage = () => {
             sortOrder={table.sortOrder}
             onSort={table.handleSort}
           />
-          <Pagination
+          <AdminPagination
             currentPage={table.page}
             totalPages={table.totalPages}
             totalItems={table.total}
@@ -226,11 +214,18 @@ export const Route = createFileRoute('/admin/_authed/collections/')({
   loaderDeps: ({ search }) => ({ search }),
   loader: async ({ deps: { search }, context: { queryClient } }) => {
     const tableState = buildTableState(search)
-    // Pre-fetch collections data for SSR and link preloading
-    await queryClient.ensureQueryData({
-      queryKey: ['collections', tableState],
-      queryFn: () => fetchCollections(tableState),
-    })
+    // Pre-fetch collections data and stats for SSR and link preloading
+    const [, statsResult] = await Promise.all([
+      queryClient.ensureQueryData({
+        queryKey: ['collections', tableState],
+        queryFn: () => fetchCollections(tableState),
+      }),
+      getCollectionStatsFn(),
+    ])
+
+    return {
+      stats: statsResult.stats as CollectionStatsData,
+    }
   },
   component: CollectionsPage,
 })
@@ -253,7 +248,7 @@ const EmptyState = () => {
           variant="outline"
           className="rounded-xl h-10 px-6 font-semibold"
         >
-          {t('Create your first collection')}
+          {t('Add your first collection')}
         </Button>
       </Link>
     </div>

@@ -1,4 +1,5 @@
 import { useForm } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-store'
 
 import type { Collection, CollectionFormValues } from '../types'
 
@@ -64,9 +65,13 @@ export const useCollectionForm = ({
     }
   }
 
+  // Track dirty state for unsaved changes warning
+  const isDirty = useStore(form.store, (state) => state.isDirty)
+
   return {
     form,
     handleNameChange,
+    isDirty,
   }
 }
 

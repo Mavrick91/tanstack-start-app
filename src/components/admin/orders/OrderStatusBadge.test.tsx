@@ -84,7 +84,7 @@ describe('OrderStatusBadge Component', () => {
       // Should still render with fallback styling
       expect(badge).toBeInTheDocument()
       expect(screen.getByText('unknown')).toBeInTheDocument()
-      expect(badge).toHaveClass('bg-gray-500/20')
+      expect(badge).toHaveClass('bg-gray-100')
     })
   })
 

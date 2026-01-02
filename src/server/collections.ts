@@ -431,6 +431,34 @@ export const unpublishCollectionFn = createServerFn({ method: 'POST' })
     return { success: true, data: updated }
   })
 
+export const getCollectionStatsFn = createServerFn({ method: 'GET' })
+  .middleware([adminMiddleware])
+  .handler(async () => {
+    const [totalResult, activeResult, draftResult, productsInCollectionsResult] =
+      await Promise.all([
+        db.select({ count: count() }).from(collections),
+        db
+          .select({ count: count() })
+          .from(collections)
+          .where(isNotNull(collections.publishedAt)),
+        db
+          .select({ count: count() })
+          .from(collections)
+          .where(isNull(collections.publishedAt)),
+        db.select({ count: count() }).from(collectionProducts),
+      ])
+
+    return {
+      success: true,
+      stats: {
+        total: totalResult[0].count,
+        active: activeResult[0].count,
+        draft: draftResult[0].count,
+        productsInCollections: productsInCollectionsResult[0].count,
+      },
+    }
+  })
+
 export const duplicateCollectionFn = createServerFn({ method: 'POST' })
   .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))

@@ -123,15 +123,17 @@ describe('CollectionTable', () => {
   })
 
   describe('Status badges', () => {
-    it('renders Active status for published collections', () => {
+    it('renders active status for published collections', () => {
       renderComponent()
-      const activeBadges = screen.getAllByText('Active')
+      // AdminStatusBadge renders lowercase status with CSS uppercase styling
+      const activeBadges = screen.getAllByText('active')
       expect(activeBadges).toHaveLength(2) // coll-1 and coll-3 are published
     })
 
-    it('renders Draft status for unpublished collections', () => {
+    it('renders draft status for unpublished collections', () => {
       renderComponent()
-      expect(screen.getByText('Draft')).toBeInTheDocument() // coll-2 is draft
+      // AdminStatusBadge renders lowercase status with CSS uppercase styling
+      expect(screen.getByText('draft')).toBeInTheDocument() // coll-2 is draft
     })
   })
 

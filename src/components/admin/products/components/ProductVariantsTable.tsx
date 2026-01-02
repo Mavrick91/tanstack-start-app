@@ -1,5 +1,5 @@
-import { Check, X } from 'lucide-react'
-import { useState } from 'react'
+import { Check, Search, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../ui/button'
@@ -40,6 +40,26 @@ export const ProductVariantsTable = ({
   const { t } = useTranslation()
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editValues, setEditValues] = useState<Partial<ProductVariant>>({})
+  const [search, setSearch] = useState('')
+
+  // Filter variants based on search term
+  const filteredVariants = useMemo(() => {
+    if (!search.trim()) return variants
+    const searchLower = search.toLowerCase()
+    return variants.filter((variant) =>
+      variant.title.toLowerCase().includes(searchLower)
+    )
+  }, [variants, search])
+
+  // Track original indices for editing
+  const variantIndices = useMemo(() => {
+    if (!search.trim()) return variants.map((_, i) => i)
+    const searchLower = search.toLowerCase()
+    return variants
+      .map((variant, i) => ({ variant, index: i }))
+      .filter(({ variant }) => variant.title.toLowerCase().includes(searchLower))
+      .map(({ index }) => index)
+  }, [variants, search])
 
   const startEditing = (index: number) => {
     setEditingIndex(index)
@@ -110,6 +130,38 @@ export const ProductVariantsTable = ({
         </div>
       </div>
 
+      {/* Search - only show if more than 10 variants */}
+      {variants.length > 10 && (
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+            <Input
+              placeholder={t('Filter variants...')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 bg-background/50 border-border/50 rounded-xl"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {search && (
+            <span className="text-sm text-muted-foreground">
+              {t('Showing {{count}} of {{total}} variants', {
+                count: filteredVariants.length,
+                total: variants.length,
+              })}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Variants Table */}
       <div className="border border-border/50 rounded-xl overflow-hidden">
         <Table>
@@ -123,11 +175,13 @@ export const ProductVariantsTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {variants.map((variant, index) => (
-              <TableRow key={index} className="group">
+            {filteredVariants.map((variant, filteredIndex) => {
+              const originalIndex = variantIndices[filteredIndex]
+              return (
+              <TableRow key={originalIndex} className="group">
                 <TableCell className="font-medium">{variant.title}</TableCell>
 
-                {editingIndex === index ? (
+                {editingIndex === originalIndex ? (
                   <>
                     <TableCell>
                       <Input
@@ -199,7 +253,7 @@ export const ProductVariantsTable = ({
                       <Switch
                         checked={variant.available !== false}
                         onCheckedChange={(checked) =>
-                          updateVariantField(index, 'available', checked)
+                          updateVariantField(originalIndex, 'available', checked)
                         }
                         disabled={disabled}
                       />
@@ -215,7 +269,7 @@ export const ProductVariantsTable = ({
                         variant="ghost"
                         size="sm"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => startEditing(index)}
+                        onClick={() => startEditing(originalIndex)}
                         disabled={disabled}
                       >
                         {t('Edit')}
@@ -224,10 +278,20 @@ export const ProductVariantsTable = ({
                   </>
                 )}
               </TableRow>
-            ))}
+              )
+            })}
           </TableBody>
         </Table>
       </div>
+
+      {/* Empty state for filtered results */}
+      {search && filteredVariants.length === 0 && (
+        <div className="text-center py-8 bg-muted/20 rounded-xl border border-border/30">
+          <p className="text-muted-foreground text-sm">
+            {t('No variants match "{{search}}"', { search })}
+          </p>
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground text-center">
         {variants.length} {t('variants')} •{' '}

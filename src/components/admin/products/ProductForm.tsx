@@ -1,4 +1,5 @@
 import { useForm } from '@tanstack/react-form'
+import { useStore } from '@tanstack/react-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import {
   type ProductVariant,
 } from './components/ProductVariantsTable'
 import { ImageUploader, type ImageItem } from './ImageUploader'
+import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges'
 import { cn } from '../../../lib/utils'
 import { generateProductDetailsFn } from '../../../server/ai'
 import {
@@ -51,7 +53,56 @@ import {
 } from '../../ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Textarea } from '../../ui/textarea'
+import { UnsavedChangesDialog } from '../../ui/unsaved-changes-dialog'
+import { AutocompleteCombobox } from '../../ui/autocomplete-combobox'
+import { TagInput } from '../../ui/tag-input'
 import { MediaLibrary, type MediaItem } from '../media/MediaLibrary'
+
+// Suggested vendors for autocomplete
+const VENDOR_SUGGESTIONS = [
+  'FineNail',
+  'OPI',
+  'Essie',
+  'Sally Hansen',
+  'China Glaze',
+  'Zoya',
+  'Orly',
+  'CND',
+  'Gelish',
+  'IBD',
+]
+
+// Suggested product types for autocomplete
+const PRODUCT_TYPE_SUGGESTIONS = [
+  'Nail Polish',
+  'Gel Polish',
+  'Nail Art',
+  'Nail Care',
+  'Nail Tools',
+  'Base Coat',
+  'Top Coat',
+  'Nail Extensions',
+  'Nail Stickers',
+  'Cuticle Care',
+]
+
+// Suggested tags for autocomplete
+const TAG_SUGGESTIONS = [
+  'bestseller',
+  'new-arrival',
+  'sale',
+  'limited-edition',
+  'summer',
+  'winter',
+  'spring',
+  'fall',
+  'trending',
+  'vegan',
+  'cruelty-free',
+  'long-lasting',
+  'quick-dry',
+  'gift-set',
+]
 
 export type LocalizedString = { en: string; fr?: string; id?: string }
 
@@ -427,6 +478,10 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
     },
   })
 
+  // Track form dirty state for unsaved changes warning
+  const isDirty = useStore(form.store, (state) => state.isDirty)
+  const { status, proceed, reset } = useUnsavedChanges({ isDirty })
+
   const generateHandle = () => {
     const currentHandle = form.getFieldValue('handle')
     if (currentHandle) return
@@ -542,21 +597,30 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
                           <TabsTrigger
                             value="en"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                           >
                             EN
+                            {field.state.value.en && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            )}
                           </TabsTrigger>
                           <TabsTrigger
                             value="fr"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                           >
                             FR
+                            {field.state.value.fr && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            )}
                           </TabsTrigger>
                           <TabsTrigger
                             value="id"
-                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                            className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                           >
                             ID
+                            {field.state.value.id && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            )}
                           </TabsTrigger>
                         </TabsList>
                         <TabsContent value="en" className="mt-0">
@@ -619,21 +683,30 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                       <TabsList className="bg-muted/30 p-1 rounded-xl mb-3 flex-wrap h-auto">
                         <TabsTrigger
                           value="en"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                         >
                           EN
+                          {field.state.value.en && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          )}
                         </TabsTrigger>
                         <TabsTrigger
                           value="fr"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                         >
                           FR
+                          {field.state.value.fr && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          )}
                         </TabsTrigger>
                         <TabsTrigger
                           value="id"
-                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                          className="rounded-lg px-4 py-1 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
                         >
                           ID
+                          {field.state.value.id && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          )}
                         </TabsTrigger>
                       </TabsList>
                       <TabsContent value="en" className="mt-0">
@@ -675,6 +748,40 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                     </Tabs>
                   )}
                 </form.Field>
+
+                {/* AI Generate Button - moved from Media section */}
+                {((isEditMode && images.length > 0 && images[0]?.url) ||
+                  (!isEditMode &&
+                    form.getFieldValue('images')?.length > 0 &&
+                    form.getFieldValue('images')?.[0]?.url)) && (
+                  <div className="flex gap-2 pt-2">
+                    <Select
+                      value={aiProvider}
+                      onValueChange={(v) =>
+                        setAiProvider(v as 'gemini' | 'openai')
+                      }
+                    >
+                      <SelectTrigger className="w-32 h-10 rounded-xl bg-muted/50 border-border font-semibold text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="gemini">Gemini</SelectItem>
+                        <SelectItem value="openai">OpenAI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      className="flex-1 h-10 rounded-xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
+                      onClick={handleAIGenerate}
+                      disabled={isGenerating}
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      {isGenerating
+                        ? t('Generating...')
+                        : t('Generate Details with AI')}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -704,36 +811,6 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                     <ImagePlus className="w-4 h-4" />
                     {t('Add from Media Library')}
                   </Button>
-
-                  {images.length > 0 && images[0]?.url && (
-                    <div className="flex gap-2">
-                      <Select
-                        value={aiProvider}
-                        onValueChange={(v) =>
-                          setAiProvider(v as 'gemini' | 'openai')
-                        }
-                      >
-                        <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="gemini">Gemini</SelectItem>
-                          <SelectItem value="openai">OpenAI</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="button"
-                        className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
-                        onClick={handleAIGenerate}
-                        disabled={isGenerating}
-                      >
-                        <Wand2 className="w-4 h-4" />
-                        {isGenerating
-                          ? t('Generating...')
-                          : t('Generate Details with AI')}
-                      </Button>
-                    </div>
-                  )}
                 </div>
               ) : (
                 /* Create mode: use form field */
@@ -767,37 +844,6 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                         <ImagePlus className="w-4 h-4" />
                         {t('Add from Media Library')}
                       </Button>
-
-                      {field.state.value.length > 0 &&
-                        field.state.value[0]?.url && (
-                          <div className="flex gap-2">
-                            <Select
-                              value={aiProvider}
-                              onValueChange={(v) =>
-                                setAiProvider(v as 'gemini' | 'openai')
-                              }
-                            >
-                              <SelectTrigger className="w-32 h-12 rounded-2xl bg-muted/50 border-border font-semibold text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl">
-                                <SelectItem value="gemini">Gemini</SelectItem>
-                                <SelectItem value="openai">OpenAI</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              type="button"
-                              className="flex-1 h-12 rounded-2xl gap-2 font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg"
-                              onClick={handleAIGenerate}
-                              disabled={isGenerating}
-                            >
-                              <Wand2 className="w-4 h-4" />
-                              {isGenerating
-                                ? t('Generating...')
-                                : t('Generate Details with AI')}
-                            </Button>
-                          </div>
-                        )}
                     </div>
                   )}
                 </form.Field>
@@ -1118,12 +1164,13 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   </Label>
                   <form.Field name="vendor">
                     {(field) => (
-                      <Input
+                      <AutocompleteCombobox
                         id="vendor"
-                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
                         value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={field.handleChange}
+                        suggestions={VENDOR_SUGGESTIONS}
                         placeholder={t('Brand name')}
+                        inputClassName="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
                       />
                     )}
                   </form.Field>
@@ -1135,12 +1182,13 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   </Label>
                   <form.Field name="productType">
                     {(field) => (
-                      <Input
+                      <AutocompleteCombobox
                         id="productType"
-                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
                         value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={field.handleChange}
+                        suggestions={PRODUCT_TYPE_SUGGESTIONS}
                         placeholder={t('e.g., Nail Polish')}
+                        inputClassName="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
                       />
                     )}
                   </form.Field>
@@ -1153,19 +1201,11 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
                   </Label>
                   <form.Field name="tags">
                     {(field) => (
-                      <Input
-                        className="h-11 bg-background/50 border-border/50 rounded-xl focus:ring-pink-500/20"
-                        value={field.state.value.join(', ')}
-                        onChange={(e) => {
-                          const tags = e.target.value
-                            .split(',')
-                            .map((t) => t.trim())
-                            .filter(Boolean)
-                          field.handleChange(tags)
-                        }}
-                        placeholder={t(
-                          'Separate with commas (e.g., summer, bestseller)',
-                        )}
+                      <TagInput
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        suggestions={TAG_SUGGESTIONS}
+                        placeholder={t('Add tags...')}
                       />
                     )}
                   </form.Field>
@@ -1183,6 +1223,13 @@ export const ProductForm = ({ product, onBack }: ProductFormProps) => {
           </div>
         )}
       </div>
+
+      {/* Unsaved Changes Warning Dialog */}
+      <UnsavedChangesDialog
+        open={status === 'blocked'}
+        onProceed={proceed}
+        onCancel={reset}
+      />
     </div>
   )
 }

@@ -37,10 +37,17 @@ describe('OrderStatsCards', () => {
   })
 
   it('should show loading state when isLoading is true', () => {
-    render(<OrderStatsCards stats={defaultStats} isLoading={true} />)
+    const { container } = render(
+      <OrderStatsCards stats={defaultStats} isLoading={true} />,
+    )
 
-    // Should show dash instead of values when loading
-    expect(screen.getAllByText('—')).toHaveLength(4)
+    // Should show skeleton placeholders when loading
+    const skeletons = container.querySelectorAll('.animate-pulse')
+    expect(skeletons).toHaveLength(4)
+
+    // Values should not be visible during loading
+    expect(screen.queryByText('5')).not.toBeInTheDocument()
+    expect(screen.queryByText('$2,450.00')).not.toBeInTheDocument()
   })
 
   it('should display zero values correctly', () => {

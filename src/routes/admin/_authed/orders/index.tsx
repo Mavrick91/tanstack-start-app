@@ -1,14 +1,17 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { Package, Search, X } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
+import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
+import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
+import { StatusFilterTabs } from '../../../../components/admin/components/StatusFilterTabs'
 import { OrderBulkActionsBar } from '../../../../components/admin/orders/OrderBulkActionsBar'
 import { OrdersTable } from '../../../../components/admin/orders/OrdersTable'
 import { OrderStatsCards } from '../../../../components/admin/orders/OrderStatsCards'
-import { Button } from '../../../../components/ui/button'
 import {
   getAdminOrdersFn,
   getOrderStatsFn,
@@ -64,6 +67,8 @@ const AdminOrdersPage = () => {
   const status = searchParams.status || 'all'
   const paymentStatus = searchParams.paymentStatus || 'all'
   const fulfillmentStatus = searchParams.fulfillmentStatus || 'all'
+  const sortKey = searchParams.sort || 'createdAt'
+  const sortOrder = searchParams.order || 'desc'
 
   const updateSearch = (
     updates: Record<string, string | number | undefined>,
@@ -75,16 +80,6 @@ const AdminOrdersPage = () => {
         page: updates.page ?? 1,
       }),
     })
-  }
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateSearch({ q: search || undefined })
-  }
-
-  const clearSearch = () => {
-    setSearch('')
-    updateSearch({ q: undefined })
   }
 
   const handleQuickStatusChange = async (
@@ -142,6 +137,11 @@ const AdminOrdersPage = () => {
 
   const totalPages = Math.ceil(total / limit)
 
+  const handleSort = (key: string) => {
+    const newOrder = key === sortKey && sortOrder === 'asc' ? 'desc' : 'asc'
+    updateSearch({ sort: key, order: newOrder })
+  }
+
   const statusOptions: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: t('All') },
     { value: 'pending', label: t('Pending') },
@@ -162,20 +162,17 @@ const AdminOrdersPage = () => {
   const fulfillmentOptions: { value: FulfillmentFilter; label: string }[] = [
     { value: 'all', label: t('All') },
     { value: 'unfulfilled', label: t('Unfulfilled') },
+    { value: 'partial', label: t('Partial') },
     { value: 'fulfilled', label: t('Fulfilled') },
   ]
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('Orders')}</h1>
-          <p className="text-muted-foreground text-sm">
-            {t('Manage and track customer orders')}
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        title={t('Orders')}
+        description={t('Manage your orders')}
+      />
 
       {/* Stats Cards */}
       {stats && (
@@ -184,94 +181,63 @@ const AdminOrdersPage = () => {
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 px-1">
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('Search by email or order number...')}
-            className="w-full h-10 pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 transition-all text-sm"
-            aria-label={t('Search orders')}
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={t('Clear search')}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </form>
+      {/* Search */}
+      <div className="px-1">
+        <AdminSearchInput
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            updateSearch({ q: value || undefined })
+          }}
+          placeholder={t('Search by email or order number...')}
+          ariaLabel={t('Search orders')}
+          className="max-w-md"
+        />
+      </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-wrap gap-3 px-1">
         {/* Status filter */}
-        <div
-          className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50"
-          role="group"
-          aria-label={t('Filter by status')}
-        >
-          {statusOptions.slice(0, 4).map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => updateSearch({ status: opt.value })}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                status === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={status === opt.value}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+            {t('Status')}
+          </span>
+          <StatusFilterTabs
+            options={statusOptions}
+            value={status}
+            onChange={(value) => updateSearch({ status: value })}
+            ariaLabel={t('Filter by status')}
+          />
         </div>
+
+        <div className="w-px h-12 bg-border/50 self-end mb-1" />
 
         {/* Payment filter */}
-        <div
-          className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50"
-          role="group"
-          aria-label={t('Filter by payment')}
-        >
-          {paymentOptions.slice(0, 3).map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => updateSearch({ paymentStatus: opt.value })}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                paymentStatus === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={paymentStatus === opt.value}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+            {t('Payment')}
+          </span>
+          <StatusFilterTabs
+            options={paymentOptions}
+            value={paymentStatus}
+            onChange={(value) => updateSearch({ paymentStatus: value })}
+            ariaLabel={t('Filter by payment')}
+          />
         </div>
 
+        <div className="w-px h-12 bg-border/50 self-end mb-1" />
+
         {/* Fulfillment filter */}
-        <div
-          className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/50"
-          role="group"
-          aria-label={t('Filter by fulfillment')}
-        >
-          {fulfillmentOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => updateSearch({ fulfillmentStatus: opt.value })}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                fulfillmentStatus === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={fulfillmentStatus === opt.value}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+            {t('Fulfillment')}
+          </span>
+          <StatusFilterTabs
+            options={fulfillmentOptions}
+            value={fulfillmentStatus}
+            onChange={(value) => updateSearch({ fulfillmentStatus: value })}
+            ariaLabel={t('Filter by fulfillment')}
+          />
         </div>
       </div>
 
@@ -295,6 +261,9 @@ const AdminOrdersPage = () => {
           onSelectionChange={setSelectedIds}
           onQuickStatusChange={handleQuickStatusChange}
           isUpdating={isUpdating}
+          sortKey={sortKey as 'orderNumber' | 'total' | 'status' | 'paymentStatus' | 'createdAt'}
+          sortOrder={sortOrder as 'asc' | 'desc'}
+          onSort={handleSort}
         />
       )}
 
@@ -308,37 +277,13 @@ const AdminOrdersPage = () => {
       />
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-1">
-          <p className="text-sm text-muted-foreground">
-            {t('Showing')} {(page - 1) * limit + 1} {t('to')}{' '}
-            {Math.min(page * limit, total)} {t('of')} {total} {t('orders')}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => updateSearch({ page: page - 1 })}
-              className="rounded-lg"
-            >
-              {t('Previous')}
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {t('Page')} {page} {t('of')} {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => updateSearch({ page: page + 1 })}
-              className="rounded-lg"
-            >
-              {t('Next')}
-            </Button>
-          </div>
-        </div>
-      )}
+      <AdminPagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={total}
+        onPageChange={(newPage) => updateSearch({ page: newPage })}
+        itemsPerPage={limit}
+      />
     </div>
   )
 }

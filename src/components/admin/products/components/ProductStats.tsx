@@ -1,68 +1,45 @@
 import { AlertTriangle, CheckCircle2, FileEdit, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { AdminStatsGrid } from '../../components/AdminStatsCard'
+
 import type { ProductStats as ProductStatsData } from '../../../../hooks/useProductStats'
 
 interface ProductStatsProps {
   stats: ProductStatsData
+  isLoading?: boolean
 }
 
-export const ProductStats = ({ stats }: ProductStatsProps) => {
+export const ProductStats = ({ stats, isLoading }: ProductStatsProps) => {
   const { t } = useTranslation()
-  const total = stats.totalProducts
-  const active = stats.activeCount
-  const draft = stats.draftCount
-  const lowStock = stats.lowStockCount ?? 0
 
   const statCards = [
     {
       label: t('Total Products'),
-      value: total,
+      value: stats.totalProducts,
       icon: Package,
-      color: 'text-pink-500',
-      bg: 'bg-pink-500/5',
+      color: 'pink' as const,
     },
     {
       label: t('Active'),
-      value: active,
+      value: stats.activeCount,
       icon: CheckCircle2,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-500/5',
+      color: 'emerald' as const,
     },
     {
       label: t('Drafts'),
-      value: draft,
+      value: stats.draftCount,
       icon: FileEdit,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/5',
+      color: 'amber' as const,
     },
     {
       label: t('Low Stock'),
-      value: lowStock,
+      value: stats.lowStockCount ?? 0,
       icon: AlertTriangle,
-      color: 'text-rose-500',
-      bg: 'bg-rose-500/5',
+      color: 'rose' as const,
+      hasAttention: (stats.lowStockCount ?? 0) > 0,
     },
   ]
 
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {statCards.map((stat) => (
-        <div
-          key={stat.label}
-          className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div className={`p-3 rounded-xl ${stat.bg}`}>
-            <stat.icon className={`w-5 h-5 ${stat.color}`} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
-            <p className="text-xs font-medium text-muted-foreground">
-              {stat.label}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+  return <AdminStatsGrid stats={statCards} isLoading={isLoading} />
 }

@@ -51,6 +51,9 @@ const stubServerModules = (): Plugin => ({
       if (id === 'drizzle-orm/postgres-js') {
         return { id: '\0virtual:drizzle-stub', moduleSideEffects: false }
       }
+      if (id === 'cloudinary') {
+        return { id: '\0virtual:cloudinary-stub', moduleSideEffects: false }
+      }
     }
     return null
   },
@@ -68,6 +71,13 @@ const stubServerModules = (): Plugin => ({
       // Return a no-op drizzle function for client
       return `export function drizzle() {
         return null
+      }`
+    }
+    if (id === '\0virtual:cloudinary-stub') {
+      // Return a stub for cloudinary - Node.js only library
+      return `export const v2 = {
+        config: () => {},
+        uploader: { destroy: () => Promise.resolve() }
       }`
     }
     return null
@@ -91,7 +101,7 @@ const config = defineConfig({
   ],
   optimizeDeps: {
     // Exclude server modules from pre-bundling so our plugin can handle them
-    exclude: ['postgres', 'drizzle-orm/postgres-js'],
+    exclude: ['postgres', 'drizzle-orm/postgres-js', 'cloudinary'],
   },
 })
 

@@ -42,6 +42,20 @@ vi.mock('../../../server/products', () => ({
   }),
 }))
 
+// Mock TanStack Router hooks (useBlocker for useUnsavedChanges, Link for navigation)
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    useBlocker: () => ({ status: 'idle', proceed: vi.fn(), reset: vi.fn() }),
+    // Mock Link to avoid router context requirement
+    Link: ({ children, ...props }: { children: React.ReactNode; to?: string }) => (
+      <a href={props.to || '#'}>{children}</a>
+    ),
+    useRouterState: () => ({ location: { pathname: '/admin/collections' } }),
+  }
+})
+
 describe('CollectionForm Integration', () => {
   describe('Create Mode', () => {
     it('renders the form in create mode', () => {

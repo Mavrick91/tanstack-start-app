@@ -16,6 +16,15 @@ vi.mock('@fancyapps/ui', () => ({
 
 vi.mock('@fancyapps/ui/dist/fancybox/fancybox.css', () => ({}))
 
+// Mock useBlocker from TanStack Router (used by useUnsavedChanges)
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    useBlocker: () => ({ status: 'idle', proceed: vi.fn(), reset: vi.fn() }),
+  }
+})
+
 // Mock Radix UI Select components since they can be tricky in JSDOM
 vi.mock('../../ui/select', () => ({
   Select: ({
@@ -53,13 +62,16 @@ vi.mock('../../ui/select', () => ({
   }) => <div data-testid={`item-${value}`}>{children}</div>,
 }))
 
+// Store original console.warn to avoid infinite recursion in mock
+const originalWarn = console.warn.bind(console)
+
 describe('ProductForm', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Suppress Tiptap duplicate extension warnings (multiple editors render in tests)
     vi.spyOn(console, 'warn').mockImplementation((msg) => {
       if (typeof msg === 'string' && msg.includes('Duplicate extension')) return
-      console.warn(msg)
+      originalWarn(msg)
     })
   })
 

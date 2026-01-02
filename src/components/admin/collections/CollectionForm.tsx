@@ -9,6 +9,7 @@ import { ProductsCard } from './components/ProductsCard'
 import { useCollectionForm } from './hooks/useCollectionForm'
 import { useCollectionMutations } from './hooks/useCollectionMutations'
 import { useProductPicker } from './hooks/useProductPicker'
+import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges'
 import { cn } from '../../../lib/utils'
 import { getProductsFn } from '../../../server/products'
 import { Badge } from '../../ui/badge'
@@ -23,6 +24,7 @@ import {
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { Textarea } from '../../ui/textarea'
+import { UnsavedChangesDialog } from '../../ui/unsaved-changes-dialog'
 
 import type { CollectionFormProps, Product } from './types'
 
@@ -61,11 +63,14 @@ export const CollectionForm = ({
     onSelectionReset: picker.resetSelection,
   })
 
-  const { form, handleNameChange } = useCollectionForm({
+  const { form, handleNameChange, isDirty } = useCollectionForm({
     collection,
     isEdit,
     onSubmit: mutations.save.mutate,
   })
+
+  // Unsaved changes warning
+  const { status, proceed, reset } = useUnsavedChanges({ isDirty })
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20">
@@ -443,6 +448,13 @@ export const CollectionForm = ({
         onAdd={() => mutations.addProducts.mutate(picker.selectedIds)}
         onCancel={picker.close}
         isAdding={mutations.addProducts.isPending}
+      />
+
+      {/* Unsaved Changes Warning Dialog */}
+      <UnsavedChangesDialog
+        open={status === 'blocked'}
+        onProceed={proceed}
+        onCancel={reset}
       />
     </div>
   )
