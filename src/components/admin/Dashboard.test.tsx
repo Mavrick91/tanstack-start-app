@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@/test/test-utils'
 
 vi.mock('../../hooks/useAuth', () => ({
-  useAuthStore: (selector: (state: { user: { name: string } }) => unknown) =>
-    selector({ user: { name: 'Test Admin' } }),
+  useAuth: () => ({
+    data: { id: '1', email: 'admin@test.com', role: 'admin' },
+    isLoading: false,
+  }),
 }))
 
 vi.mock('lucide-react', () => ({

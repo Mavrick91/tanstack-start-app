@@ -30,13 +30,15 @@ vi.mock('@tanstack/react-form', () => ({
 }))
 
 vi.mock('../../hooks/useAuth', () => ({
-  useAuthStore: Object.assign(
-    (selector: (state: { login: () => Promise<boolean> }) => unknown) =>
-      selector({ login: vi.fn().mockResolvedValue(true) }),
-    {
-      getState: () => ({ isAuthenticated: false }),
-    },
-  ),
+  useAuthLogin: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  }),
+  useAuth: () => ({
+    data: null,
+    isLoading: false,
+  }),
 }))
 
 describe('Admin Login Page Structure', () => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getProducts } from '../../data/storefront'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { useCartStore } from '../../hooks/useCart'
 import { cn } from '../../lib/utils'
 import { CartDrawer } from '../cart/CartDrawer'
@@ -21,7 +21,8 @@ export const Navbar = () => {
   const [products, setProducts] = useState<Array<Product>>([])
   const items = useCartStore((state) => state.items)
   const totalItems = items.reduce((acc: number, item) => acc + item.quantity, 0)
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { data: user } = useAuth()
+  const isAuthenticated = !!user
   const { open } = useAuthModal()
 
   const currentLang = lang || 'en'

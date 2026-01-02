@@ -3,7 +3,12 @@ import { and, eq, gt } from 'drizzle-orm'
 
 import { validateCsrf } from './csrf'
 import { db } from '../db'
+import { simpleErrorResponse } from './api'
 import { sessions, users } from '../db/schema'
+import { getCookie } from './utils/session'
+
+// Re-export for backward compatibility
+export { getCookie }
 
 export const hashPassword = async (password: string) => {
   return await hash(password, 10)
@@ -14,26 +19,6 @@ export const verifyPassword = async (
   passwordHash: string,
 ) => {
   return await compare(password, passwordHash)
-}
-
-export const getCookie = (request: Request, name: string) => {
-  const cookieHeader = request.headers.get('Cookie')
-  if (!cookieHeader) return undefined
-
-  const cookies = cookieHeader.split(';').reduce(
-    (acc, cookie) => {
-      const idx = cookie.indexOf('=')
-      if (idx !== -1) {
-        const key = cookie.substring(0, idx).trim()
-        const value = cookie.substring(idx + 1).trim()
-        acc[key] = value
-      }
-      return acc
-    },
-    {} as Record<string, string>,
-  )
-
-  return cookies[name]
 }
 
 export const validateSession = async (request: Request) => {
@@ -86,10 +71,7 @@ export const requireAuthWithCsrf = async (request: Request) => {
   const result = await validateSession(request)
 
   if (!result.success) {
-    return new Response(JSON.stringify({ error: result.error }), {
-      status: result.status,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return simpleErrorResponse(result.error, result.status)
   }
 
   return { success: true, user: result.user, sessionId: result.sessionId! }
@@ -106,10 +88,7 @@ export const requireAdminWithCsrf = async (request: Request) => {
   }
 
   if (result.user.role !== 'admin') {
-    return new Response(JSON.stringify({ error: 'Admin access required' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return simpleErrorResponse('Admin access required', 403)
   }
 
   return result

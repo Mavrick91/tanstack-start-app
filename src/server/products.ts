@@ -1,10 +1,34 @@
+/**
+ * Products Server Functions
+ *
+ * Uses standardized patterns:
+ * - Middleware for authentication (adminMiddleware)
+ * - Top-level imports for database
+ * - Error helpers for consistent responses
+ */
+
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
-import { and, asc, count, desc, eq, ilike, inArray, SQL } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  type SQL,
+} from 'drizzle-orm'
 import { z } from 'zod'
 
-import { getMeFn } from './auth'
 import { db } from '../db'
+import { adminMiddleware, throwBadRequest, throwNotFound } from './middleware'
+import {
+  productImages,
+  productOptions,
+  products,
+  productVariants,
+} from '../db/schema'
+import { emptyToNull } from '../lib/api'
 import {
   productIdSchema,
   productInputSchema,
@@ -13,14 +37,6 @@ import {
   type ProductOptionInput,
   type ProductVariantInput,
 } from './schemas/products'
-import {
-  products,
-  productImages,
-  productOptions,
-  productVariants,
-} from '../db/schema'
-import { emptyToNull } from '../lib/api'
-import { validateSession } from '../lib/auth'
 
 type SelectedOption = { name: string; value: string }
 
@@ -44,16 +60,9 @@ export const generateVariantCombinations = (
   )
 }
 
-export const getProductsFn = createServerFn({ method: 'GET' }).handler(
-  async () => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
+export const getProductsFn = createServerFn({ method: 'GET' })
+  .middleware([adminMiddleware])
+  .handler(async () => {
     const allProducts = await db
       .select()
       .from(products)
@@ -63,7 +72,6 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
       return { success: true, data: [] }
     }
 
-    // Batch fetch all related data to avoid N+1 queries
     const productIds = allProducts.map((p) => p.id)
 
     const [allImages, allVariants, allOptions] = await Promise.all([
@@ -84,7 +92,6 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
         .orderBy(asc(productOptions.position)),
     ])
 
-    // Group by productId
     const imagesByProduct = new Map<string, (typeof allImages)[0][]>()
     for (const img of allImages) {
       if (!imagesByProduct.has(img.productId)) {
@@ -125,20 +132,12 @@ export const getProductsFn = createServerFn({ method: 'GET' }).handler(
     })
 
     return { success: true, data: productsWithData }
-  },
-)
+  })
 
 export const createProductFn = createServerFn({ method: 'POST' })
-  .inputValidator((data) => productInputSchema.parse(data))
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => productInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
     const {
       name,
       handle,
@@ -156,11 +155,9 @@ export const createProductFn = createServerFn({ method: 'POST' })
       compareAtPrice,
     } = data
 
-    // Zod already validates name.en and handle, but we trim handle
     const trimmedHandle = handle.trim()
 
     const product = await db.transaction(async (tx) => {
-      // 1. Insert Product
       const [newProduct] = await tx
         .insert(products)
         .values({
@@ -176,7 +173,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
         })
         .returning()
 
-      // 2. Insert Product Options
       if (options.length > 0) {
         await tx.insert(productOptions).values(
           options.map((opt, index) => ({
@@ -188,9 +184,7 @@ export const createProductFn = createServerFn({ method: 'POST' })
         )
       }
 
-      // 3. Insert Variants
       if (inputVariants && inputVariants.length > 0) {
-        // Explicit variants provided
         await tx.insert(productVariants).values(
           inputVariants.map((v, index) => ({
             productId: newProduct.id,
@@ -206,7 +200,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
           })),
         )
       } else if (options.length > 0) {
-        // Auto-generate variants from options
         const combinations = generateVariantCombinations(options)
         await tx.insert(productVariants).values(
           combinations.map((combo: SelectedOption[], index: number) => ({
@@ -220,7 +213,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
           })),
         )
       } else {
-        // No options: Create default variant
         await tx.insert(productVariants).values({
           productId: newProduct.id,
           title: 'Default Title',
@@ -232,7 +224,6 @@ export const createProductFn = createServerFn({ method: 'POST' })
         })
       }
 
-      // 4. Insert Images
       if (Array.isArray(images) && images.length > 0) {
         await tx.insert(productImages).values(
           images.map((img, index) => ({
@@ -251,16 +242,9 @@ export const createProductFn = createServerFn({ method: 'POST' })
   })
 
 export const deleteProductFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => productIdSchema.parse(data))
   .handler(async ({ data }) => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
     const images = await db
       .select({ url: productImages.url })
       .from(productImages)
@@ -276,22 +260,17 @@ export const deleteProductFn = createServerFn({ method: 'POST' })
   })
 
 export const duplicateProductFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => productIdSchema.parse(data))
   .handler(async ({ data }) => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
     const [original] = await db
       .select()
       .from(products)
       .where(eq(products.id, data.productId))
 
-    if (!original) throw new Error('Product not found')
+    if (!original) {
+      return throwNotFound('Product')
+    }
 
     const originalImages = await db
       .select()
@@ -367,16 +346,9 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
   })
 
 export const updateProductStatusFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => updateProductStatusSchema.parse(data))
   .handler(async ({ data }) => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
     await db
       .update(products)
       .set({ status: data.status, updatedAt: new Date() })
@@ -385,129 +357,111 @@ export const updateProductStatusFn = createServerFn({ method: 'POST' })
     return { success: true }
   })
 
-// Helper to require admin auth
-const requireAdmin = async () => {
-  const user = await getMeFn()
-  if (!user || user.role !== 'admin') {
-    throw new Error('Unauthorized')
-  }
-  return user
-}
-
-// Get all products for admin list
-export const getAdminProductsFn = createServerFn().handler(async () => {
-  await requireAdmin()
-
-  const allProducts = await db
-    .select()
-    .from(products)
-    .orderBy(desc(products.createdAt))
-
-  if (allProducts.length === 0) {
-    return []
-  }
-
-  // Batch fetch all related data to avoid N+1 queries
-  const productIds = allProducts.map((p) => p.id)
-
-  const [allImages, allVariants] = await Promise.all([
-    db
+export const getAdminProductsFn = createServerFn()
+  .middleware([adminMiddleware])
+  .handler(async () => {
+    const allProducts = await db
       .select()
-      .from(productImages)
-      .where(inArray(productImages.productId, productIds))
-      .orderBy(asc(productImages.position)),
-    db
-      .select()
-      .from(productVariants)
-      .where(inArray(productVariants.productId, productIds))
-      .orderBy(asc(productVariants.position)),
-  ])
+      .from(products)
+      .orderBy(desc(products.createdAt))
 
-  // Group by productId - get first image only
-  const firstImageByProduct = new Map()
-  for (const img of allImages) {
-    if (!firstImageByProduct.has(img.productId)) {
-      firstImageByProduct.set(img.productId, img.url)
+    if (allProducts.length === 0) {
+      return []
     }
-  }
 
-  // Group variants by productId
-  const variantsByProduct = new Map<string, (typeof allVariants)[0][]>()
-  for (const v of allVariants) {
-    if (!variantsByProduct.has(v.productId)) {
-      variantsByProduct.set(v.productId, [])
+    const productIds = allProducts.map((p) => p.id)
+
+    const [allImages, allVariants] = await Promise.all([
+      db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, productIds))
+        .orderBy(asc(productImages.position)),
+      db
+        .select()
+        .from(productVariants)
+        .where(inArray(productVariants.productId, productIds))
+        .orderBy(asc(productVariants.position)),
+    ])
+
+    const firstImageByProduct = new Map()
+    for (const img of allImages) {
+      if (!firstImageByProduct.has(img.productId)) {
+        firstImageByProduct.set(img.productId, img.url)
+      }
     }
-    variantsByProduct.get(v.productId)!.push(v)
-  }
 
-  const productsWithData = allProducts.map((product) => {
-    const variants = variantsByProduct.get(product.id) || []
+    const variantsByProduct = new Map<string, (typeof allVariants)[0][]>()
+    for (const v of allVariants) {
+      if (!variantsByProduct.has(v.productId)) {
+        variantsByProduct.set(v.productId, [])
+      }
+      variantsByProduct.get(v.productId)!.push(v)
+    }
 
-    // Calculate price range
-    const prices = variants
-      .map((v) => parseFloat(v.price))
-      .filter((p) => !isNaN(p))
-    const minPrice = prices.length > 0 ? Math.min(...prices) : null
-    const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+    const productsWithData = allProducts.map((product) => {
+      const variants = variantsByProduct.get(product.id) || []
+      const prices = variants
+        .map((v) => parseFloat(v.price))
+        .filter((p) => !isNaN(p))
+      const minPrice = prices.length > 0 ? Math.min(...prices) : null
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+
+      return {
+        ...product,
+        imageUrl: firstImageByProduct.get(product.id),
+        variantCount: variants.length,
+        minPrice,
+        maxPrice,
+        price: variants[0]?.price ?? '0',
+      }
+    })
+
+    return productsWithData
+  })
+
+export const getProductStatsFn = createServerFn()
+  .middleware([adminMiddleware])
+  .handler(async () => {
+    const [totalProductsResult] = await db
+      .select({ count: count() })
+      .from(products)
+
+    const [activeCountResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.status, 'active'))
+
+    const [draftCountResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.status, 'draft'))
+
+    const [archivedCountResult] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.status, 'archived'))
 
     return {
-      ...product,
-      imageUrl: firstImageByProduct.get(product.id),
-      variantCount: variants.length,
-      minPrice,
-      maxPrice,
-      price: variants[0]?.price ?? '0',
+      totalProducts: totalProductsResult.count,
+      activeCount: activeCountResult.count,
+      draftCount: draftCountResult.count,
+      archivedCount: archivedCountResult.count,
     }
   })
 
-  return productsWithData
-})
-
-// Get product stats
-export const getProductStatsFn = createServerFn().handler(async () => {
-  await requireAdmin()
-
-  const [totalProductsResult] = await db
-    .select({ count: count() })
-    .from(products)
-
-  const [activeCountResult] = await db
-    .select({ count: count() })
-    .from(products)
-    .where(eq(products.status, 'active'))
-
-  const [draftCountResult] = await db
-    .select({ count: count() })
-    .from(products)
-    .where(eq(products.status, 'draft'))
-
-  const [archivedCountResult] = await db
-    .select({ count: count() })
-    .from(products)
-    .where(eq(products.status, 'archived'))
-
-  return {
-    totalProducts: totalProductsResult.count,
-    activeCount: activeCountResult.count,
-    draftCount: draftCountResult.count,
-    archivedCount: archivedCountResult.count,
-  }
-})
-
-// Bulk delete products
 export const deleteProductsBulkFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z.object({ ids: z.array(z.string().uuid()) }).parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     await db.delete(products).where(inArray(products.id, data.ids))
     return { success: true, deletedCount: data.ids.length }
   })
 
-// Bulk update products (delete, archive, activate)
 export const bulkUpdateProductsFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -517,16 +471,13 @@ export const bulkUpdateProductsFn = createServerFn({ method: 'POST' })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const { action, ids } = data
 
     if (ids.length === 0) {
-      throw new Error('No items selected')
+      return throwBadRequest('No items selected')
     }
 
     if (action === 'delete') {
-      // Get images for cleanup
       const images = await db
         .select({ url: productImages.url })
         .from(productImages)
@@ -553,21 +504,19 @@ export const bulkUpdateProductsFn = createServerFn({ method: 'POST' })
     return { success: true, count: ids.length }
   })
 
-// Get single product by ID with all related data
 export const getProductByIdFn = createServerFn()
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z.object({ productId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const [product] = await db
       .select()
       .from(products)
       .where(eq(products.id, data.productId))
 
     if (!product) {
-      throw new Error('Product not found')
+      return throwNotFound('Product')
     }
 
     const images = await db
@@ -593,8 +542,8 @@ export const getProductByIdFn = createServerFn()
     }
   })
 
-// Update product
 export const updateProductFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -636,12 +585,7 @@ export const updateProductFn = createServerFn({ method: 'POST' })
           .optional()
           .nullable(),
         options: z
-          .array(
-            z.object({
-              name: z.string(),
-              values: z.array(z.string()),
-            }),
-          )
+          .array(z.object({ name: z.string(), values: z.array(z.string()) }))
           .optional(),
         variants: z
           .array(
@@ -663,8 +607,6 @@ export const updateProductFn = createServerFn({ method: 'POST' })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const {
       productId,
       name,
@@ -680,9 +622,7 @@ export const updateProductFn = createServerFn({ method: 'POST' })
       variants,
     } = data
 
-    // Use transaction to ensure atomicity of multi-step update
     return await db.transaction(async (tx) => {
-      // Update product
       const updateData: Record<string, unknown> = { updatedAt: new Date() }
       if (name !== undefined) updateData.name = name
       if (description !== undefined) updateData.description = description
@@ -703,10 +643,9 @@ export const updateProductFn = createServerFn({ method: 'POST' })
         .returning()
 
       if (!updated) {
-        throw new Error('Product not found')
+        return throwNotFound('Product')
       }
 
-      // Update options if provided
       if (options !== undefined) {
         await tx
           .delete(productOptions)
@@ -724,7 +663,6 @@ export const updateProductFn = createServerFn({ method: 'POST' })
         }
       }
 
-      // Update variants if provided
       if (variants !== undefined) {
         await tx
           .delete(productVariants)
@@ -748,7 +686,6 @@ export const updateProductFn = createServerFn({ method: 'POST' })
         }
       }
 
-      // Fetch updated data within the same transaction
       const updatedOptions = await tx
         .select()
         .from(productOptions)
@@ -771,8 +708,8 @@ export const updateProductFn = createServerFn({ method: 'POST' })
     })
   })
 
-// Update product images
 export const updateProductImagesFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -794,11 +731,8 @@ export const updateProductImagesFn = createServerFn({ method: 'POST' })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const { productId, images } = data
 
-    // Get existing images for cleanup (outside transaction - read-only)
     const existingImages = await db
       .select({ url: productImages.url })
       .from(productImages)
@@ -807,21 +741,17 @@ export const updateProductImagesFn = createServerFn({ method: 'POST' })
     const existingUrls = new Set(existingImages.map((i) => i.url))
     const newUrls = new Set(images.map((i) => i.url))
 
-    // Find removed images and delete from Cloudinary (outside transaction - external service)
     const removedUrls = [...existingUrls].filter((url) => !newUrls.has(url))
     if (removedUrls.length > 0) {
       const { deleteImagesFromCloudinary } = await import('../lib/cloudinary')
       await deleteImagesFromCloudinary(removedUrls)
     }
 
-    // Use transaction for database operations to ensure atomicity
     await db.transaction(async (tx) => {
-      // Delete all existing images
       await tx
         .delete(productImages)
         .where(eq(productImages.productId, productId))
 
-      // Insert new images
       if (images.length > 0) {
         await tx.insert(productImages).values(
           images.map((img) => ({
@@ -837,8 +767,8 @@ export const updateProductImagesFn = createServerFn({ method: 'POST' })
     return { success: true }
   })
 
-// Get paginated products list for admin
 export const getProductsListFn = createServerFn()
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -852,8 +782,6 @@ export const getProductsListFn = createServerFn()
       .parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const { page, limit, search, status, sortKey, sortOrder } = data
 
     const conditions: SQL[] = []
@@ -866,7 +794,6 @@ export const getProductsListFn = createServerFn()
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-    // Sorting
     const sortColumn =
       {
         name: products.name,
@@ -876,13 +803,11 @@ export const getProductsListFn = createServerFn()
 
     const orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
 
-    // Get total count
     const [{ total }] = await db
       .select({ total: count() })
       .from(products)
       .where(whereClause)
 
-    // Get paginated products
     const offset = (page - 1) * limit
     const paginatedProducts = await db
       .select()
@@ -892,7 +817,6 @@ export const getProductsListFn = createServerFn()
       .limit(limit)
       .offset(offset)
 
-    // Get images for all products
     const productIds = paginatedProducts.map((p) => p.id)
     const images =
       productIds.length > 0
@@ -909,7 +833,6 @@ export const getProductsListFn = createServerFn()
       }
     }
 
-    // Get first variant for each product (for price display)
     const allVariants =
       productIds.length > 0
         ? await db

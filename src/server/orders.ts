@@ -1,22 +1,31 @@
+/**
+ * Orders Server Functions
+ *
+ * Uses standardized patterns:
+ * - Middleware for authentication (adminMiddleware)
+ * - Top-level imports for database
+ * - Error helpers for consistent responses
+ */
+
 import { createServerFn } from '@tanstack/react-start'
 import {
   and,
   asc,
+  count,
   desc,
   eq,
   gte,
   ilike,
   inArray,
-  SQL,
   sql,
-  count,
 } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { getMeFn } from './auth'
 import { db } from '../db'
-import { orders, orderItems, orderStatusHistory, customers } from '../db/schema'
-import { stripe } from '../lib/stripe'
+import { adminMiddleware, throwBadRequest, throwNotFound } from './middleware'
+import { customers, orderItems, orders, orderStatusHistory } from '../db/schema'
+
+import type { SQL } from 'drizzle-orm'
 
 export type OrderStatus =
   | 'pending'
@@ -218,6 +227,7 @@ const getPayPalAccessToken = async () => {
  */
 export const refundStripePayment = async (paymentId: string) => {
   try {
+    const { stripe } = await import('../lib/stripe')
     const refund = await stripe.refunds.create({
       payment_intent: paymentId,
     })
@@ -406,14 +416,9 @@ export const cancelOrderWithRefund = async (
   }
 }
 
-// Helper to require admin auth
-const requireAdmin = async () => {
-  const user = await getMeFn()
-  if (!user || user.role !== 'admin') {
-    throw new Error('Unauthorized')
-  }
-  return user
-}
+// ============================================
+// SERVER FUNCTIONS
+// ============================================
 
 // Get orders list with pagination and filtering (admin)
 const getAdminOrdersInputSchema = z.object({
@@ -443,10 +448,9 @@ const getAdminOrdersInputSchema = z.object({
 })
 
 export const getAdminOrdersFn = createServerFn()
-  .inputValidator(getAdminOrdersInputSchema.parse)
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => getAdminOrdersInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const {
       page,
       limit,
@@ -549,65 +553,65 @@ export const getAdminOrdersFn = createServerFn()
   })
 
 // Get order statistics (admin)
-export const getOrderStatsFn = createServerFn().handler(async () => {
-  await requireAdmin()
+export const getOrderStatsFn = createServerFn()
+  .middleware([adminMiddleware])
+  .handler(async () => {
+    // Get today's start (midnight)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-  // Get today's start (midnight)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+    // Run all queries in parallel
+    const [pendingResult, unpaidResult, unfulfilledResult, revenueResult] =
+      await Promise.all([
+        // Pending orders count
+        db
+          .select({ count: count() })
+          .from(orders)
+          .where(eq(orders.status, 'pending')),
 
-  // Run all queries in parallel
-  const [pendingResult, unpaidResult, unfulfilledResult, revenueResult] =
-    await Promise.all([
-      // Pending orders count
-      db
-        .select({ count: count() })
-        .from(orders)
-        .where(eq(orders.status, 'pending')),
-
-      // Unpaid orders count (excluding cancelled)
-      db
-        .select({ count: count() })
-        .from(orders)
-        .where(
-          and(
-            eq(orders.paymentStatus, 'pending'),
-            sql`${orders.status} != 'cancelled'`,
+        // Unpaid orders count (excluding cancelled)
+        db
+          .select({ count: count() })
+          .from(orders)
+          .where(
+            and(
+              eq(orders.paymentStatus, 'pending'),
+              sql`${orders.status} != 'cancelled'`,
+            ),
           ),
-        ),
 
-      // Unfulfilled orders count (excluding cancelled)
-      db
-        .select({ count: count() })
-        .from(orders)
-        .where(
-          and(
-            eq(orders.fulfillmentStatus, 'unfulfilled'),
-            sql`${orders.status} != 'cancelled'`,
+        // Unfulfilled orders count (excluding cancelled)
+        db
+          .select({ count: count() })
+          .from(orders)
+          .where(
+            and(
+              eq(orders.fulfillmentStatus, 'unfulfilled'),
+              sql`${orders.status} != 'cancelled'`,
+            ),
           ),
-        ),
 
-      // Today's revenue (paid orders only)
-      db
-        .select({
-          total: sql<string>`COALESCE(SUM(${orders.total}), 0)`,
-        })
-        .from(orders)
-        .where(
-          and(eq(orders.paymentStatus, 'paid'), gte(orders.createdAt, today)),
-        ),
-    ])
+        // Today's revenue (paid orders only)
+        db
+          .select({
+            total: sql<string>`COALESCE(SUM(${orders.total}), 0)`,
+          })
+          .from(orders)
+          .where(
+            and(eq(orders.paymentStatus, 'paid'), gte(orders.createdAt, today)),
+          ),
+      ])
 
-  return {
-    stats: {
-      pending: pendingResult[0]?.count ?? 0,
-      unpaid: unpaidResult[0]?.count ?? 0,
-      unfulfilled: unfulfilledResult[0]?.count ?? 0,
-      todayRevenue: parseFloat(revenueResult[0]?.total ?? '0'),
-      currency: 'USD', // Could be configurable
-    },
-  }
-})
+    return {
+      stats: {
+        pending: pendingResult[0]?.count ?? 0,
+        unpaid: unpaidResult[0]?.count ?? 0,
+        unfulfilled: unfulfilledResult[0]?.count ?? 0,
+        todayRevenue: parseFloat(revenueResult[0]?.total ?? '0'),
+        currency: 'USD', // Could be configurable
+      },
+    }
+  })
 
 // Get single order detail (admin)
 const getAdminOrderInputSchema = z.object({
@@ -615,10 +619,9 @@ const getAdminOrderInputSchema = z.object({
 })
 
 export const getAdminOrderFn = createServerFn()
-  .inputValidator(getAdminOrderInputSchema.parse)
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => getAdminOrderInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const { orderId } = data
 
     // Get order
@@ -629,7 +632,7 @@ export const getAdminOrderFn = createServerFn()
       .limit(1)
 
     if (!order) {
-      throw new Error('Order not found')
+      throwNotFound('Order')
     }
 
     // Get order items
@@ -710,11 +713,11 @@ const updateOrderStatusInputSchema = z.object({
 })
 
 export const updateOrderStatusFn = createServerFn({ method: 'POST' })
-  .inputValidator(updateOrderStatusInputSchema.parse)
-  .handler(async ({ data }) => {
-    const user = await requireAdmin()
-
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => updateOrderStatusInputSchema.parse(data))
+  .handler(async ({ data, context }) => {
     const { orderId, status, paymentStatus, fulfillmentStatus, reason } = data
+    const userId = context.user.userId
 
     // Get order
     const [order] = await db
@@ -724,19 +727,19 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!order) {
-      throw new Error('Order not found')
+      throwNotFound('Order')
     }
 
     // Handle cancellation with refund
     if (status === 'cancelled' && order.status !== 'cancelled') {
       const cancellationResult = await cancelOrderWithRefund(
         orderId,
-        user.id,
+        userId,
         reason,
       )
 
       if (!cancellationResult.success) {
-        throw new Error(cancellationResult.error || 'Failed to cancel order')
+        throwBadRequest(cancellationResult.error || 'Failed to cancel order')
       }
 
       // Fetch updated order
@@ -774,7 +777,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
         field: 'status',
         previousValue: order.status,
         newValue: status,
-        changedBy: user.id,
+        changedBy: userId,
         changedAt: new Date(),
         reason,
       })
@@ -790,7 +793,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
       )
 
       if (!validation.allowed) {
-        throw new Error(validation.error || 'Payment status change not allowed')
+        throwBadRequest(validation.error || 'Payment status change not allowed')
       }
 
       updates.paymentStatus = paymentStatus
@@ -806,7 +809,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
         field: 'paymentStatus',
         previousValue: order.paymentStatus,
         newValue: paymentStatus,
-        changedBy: user.id,
+        changedBy: userId,
         changedAt: new Date(),
         reason:
           reason ||
@@ -825,7 +828,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
         field: 'fulfillmentStatus',
         previousValue: order.fulfillmentStatus,
         newValue: fulfillmentStatus,
-        changedBy: user.id,
+        changedBy: userId,
         changedAt: new Date(),
         reason,
       })
@@ -858,11 +861,11 @@ const bulkUpdateOrdersInputSchema = z.object({
 })
 
 export const bulkUpdateOrdersFn = createServerFn({ method: 'POST' })
-  .inputValidator(bulkUpdateOrdersInputSchema.parse)
-  .handler(async ({ data }) => {
-    const user = await requireAdmin()
-
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => bulkUpdateOrdersInputSchema.parse(data))
+  .handler(async ({ data, context }) => {
     const { ids, action, value } = data
+    const userId = context.user.userId
 
     // Validate values based on action
     const validValues: Record<string, string[]> = {
@@ -872,7 +875,7 @@ export const bulkUpdateOrdersFn = createServerFn({ method: 'POST' })
     }
 
     if (!validValues[action].includes(value)) {
-      throw new Error(`Invalid value for ${action}`)
+      throwBadRequest(`Invalid value for ${action}`)
     }
 
     // Get current orders to record changes
@@ -909,7 +912,7 @@ export const bulkUpdateOrdersFn = createServerFn({ method: 'POST' })
           field: action as 'status' | 'paymentStatus' | 'fulfillmentStatus',
           previousValue,
           newValue: value,
-          changedBy: user.id,
+          changedBy: userId,
           changedAt: new Date(),
           reason: 'Bulk update',
         })
@@ -928,10 +931,9 @@ const getOrderHistoryInputSchema = z.object({
 })
 
 export const getOrderHistoryFn = createServerFn()
-  .inputValidator(getOrderHistoryInputSchema.parse)
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) => getOrderHistoryInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAdmin()
-
     const { orderId } = data
 
     const auditTrail = await getOrderAuditTrail(orderId)

@@ -3,7 +3,7 @@
  * Provides type-safe server functions for checkout operations.
  */
 
-import { createServerFn, json } from '@tanstack/react-start'
+import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 
 import { calculateTax } from '../lib/tax'
@@ -666,7 +666,7 @@ export const createCheckoutFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const result = await createCheckout(data)
     if (!result.success) {
-      throw json({ error: result.error }, { status: result.status })
+      throw Response.json({ error: result.error }, { status: result.status })
     }
     return { checkout: result.checkout }
   })
@@ -687,15 +687,18 @@ export const getCheckoutFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw json({ error: 'Checkout not found' }, { status: 404 })
+      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
     }
 
     if (checkout.completedAt) {
-      throw json({ error: 'Checkout already completed' }, { status: 410 })
+      throw Response.json(
+        { error: 'Checkout already completed' },
+        { status: 410 },
+      )
     }
 
     if (checkout.expiresAt < new Date()) {
-      throw json({ error: 'Checkout expired' }, { status: 410 })
+      throw Response.json({ error: 'Checkout expired' }, { status: 410 })
     }
 
     return {
@@ -734,7 +737,7 @@ export const getShippingRatesFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw json({ error: 'Checkout not found' }, { status: 404 })
+      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
     }
 
     const subtotal = parseFloat(checkout.subtotal)
@@ -773,7 +776,7 @@ export const saveCustomerInfoFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw json({ error: result.error }, { status: result.status })
+      throw Response.json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -788,7 +791,7 @@ export const saveShippingAddressFn = createServerFn({ method: 'POST' })
     const result = await saveShippingAddress({ checkoutId, address })
 
     if (!result.success) {
-      throw json({ error: result.error }, { status: result.status })
+      throw Response.json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -803,7 +806,7 @@ export const saveShippingMethodFn = createServerFn({ method: 'POST' })
     const result = await saveShippingMethod({ checkoutId, shippingRateId })
 
     if (!result.success) {
-      throw json({ error: result.error }, { status: result.status })
+      throw Response.json({ error: result.error }, { status: result.status })
     }
 
     return { checkout: result.checkout }
@@ -822,7 +825,7 @@ export const completeCheckoutFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw json({ error: result.error }, { status: result.status })
+      throw Response.json({ error: result.error }, { status: result.status })
     }
 
     return { order: result.order }
@@ -845,28 +848,40 @@ export const createStripePaymentIntentFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!checkout) {
-      throw json({ error: 'Checkout not found' }, { status: 404 })
+      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
     }
 
     if (checkout.completedAt) {
-      throw json({ error: 'Checkout already completed' }, { status: 410 })
+      throw Response.json(
+        { error: 'Checkout already completed' },
+        { status: 410 },
+      )
     }
 
     if (checkout.expiresAt < new Date()) {
-      throw json({ error: 'Checkout expired' }, { status: 410 })
+      throw Response.json({ error: 'Checkout expired' }, { status: 410 })
     }
 
     // Validate checkout is ready for payment
     if (!checkout.email) {
-      throw json({ error: 'Customer email is required' }, { status: 400 })
+      throw Response.json(
+        { error: 'Customer email is required' },
+        { status: 400 },
+      )
     }
 
     if (!checkout.shippingAddress) {
-      throw json({ error: 'Shipping address is required' }, { status: 400 })
+      throw Response.json(
+        { error: 'Shipping address is required' },
+        { status: 400 },
+      )
     }
 
     if (!checkout.shippingRateId) {
-      throw json({ error: 'Shipping method is required' }, { status: 400 })
+      throw Response.json(
+        { error: 'Shipping method is required' },
+        { status: 400 },
+      )
     }
 
     // Dynamic import to prevent Node.js code from leaking into client bundle

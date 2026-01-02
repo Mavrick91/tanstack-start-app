@@ -5,7 +5,7 @@ import { db } from '../../../db'
 import { orders } from '../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
@@ -16,16 +16,8 @@ export const Route = createFileRoute('/api/orders/bulk')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const auth = await requireAuth(request)
-          if (!auth.success) return auth.response
-          if (!auth.user) {
-            return simpleErrorResponse('Unauthorized', 401)
-          }
-
-          // Only admin can bulk update orders
-          if (auth.user.role !== 'admin') {
-            return new Response('Forbidden', { status: 403 })
-          }
+          const auth = await requireAdmin(request)
+          if (!auth.success || !auth.user) return auth.response
 
           const body = await request.json()
           const { ids, action, value } = body

@@ -1,10 +1,21 @@
+/**
+ * AI Server Functions
+ *
+ * Uses standardized patterns:
+ * - Middleware for authentication (adminMiddleware)
+ * - Error helpers for consistent responses
+ */
+
 import { GoogleGenAI } from '@google/genai'
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
 import OpenAI from 'openai'
 import { z } from 'zod'
 
-import { validateSession } from '../lib/auth'
+import {
+  adminMiddleware,
+  throwBadRequest,
+  throwServerError,
+} from './middleware'
 
 const GEMINI_TEXT_MODEL = 'gemini-2.0-flash' as const
 
@@ -250,31 +261,26 @@ export const generateProductDetails = async (params: {
   )
 }
 
+const generateProductDetailsInputSchema = z.object({
+  imageUrl: z.string().optional(),
+  imageBase64: z.string().optional(),
+  mimeType: z.string().optional(),
+  provider: z.enum(['gemini', 'openai']).default('gemini'),
+})
+
 export const generateProductDetailsFn = createServerFn({ method: 'POST' })
-  .inputValidator(
-    z.object({
-      imageUrl: z.string().optional(),
-      imageBase64: z.string().optional(),
-      mimeType: z.string().optional(),
-      provider: z.enum(['gemini', 'openai']).default('gemini'),
-    }),
+  .middleware([adminMiddleware])
+  .inputValidator((data: unknown) =>
+    generateProductDetailsInputSchema.parse(data),
   )
   .handler(async ({ data }) => {
-    const request = getRequest()
-    if (!request) throw new Error('No request found')
-
-    const auth = await validateSession(request)
-    if (!auth.success) {
-      throw new Error(auth.error || 'Unauthorized')
-    }
-
     const apiKey =
       data.provider === 'openai'
         ? process.env.OPENAI_API_KEY
         : process.env.GEMINI_API_KEY
 
     if (!apiKey) {
-      throw new Error(
+      return throwBadRequest(
         `${data.provider === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY'} is not configured`,
       )
     }
@@ -290,7 +296,7 @@ export const generateProductDetailsFn = createServerFn({ method: 'POST' })
       return { success: true, data: result }
     } catch (error) {
       console.error('AI Generation Error:', error)
-      throw new Error(
+      return throwServerError(
         error instanceof Error ? error.message : 'Failed to generate details',
       )
     }

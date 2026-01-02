@@ -7,7 +7,13 @@ export const Route = createFileRoute('/api/auth/google/')({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url)
-        const returnUrl = url.searchParams.get('returnUrl') || '/en/account'
+        let returnUrl = url.searchParams.get('returnUrl') || '/en/account'
+
+        // Prevent open redirect - must be relative path starting with /
+        // but not // (which would be protocol-relative URL)
+        if (!returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+          returnUrl = '/en/account'
+        }
 
         const googleUrl = getGoogleAuthUrl(returnUrl)
         return Response.redirect(googleUrl)

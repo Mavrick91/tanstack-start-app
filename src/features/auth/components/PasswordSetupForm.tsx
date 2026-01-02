@@ -1,5 +1,8 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
+
+import { verifyEmailFn, resetPasswordFn } from '../../../server/auth-customer'
 
 import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
 
@@ -38,47 +41,44 @@ const passwordFormDefinition: FormDefinition = {
 }
 
 export const PasswordSetupForm = ({ token, type }: PasswordSetupFormProps) => {
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { lang } = useParams({ strict: false }) as { lang?: string }
+  const currentLang = lang || 'en'
+  const [mismatchError, setMismatchError] = useState<string | null>(null)
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    setError(null)
+  const mutation = useMutation({
+    mutationFn: (data: { token: string; password: string }) =>
+      type === 'verify' ? verifyEmailFn({ data }) : resetPasswordFn({ data }),
+    onSuccess: async () => {
+      // Invalidate customer session to refresh auth state in customer pages
+      await queryClient.invalidateQueries({ queryKey: ['customer', 'session'] })
+      // Redirect to account page with correct language
+      navigate({ to: '/$lang/account', params: { lang: currentLang } })
+    },
+  })
+
+  const handleSubmit = (values: Record<string, unknown>) => {
+    setMismatchError(null)
 
     if (values.password !== values.confirmPassword) {
-      setError('Passwords do not match')
+      setMismatchError('Passwords do not match')
       return
     }
 
-    setIsLoading(true)
-
-    try {
-      const endpoint =
-        type === 'verify'
-          ? '/api/auth/verify-email'
-          : '/api/auth/reset-password'
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: values.password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to set password')
-        return
-      }
-
-      // Redirect to account page on success
-      navigate({ to: '/$lang/account', params: { lang: 'en' } })
-    } catch {
-      setError('An unexpected error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+    mutation.mutate({
+      token,
+      password: String(values.password),
+    })
   }
+
+  const error =
+    mismatchError ||
+    (mutation.error instanceof Error
+      ? mutation.error.message
+      : mutation.error
+        ? 'Failed to set password'
+        : null)
 
   return (
     <div className="space-y-4">
@@ -91,7 +91,9 @@ export const PasswordSetupForm = ({ token, type }: PasswordSetupFormProps) => {
       <FNForm
         formDefinition={passwordFormDefinition}
         onSubmit={handleSubmit}
-        submitButtonText={isLoading ? 'Setting password...' : 'Set password'}
+        submitButtonText={
+          mutation.isPending ? 'Setting password...' : 'Set password'
+        }
       />
     </div>
   )

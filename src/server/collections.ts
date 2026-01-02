@@ -1,5 +1,13 @@
+/**
+ * Collections Server Functions
+ *
+ * Uses standardized patterns:
+ * - Middleware for authentication (adminMiddleware)
+ * - Top-level imports for database
+ * - Error helpers for consistent responses
+ */
+
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
 import {
   and,
   asc,
@@ -15,6 +23,13 @@ import {
 } from 'drizzle-orm'
 
 import { db } from '../db'
+import { adminMiddleware, throwNotFound } from './middleware'
+import {
+  collectionProducts,
+  collections,
+  productImages,
+  products,
+} from '../db/schema'
 import {
   addProductsToCollectionSchema,
   bulkCollectionIdsSchema,
@@ -28,30 +43,14 @@ import {
   type CollectionInput,
   type CollectionsState,
 } from './schemas/collections'
-import {
-  collectionProducts,
-  collections,
-  productImages,
-  products,
-} from '../db/schema'
-import { validateSession } from '../lib/auth'
 
 // Re-export types for backwards compatibility
 export type { CollectionInput, CollectionsState }
 
-const requireAuth = async () => {
-  const request = getRequest()
-  if (!request) throw new Error('No request found')
-  const auth = await validateSession(request)
-  if (!auth.success) throw new Error(auth.error || 'Unauthorized')
-  return auth.user
-}
-
 export const getCollectionsFn = createServerFn({ method: 'GET' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionsStateSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const page = Math.max(1, data.page || 1)
     const limit = Math.min(100, Math.max(1, data.limit || 10))
     const offset = (page - 1) * limit
@@ -115,7 +114,7 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
         publishedAt: collections.publishedAt,
         createdAt: collections.createdAt,
         productCount: sql<number>`(
-          SELECT COUNT(*) FROM collection_products 
+          SELECT COUNT(*) FROM collection_products
           WHERE collection_id = ${collections.id}
         )::int`,
         previewImages: sql<string[]>`(
@@ -162,10 +161,9 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
   })
 
 export const bulkDeleteCollectionsFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => bulkCollectionIdsSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     if (!data.ids.length) return { success: true, count: 0 }
 
     const res = await db
@@ -177,10 +175,9 @@ export const bulkDeleteCollectionsFn = createServerFn({ method: 'POST' })
   })
 
 export const bulkUpdateCollectionsStatusFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => bulkCollectionStatusSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     if (!data.ids.length) return { success: true, count: 0 }
 
     const updateData = {
@@ -197,16 +194,17 @@ export const bulkUpdateCollectionsStatusFn = createServerFn({ method: 'POST' })
   })
 
 export const getCollectionFn = createServerFn({ method: 'GET' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const [collection] = await db
       .select()
       .from(collections)
       .where(eq(collections.id, data.id))
 
-    if (!collection) throw new Error('Collection not found')
+    if (!collection) {
+      throwNotFound('Collection')
+    }
 
     const collectionProductsList = await db
       .select({
@@ -255,10 +253,9 @@ export const getCollectionFn = createServerFn({ method: 'GET' })
   })
 
 export const createCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const { name, handle, description, sortOrder, metaTitle, metaDescription } =
       data
 
@@ -279,10 +276,9 @@ export const createCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const updateCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => updateCollectionSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const { id, ...updates } = data
 
     const [updated] = await db
@@ -291,31 +287,33 @@ export const updateCollectionFn = createServerFn({ method: 'POST' })
       .where(eq(collections.id, id))
       .returning()
 
-    if (!updated) throw new Error('Collection not found')
+    if (!updated) {
+      throwNotFound('Collection')
+    }
 
     return { success: true, data: updated }
   })
 
 export const deleteCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const [deleted] = await db
       .delete(collections)
       .where(eq(collections.id, data.id))
       .returning()
 
-    if (!deleted) throw new Error('Collection not found')
+    if (!deleted) {
+      throwNotFound('Collection')
+    }
 
     return { success: true }
   })
 
 export const addProductsToCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => addProductsToCollectionSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const { collectionId, productIds } = data
 
     if (!productIds.length) return { success: true }
@@ -356,12 +354,11 @@ export const addProductsToCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const removeProductFromCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     removeProductFromCollectionSchema.parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAuth()
-
     await db
       .delete(collectionProducts)
       .where(
@@ -375,12 +372,11 @@ export const removeProductFromCollectionFn = createServerFn({ method: 'POST' })
   })
 
 export const reorderCollectionProductsFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) =>
     reorderCollectionProductsSchema.parse(data),
   )
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const { collectionId, productIds } = data
 
     // Update positions in a transaction
@@ -402,48 +398,51 @@ export const reorderCollectionProductsFn = createServerFn({ method: 'POST' })
   })
 
 export const publishCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const [updated] = await db
       .update(collections)
       .set({ publishedAt: new Date() })
       .where(eq(collections.id, data.id))
       .returning()
 
-    if (!updated) throw new Error('Collection not found')
+    if (!updated) {
+      throwNotFound('Collection')
+    }
 
     return { success: true, data: updated }
   })
 
 export const unpublishCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const [updated] = await db
       .update(collections)
       .set({ publishedAt: null })
       .where(eq(collections.id, data.id))
       .returning()
 
-    if (!updated) throw new Error('Collection not found')
+    if (!updated) {
+      throwNotFound('Collection')
+    }
 
     return { success: true, data: updated }
   })
 
 export const duplicateCollectionFn = createServerFn({ method: 'POST' })
+  .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionIdSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireAuth()
-
     const [original] = await db
       .select()
       .from(collections)
       .where(eq(collections.id, data.id))
 
-    if (!original) throw new Error('Collection not found')
+    if (!original) {
+      throwNotFound('Collection')
+    }
 
     // Generate unique handle
     const baseHandle = `${original.handle}-copy`

@@ -1,10 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { db } from '../db'
-import { users, customers, emailVerificationTokens } from '../db/schema'
-import { sendVerificationEmail } from '../lib/email'
 import { generateToken, hashToken, generateExpiresAt } from '../lib/tokens'
 
 const getBaseUrl = () => {
@@ -15,8 +11,11 @@ const getBaseUrl = () => {
 // REGISTER
 // ============================================
 
+const langSchema = z.enum(['en', 'fr', 'id']).default('en')
+
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
+  lang: langSchema,
 })
 
 export const registerCustomerFn = createServerFn({ method: 'POST' })
@@ -25,6 +24,11 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
     const { getRequest } = await import('@tanstack/react-start/server')
     const { checkRateLimit, getRateLimitKey } =
       await import('../lib/rate-limit')
+    const { eq } = await import('drizzle-orm')
+    const { db } = await import('../db')
+    const { users, customers, emailVerificationTokens } =
+      await import('../db/schema')
+    const { sendVerificationEmail } = await import('../lib/email')
 
     // Rate limiting
     const request = getRequest()
@@ -32,7 +36,10 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
       const key = getRateLimitKey(request)
       const rateLimit = await checkRateLimit('auth', key)
       if (!rateLimit.allowed) {
-        throw new Error('Too many attempts. Please try again later.')
+        throw Response.json(
+          { error: 'Too many attempts. Please try again later.' },
+          { status: 429 },
+        )
       }
     }
 
@@ -46,8 +53,9 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
 
     if (existingUser) {
       if (existingUser.emailVerified) {
-        throw new Error(
-          'An account with this email already exists. Please login.',
+        throw Response.json(
+          { error: 'An account with this email already exists. Please login.' },
+          { status: 409 },
         )
       }
       // User exists but not verified - resend verification email
@@ -61,7 +69,7 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
         expiresAt: generateExpiresAt('verify_email'),
       })
 
-      const verifyUrl = `${getBaseUrl()}/en/auth/verify?token=${token}`
+      const verifyUrl = `${getBaseUrl()}/${data.lang}/auth/verify?token=${token}`
       await sendVerificationEmail({ email, verifyUrl })
 
       return { success: true, message: 'Verification email sent' }
@@ -104,7 +112,7 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
     })
 
     // Send verification email
-    const verifyUrl = `${getBaseUrl()}/en/auth/verify?token=${token}`
+    const verifyUrl = `${getBaseUrl()}/${data.lang}/auth/verify?token=${token}`
     const emailResult = await sendVerificationEmail({ email, verifyUrl })
 
     if (!emailResult.success) {
@@ -130,9 +138,11 @@ const verifyEmailSchema = z.object({
 export const verifyEmailFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => verifyEmailSchema.parse(data))
   .handler(async ({ data }) => {
-    const { and, gt } = await import('drizzle-orm')
+    const { and, gt, eq } = await import('drizzle-orm')
     const { hashPassword } = await import('../lib/auth')
-    const { sessions } = await import('../db/schema')
+    const { db } = await import('../db')
+    const { users, customers, emailVerificationTokens, sessions } =
+      await import('../db/schema')
 
     const tokenHash = hashToken(data.token)
 
@@ -149,11 +159,17 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
       )
 
     if (!tokenRecord) {
-      throw new Error('Invalid or expired token')
+      throw Response.json(
+        { error: 'Invalid or expired token' },
+        { status: 400 },
+      )
     }
 
     if (tokenRecord.usedAt) {
-      throw new Error('This link has already been used')
+      throw Response.json(
+        { error: 'This link has already been used' },
+        { status: 400 },
+      )
     }
 
     // Get user
@@ -163,7 +179,7 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
       .where(eq(users.id, tokenRecord.userId))
 
     if (!user) {
-      throw new Error('User not found')
+      throw Response.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Hash password and update user
@@ -201,19 +217,9 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await db.insert(sessions).values({ userId: user.id, expiresAt })
 
-    // Set cookie session using TanStack Start
-    const { useSession } = await import('@tanstack/react-start/server')
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const appSession = await useSession({
-      name: 'app-session',
-      password: process.env.SESSION_SECRET!,
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60,
-      },
-    })
+    // Set cookie session using shared helper
+    const { getAppSession } = await import('./session')
+    const appSession = await getAppSession()
     await appSession.update({
       userId: user.id,
       email: user.email,
@@ -232,6 +238,7 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
+  lang: langSchema,
 })
 
 export const forgotPasswordFn = createServerFn({ method: 'POST' })
@@ -241,6 +248,9 @@ export const forgotPasswordFn = createServerFn({ method: 'POST' })
     const { checkRateLimit, getRateLimitKey } =
       await import('../lib/rate-limit')
     const { sendPasswordResetEmail } = await import('../lib/email')
+    const { eq } = await import('drizzle-orm')
+    const { db } = await import('../db')
+    const { users, emailVerificationTokens } = await import('../db/schema')
 
     // Rate limiting (stricter for password reset)
     const request = getRequest()
@@ -281,7 +291,7 @@ export const forgotPasswordFn = createServerFn({ method: 'POST' })
     })
 
     // Send reset email
-    const resetUrl = `${getBaseUrl()}/en/auth/reset-password?token=${token}`
+    const resetUrl = `${getBaseUrl()}/${data.lang}/auth/reset-password?token=${token}`
     await sendPasswordResetEmail({
       email,
       resetToken: token,
@@ -309,8 +319,10 @@ const resetPasswordSchema = z.object({
 export const resetPasswordFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => resetPasswordSchema.parse(data))
   .handler(async ({ data }) => {
-    const { and, gt } = await import('drizzle-orm')
+    const { and, gt, eq } = await import('drizzle-orm')
     const { hashPassword } = await import('../lib/auth')
+    const { db } = await import('../db')
+    const { users, emailVerificationTokens } = await import('../db/schema')
 
     const tokenHash = hashToken(data.token)
 
@@ -327,11 +339,17 @@ export const resetPasswordFn = createServerFn({ method: 'POST' })
       )
 
     if (!tokenRecord) {
-      throw new Error('Invalid or expired token')
+      throw Response.json(
+        { error: 'Invalid or expired token' },
+        { status: 400 },
+      )
     }
 
     if (tokenRecord.usedAt) {
-      throw new Error('This link has already been used')
+      throw Response.json(
+        { error: 'This link has already been used' },
+        { status: 400 },
+      )
     }
 
     // Get user
@@ -341,7 +359,7 @@ export const resetPasswordFn = createServerFn({ method: 'POST' })
       .where(eq(users.id, tokenRecord.userId))
 
     if (!user) {
-      throw new Error('User not found')
+      throw Response.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Hash password and update user

@@ -1,8 +1,6 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 
-import { useAuthStore } from '../../../hooks/useAuth'
+import { useAuthLogin } from '../../../hooks/useAuth'
 import { useAuthModal } from '../hooks/useAuthModal'
 
 import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
@@ -27,56 +25,41 @@ const loginFormDefinition: FormDefinition = {
 }
 
 export const LoginForm = () => {
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const login = useAuthStore((state) => state.login)
+  const loginMutation = useAuthLogin()
   const { close, setView, returnUrl } = useAuthModal()
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    setError(null)
-    setIsLoading(true)
-
-    try {
-      const result = await login(
-        values.email as string,
-        values.password as string,
-      )
-
-      if (result.success) {
-        // Invalidate customer session query and router to refetch data
-        await queryClient.invalidateQueries({
-          queryKey: ['customer', 'session'],
-        })
-        await router.invalidate()
-        close()
-        if (returnUrl) {
-          navigate({ to: returnUrl })
-        }
-      } else {
-        setError(result.error || 'Login failed')
-      }
-    } catch {
-      setError('An unexpected error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSubmit = (values: Record<string, unknown>) => {
+    loginMutation.mutate(
+      {
+        email: String(values.email),
+        password: String(values.password),
+      },
+      {
+        onSuccess: () => {
+          close()
+          if (returnUrl) {
+            navigate({ to: returnUrl })
+          }
+        },
+      },
+    )
   }
 
   return (
     <div className="space-y-4">
-      {error && (
+      {loginMutation.error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-          {error}
+          {loginMutation.error instanceof Error
+            ? loginMutation.error.message
+            : 'Login failed'}
         </div>
       )}
 
       <FNForm
         formDefinition={loginFormDefinition}
         onSubmit={handleSubmit}
-        submitButtonText={isLoading ? 'Signing in...' : 'Sign in'}
+        submitButtonText={loginMutation.isPending ? 'Signing in...' : 'Sign in'}
       />
 
       <button

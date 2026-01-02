@@ -1,11 +1,22 @@
+/**
+ * Customers Server Functions
+ *
+ * Uses standardized patterns:
+ * - Top-level imports for database
+ * - Error helpers for consistent responses
+ *
+ * Note: Customer auth is handled inline (not via adminMiddleware)
+ * because customers have different auth requirements than admins.
+ */
+
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq, count } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { getMeFn } from './auth'
-import { getOrderItemsByOrderIds, parseDecimal } from './orders'
 import { db } from '../db'
-import { customers, addresses, orders, orderItems } from '../db/schema'
+import { throwNotFound, throwUnauthorized } from './middleware'
+import { getOrderItemsByOrderIds, parseDecimal } from './orders'
+import { addresses, customers, orderItems, orders } from '../db/schema'
 
 // ============================================
 // TYPES
@@ -55,14 +66,15 @@ const getCustomerForUser = async (userId: string) => {
 
 // Require authenticated user with customer profile
 const requireCustomer = async () => {
+  const { getMeFn } = await import('./auth')
   const user = await getMeFn()
   if (!user) {
-    throw new Error('Unauthorized')
+    return throwUnauthorized()
   }
 
   const customer = await getCustomerForUser(user.id)
   if (!customer) {
-    throw new Error('Customer profile not found')
+    throwNotFound('Customer profile')
   }
 
   return { user, customer }
@@ -74,6 +86,7 @@ const requireCustomer = async () => {
 
 // Check customer session (returns null if not authenticated, doesn't throw)
 export const getCustomerSessionFn = createServerFn().handler(async () => {
+  const { getMeFn } = await import('./auth')
   const user = await getMeFn()
   if (!user) {
     return { customer: null }
@@ -123,7 +136,7 @@ const updateCustomerInputSchema = z.object({
 })
 
 export const updateCustomerMeFn = createServerFn({ method: 'POST' })
-  .inputValidator(updateCustomerInputSchema.parse)
+  .inputValidator((data: unknown) => updateCustomerInputSchema.parse(data))
   .handler(async ({ data }) => {
     const { customer } = await requireCustomer()
 
@@ -213,7 +226,7 @@ const createAddressInputSchema = z.object({
 })
 
 export const createAddressFn = createServerFn({ method: 'POST' })
-  .inputValidator(createAddressInputSchema.parse)
+  .inputValidator((data: unknown) => createAddressInputSchema.parse(data))
   .handler(async ({ data }) => {
     const { customer } = await requireCustomer()
 
@@ -292,7 +305,7 @@ const deleteAddressInputSchema = z.object({
 })
 
 export const deleteAddressFn = createServerFn({ method: 'POST' })
-  .inputValidator(deleteAddressInputSchema.parse)
+  .inputValidator((data: unknown) => deleteAddressInputSchema.parse(data))
   .handler(async ({ data }) => {
     const { customer } = await requireCustomer()
     const { addressId } = data
@@ -307,7 +320,7 @@ export const deleteAddressFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!address) {
-      throw new Error('Address not found')
+      throwNotFound('Address')
     }
 
     await db.delete(addresses).where(eq(addresses.id, addressId))
@@ -322,7 +335,7 @@ const getCustomerOrdersInputSchema = z.object({
 })
 
 export const getCustomerOrdersFn = createServerFn()
-  .inputValidator(getCustomerOrdersInputSchema.parse)
+  .inputValidator((data: unknown) => getCustomerOrdersInputSchema.parse(data))
   .handler(async ({ data }) => {
     const { customer } = await requireCustomer()
 
@@ -391,7 +404,9 @@ const getCustomerOrderByIdInputSchema = z.object({
 })
 
 export const getCustomerOrderByIdFn = createServerFn()
-  .inputValidator(getCustomerOrderByIdInputSchema.parse)
+  .inputValidator((data: unknown) =>
+    getCustomerOrderByIdInputSchema.parse(data),
+  )
   .handler(async ({ data }) => {
     const { customer } = await requireCustomer()
     const { orderId } = data

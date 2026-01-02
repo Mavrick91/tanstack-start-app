@@ -21,6 +21,7 @@ import {
   getRateLimitKey,
   rateLimitResponse,
 } from '../../../lib/rate-limit'
+import { createSessionCookie } from '../../../lib/utils/session'
 import { validateEmail, normalizeEmail } from '../../../lib/validation'
 
 export const Route = createFileRoute('/api/customers/register')({
@@ -184,7 +185,7 @@ export const Route = createFileRoute('/api/customers/register')({
 
           response.headers.set(
             'Set-Cookie',
-            `session=${result.session.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`,
+            createSessionCookie(result.session.id),
           )
 
           return response

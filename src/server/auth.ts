@@ -1,58 +1,69 @@
-import { createServerFn, json } from '@tanstack/react-start'
+/**
+ * Auth Server Functions
+ *
+ * Uses standardized patterns:
+ * - Top-level imports for database
+ * - Error helpers for consistent responses
+ *
+ * Note: These functions are pre-auth or foundational, so they
+ * don't use authMiddleware/adminMiddleware (which depend on these).
+ */
+
+import { createServerFn } from '@tanstack/react-start'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-// Session data type
-export type SessionUser = {
-  userId: string
-  email: string
-  role: string
-}
+import { db } from '../db'
+import {
+  createErrorResponse,
+  throwServerError,
+  throwUnauthorized,
+} from './middleware'
+import { getAppSession, type SessionUser } from './session'
+import { sessions, users } from '../db/schema'
 
-// Session helper - uses dynamic import to prevent server code leaking to client
-// Note: useSession here is TanStack Start's server session helper, not a React hook
-const getAppSession = async () => {
-  const { useSession } = await import('@tanstack/react-start/server')
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- TanStack Start server session, not a React hook
-  return useSession<SessionUser>({
-    name: 'app-session',
-    password: process.env.SESSION_SECRET!,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    },
-  })
-}
+// Re-export SessionUser for consumers
+export type { SessionUser }
 
-// Login schema
+// ============================================
+// SCHEMAS
+// ============================================
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
 
-// Login server function
+// ============================================
+// SERVER FUNCTIONS
+// ============================================
+
+/**
+ * Login server function
+ * Handles email/password authentication with rate limiting
+ */
 export const loginFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => loginSchema.parse(data))
   .handler(async ({ data }) => {
     // Dynamic imports to prevent server code leaking to client
     const { getRequest } = await import('@tanstack/react-start/server')
-    const { eq } = await import('drizzle-orm')
-    const { db } = await import('../db')
-    const { sessions, users } = await import('../db/schema')
     const { verifyPassword } = await import('../lib/auth')
     const { checkRateLimit, getRateLimitKey } =
       await import('../lib/rate-limit')
 
     // Rate limiting
     const request = getRequest()
-    if (!request) throw json({ error: 'No request found' }, { status: 500 })
+    if (!request) {
+      throwServerError('No request found')
+    }
+
     const key = getRateLimitKey(request)
     const rateLimit = await checkRateLimit('auth', key)
+
     if (!rateLimit.allowed) {
-      throw json(
-        { error: 'Too many attempts. Please try again later.' },
-        { status: 429 },
+      throw createErrorResponse(
+        'Too many attempts. Please try again later.',
+        429,
       )
     }
 
@@ -63,18 +74,18 @@ export const loginFn = createServerFn({ method: 'POST' })
       .where(eq(users.email, data.email))
 
     if (!user) {
-      throw json({ error: 'Invalid email or password' }, { status: 401 })
+      throwUnauthorized('Invalid email or password')
     }
 
     // Check if user has a password (Google OAuth users don't)
     if (!user.passwordHash) {
-      throw json({ error: 'Invalid email or password' }, { status: 401 })
+      return throwUnauthorized('Invalid email or password')
     }
 
     // Verify password
     const validPassword = await verifyPassword(data.password, user.passwordHash)
     if (!validPassword) {
-      throw json({ error: 'Invalid email or password' }, { status: 401 })
+      throwUnauthorized('Invalid email or password')
     }
 
     // Create DB session (for audit/revocation)
@@ -92,15 +103,13 @@ export const loginFn = createServerFn({ method: 'POST' })
     return { user: { id: user.id, email: user.email, role: user.role } }
   })
 
-// Logout server function
+/**
+ * Logout server function
+ * Clears session from database and cookie
+ */
 export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
-  // Dynamic imports to prevent server code leaking to client
-  const { eq } = await import('drizzle-orm')
-  const { db } = await import('../db')
-  const { sessions } = await import('../db/schema')
-
   const session = await getAppSession()
-  const data = await session.data
+  const data = session.data
 
   if (data?.userId) {
     // Clear DB sessions for this user
@@ -111,10 +120,13 @@ export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
   return { success: true }
 })
 
-// Get current user server function
+/**
+ * Get current user server function
+ * Returns null if not authenticated (doesn't throw)
+ */
 export const getMeFn = createServerFn().handler(async () => {
   const session = await getAppSession()
-  const data = await session.data
+  const data = session.data
 
   if (!data?.userId || !data.email || !data.role) {
     return null

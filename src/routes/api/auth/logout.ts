@@ -4,23 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../../db'
 import { sessions } from '../../../db/schema'
 import { errorResponse } from '../../../lib/api'
-
-// Helper to parse cookies from request
-const getCookie = (request: Request, name: string): string | undefined => {
-  const cookieHeader = request.headers.get('Cookie')
-  if (!cookieHeader) return undefined
-
-  const cookies = cookieHeader.split(';').reduce(
-    (acc, cookie) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    },
-    {} as Record<string, string>,
-  )
-
-  return cookies[name]
-}
+import { getCookie, clearSessionCookie } from '../../../lib/utils/session'
 
 export const Route = createFileRoute('/api/auth/logout')({
   server: {
@@ -39,8 +23,7 @@ export const Route = createFileRoute('/api/auth/logout')({
             status: 200,
             headers: {
               'Content-Type': 'application/json',
-              'Set-Cookie':
-                'session=; Path=/; HttpOnly; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+              'Set-Cookie': clearSessionCookie(),
             },
           })
         } catch (error) {

@@ -2,13 +2,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { orders, orderItems, customers } from '../../../db/schema'
+import { orders, orderItems } from '../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../../lib/api'
+import { findOrderById, findCustomerById } from '../../../lib/db/queries'
 import {
   parseDecimal,
   recordStatusChange,
@@ -22,25 +23,13 @@ export const Route = createFileRoute('/api/orders/$orderId')({
     handlers: {
       GET: async ({ params, request }) => {
         try {
-          const auth = await requireAuth(request)
-          if (!auth.success) return auth.response
-          if (!auth.user) {
-            return simpleErrorResponse('Unauthorized', 401)
-          }
-
-          // Only admin can access order details
-          if (auth.user.role !== 'admin') {
-            return new Response('Forbidden', { status: 403 })
-          }
+          const auth = await requireAdmin(request)
+          if (!auth.success || !auth.user) return auth.response
 
           const { orderId } = params
 
           // Get order
-          const [order] = await db
-            .select()
-            .from(orders)
-            .where(eq(orders.id, orderId))
-            .limit(1)
+          const order = await findOrderById(orderId)
 
           if (!order) {
             return simpleErrorResponse('Order not found', 404)
@@ -53,15 +42,9 @@ export const Route = createFileRoute('/api/orders/$orderId')({
             .where(eq(orderItems.orderId, orderId))
 
           // Get customer if exists
-          let customer = null
-          if (order.customerId) {
-            const [customerData] = await db
-              .select()
-              .from(customers)
-              .where(eq(customers.id, order.customerId))
-              .limit(1)
-            customer = customerData
-          }
+          const customer = order.customerId
+            ? await findCustomerById(order.customerId)
+            : null
 
           return successResponse({
             order: {
@@ -113,27 +96,15 @@ export const Route = createFileRoute('/api/orders/$orderId')({
 
       PATCH: async ({ params, request }) => {
         try {
-          const auth = await requireAuth(request)
-          if (!auth.success) return auth.response
-          if (!auth.user) {
-            return simpleErrorResponse('Unauthorized', 401)
-          }
-
-          // Only admin can update orders
-          if (auth.user.role !== 'admin') {
-            return new Response('Forbidden', { status: 403 })
-          }
+          const auth = await requireAdmin(request)
+          if (!auth.success || !auth.user) return auth.response
 
           const { orderId } = params
           const body = await request.json()
           const { status, paymentStatus, fulfillmentStatus, reason } = body
 
           // Get order
-          const [order] = await db
-            .select()
-            .from(orders)
-            .where(eq(orders.id, orderId))
-            .limit(1)
+          const order = await findOrderById(orderId)
 
           if (!order) {
             return simpleErrorResponse('Order not found', 404)

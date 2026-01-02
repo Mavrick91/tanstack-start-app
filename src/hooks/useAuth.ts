@@ -1,97 +1,65 @@
-import { create } from 'zustand'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
 
-import { loginFn, logoutFn, getMeFn, type AuthUser } from '../server/auth'
+import { getMeFn, loginFn, logoutFn, type AuthUser } from '../server/auth'
+import { registerCustomerFn, forgotPasswordFn } from '../server/auth-customer'
 
-type AuthState = {
-  isAuthenticated: boolean
-  user: AuthUser | null
-  isLoading: boolean
-  login: (
-    email: string,
-    password: string,
-  ) => Promise<{ success: boolean; error?: string }>
-  logout: () => Promise<void>
-  checkSession: () => Promise<void>
+export const AUTH_QUERY_KEY = ['auth'] as const
+
+export const useAuth = () => {
+  return useQuery({
+    queryKey: AUTH_QUERY_KEY,
+    queryFn: getMeFn,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }
 
-// Request tracking to prevent race conditions
-// When multiple concurrent calls are made, only the latest one updates state
-let loginRequestId = 0
-let sessionRequestId = 0
+export const useAuthLogin = () => {
+  const queryClient = useQueryClient()
+  const router = useRouter()
 
-export const useAuthStore = create<AuthState>()((set) => ({
-  isAuthenticated: false,
-  user: null,
-  isLoading: true,
+  return useMutation({
+    mutationFn: (data: { email: string; password: string }) =>
+      loginFn({ data }),
+    onSuccess: async () => {
+      // Invalidate both auth query keys - admin uses ['auth'], customer pages use ['customer', 'session']
+      await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY })
+      await queryClient.invalidateQueries({ queryKey: ['customer', 'session'] })
+      await router.invalidate()
+    },
+  })
+}
 
-  login: async (email, password) => {
-    const requestId = ++loginRequestId
-    try {
-      const result = await loginFn({ data: { email, password } })
-      // Only update state if this is still the latest request
-      if (requestId === loginRequestId) {
-        set({
-          isAuthenticated: true,
-          user: result.user,
-        })
-      }
-      return { success: true }
-    } catch (error) {
-      console.error('Login failed:', error)
-      // Only update state if this is still the latest request
-      if (requestId === loginRequestId) {
-        const message = error instanceof Error ? error.message : 'Login failed'
-        return { success: false, error: message }
-      }
-      return { success: false, error: 'Request superseded' }
-    }
-  },
+export const useAuthLogout = () => {
+  const queryClient = useQueryClient()
+  const router = useRouter()
 
-  logout: async () => {
-    // Increment both counters to invalidate any pending requests
-    loginRequestId++
-    sessionRequestId++
-    try {
-      await logoutFn()
-    } catch (error) {
-      console.error('Logout failed:', error)
-    } finally {
-      set({ isAuthenticated: false, user: null })
-    }
-  },
+  return useMutation({
+    mutationFn: () => logoutFn(),
+    onSuccess: async () => {
+      // Invalidate and remove both auth query keys
+      await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY })
+      await queryClient.invalidateQueries({ queryKey: ['customer', 'session'] })
+      queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY })
+      queryClient.removeQueries({ queryKey: ['customer', 'session'] })
+      await router.invalidate()
+    },
+  })
+}
 
-  checkSession: async () => {
-    const requestId = ++sessionRequestId
-    set({ isLoading: true })
-    try {
-      const user = await getMeFn()
+export const useAuthRegister = () => {
+  return useMutation({
+    mutationFn: (data: { email: string; lang: 'en' | 'fr' | 'id' }) =>
+      registerCustomerFn({ data }),
+  })
+}
 
-      // Only update state if this is still the latest request
-      if (requestId === sessionRequestId) {
-        if (user) {
-          set({
-            isAuthenticated: true,
-            user,
-            isLoading: false,
-          })
-        } else {
-          set({
-            isAuthenticated: false,
-            user: null,
-            isLoading: false,
-          })
-        }
-      }
-    } catch (error) {
-      console.error('Session check failed:', error)
-      // Only update state if this is still the latest request
-      if (requestId === sessionRequestId) {
-        set({
-          isAuthenticated: false,
-          user: null,
-          isLoading: false,
-        })
-      }
-    }
-  },
-}))
+export const useAuthForgotPassword = () => {
+  return useMutation({
+    mutationFn: (data: { email: string; lang: 'en' | 'fr' | 'id' }) =>
+      forgotPasswordFn({ data }),
+  })
+}
+
+// Re-export AuthUser type for consumers
+export type { AuthUser }

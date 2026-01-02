@@ -49,10 +49,22 @@ vi.mock('../../lib/auth')
 vi.mock('@tanstack/react-start/server')
 vi.mock('@tanstack/react-start', () => ({
   createServerFn: () => ({
+    middleware: () => ({
+      inputValidator: () => ({
+        handler: <T>(cb: T) => cb,
+      }),
+      handler: <T>(cb: T) => cb,
+    }),
     inputValidator: () => ({
       handler: <T>(cb: T) => cb,
     }),
     handler: <T>(cb: T) => cb,
+  }),
+  createMiddleware: () => ({
+    middleware: () => ({
+      server: () => ({}),
+    }),
+    server: () => ({}),
   }),
 }))
 
@@ -169,11 +181,18 @@ describe('Collections Logic Tests', () => {
         updateMock as unknown as ReturnType<typeof db.update>,
       )
 
-      await expect(
-        updateCollectionFn({
+      try {
+        await updateCollectionFn({
           data: { id: 'bad-id', handle: 'h' },
-        }),
-      ).rejects.toThrow('Collection not found')
+        })
+        expect.fail('Expected to throw')
+      } catch (e) {
+        expect(e).toBeInstanceOf(Response)
+        const response = e as Response
+        expect(response.status).toBe(404)
+        const body = await response.json()
+        expect(body.error).toBe('Collection not found')
+      }
     })
   })
 
@@ -202,9 +221,16 @@ describe('Collections Logic Tests', () => {
         deleteMock as unknown as ReturnType<typeof db.delete>,
       )
 
-      await expect(deleteCollectionFn({ data: { id: 'c1' } })).rejects.toThrow(
-        'Collection not found',
-      )
+      try {
+        await deleteCollectionFn({ data: { id: 'c1' } })
+        expect.fail('Expected to throw')
+      } catch (e) {
+        expect(e).toBeInstanceOf(Response)
+        const response = e as Response
+        expect(response.status).toBe(404)
+        const body = await response.json()
+        expect(body.error).toBe('Collection not found')
+      }
     })
   })
 

@@ -34,13 +34,8 @@ import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiCustomersRegisterRouteImport } from './routes/api/customers/register'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
-import { Route as ApiAuthVerifyEmailRouteImport } from './routes/api/auth/verify-email'
-import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/reset-password'
-import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
-import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
-import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
 import { Route as LangProductsProductIdRouteImport } from './routes/$lang/products/$productId'
 import { Route as LangCollectionsHandleRouteImport } from './routes/$lang/collections/$handle'
 import { Route as LangCheckoutShippingRouteImport } from './routes/$lang/checkout/shipping'
@@ -199,21 +194,6 @@ const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
   path: '/api/cron/cleanup-checkouts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthVerifyEmailRoute = ApiAuthVerifyEmailRouteImport.update({
-  id: '/api/auth/verify-email',
-  path: '/api/auth/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
-  id: '/api/auth/reset-password',
-  path: '/api/auth/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthRegisterRoute = ApiAuthRegisterRouteImport.update({
-  id: '/api/auth/register',
-  path: '/api/auth/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
   id: '/api/auth/me',
   path: '/api/auth/me',
@@ -222,16 +202,6 @@ const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
   id: '/api/auth/logout',
   path: '/api/auth/logout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
-  id: '/api/auth/login',
-  path: '/api/auth/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthForgotPasswordRoute = ApiAuthForgotPasswordRouteImport.update({
-  id: '/api/auth/forgot-password',
-  path: '/api/auth/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LangProductsProductIdRoute = LangProductsProductIdRouteImport.update({
@@ -431,13 +401,8 @@ export interface FileRoutesByFullPath {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
-  '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/auth/register': typeof ApiAuthRegisterRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -495,13 +460,8 @@ export interface FileRoutesByTo {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
-  '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/auth/register': typeof ApiAuthRegisterRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -562,13 +522,8 @@ export interface FileRoutesById {
   '/$lang/checkout/shipping': typeof LangCheckoutShippingRoute
   '/$lang/collections/$handle': typeof LangCollectionsHandleRoute
   '/$lang/products/$productId': typeof LangProductsProductIdRoute
-  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
-  '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
-  '/api/auth/register': typeof ApiAuthRegisterRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/verify-email': typeof ApiAuthVerifyEmailRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
   '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
@@ -630,13 +585,8 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/api/auth/forgot-password'
-    | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/auth/register'
-    | '/api/auth/reset-password'
-    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -694,13 +644,8 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/api/auth/forgot-password'
-    | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/auth/register'
-    | '/api/auth/reset-password'
-    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -760,13 +705,8 @@ export interface FileRouteTypes {
     | '/$lang/checkout/shipping'
     | '/$lang/collections/$handle'
     | '/$lang/products/$productId'
-    | '/api/auth/forgot-password'
-    | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
-    | '/api/auth/register'
-    | '/api/auth/reset-password'
-    | '/api/auth/verify-email'
     | '/api/cron/cleanup-checkouts'
     | '/api/customers/register'
     | '/api/orders/$orderId'
@@ -813,13 +753,8 @@ export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   ApiUploadRoute: typeof ApiUploadRoute
-  ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
-  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
-  ApiAuthRegisterRoute: typeof ApiAuthRegisterRoute
-  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
-  ApiAuthVerifyEmailRoute: typeof ApiAuthVerifyEmailRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
   ApiCustomersRegisterRoute: typeof ApiCustomersRegisterRoute
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
@@ -1013,27 +948,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronCleanupCheckoutsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/verify-email': {
-      id: '/api/auth/verify-email'
-      path: '/api/auth/verify-email'
-      fullPath: '/api/auth/verify-email'
-      preLoaderRoute: typeof ApiAuthVerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/reset-password': {
-      id: '/api/auth/reset-password'
-      path: '/api/auth/reset-password'
-      fullPath: '/api/auth/reset-password'
-      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/register': {
-      id: '/api/auth/register'
-      path: '/api/auth/register'
-      fullPath: '/api/auth/register'
-      preLoaderRoute: typeof ApiAuthRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/auth/me': {
       id: '/api/auth/me'
       path: '/api/auth/me'
@@ -1046,20 +960,6 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/logout'
       fullPath: '/api/auth/logout'
       preLoaderRoute: typeof ApiAuthLogoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/login': {
-      id: '/api/auth/login'
-      path: '/api/auth/login'
-      fullPath: '/api/auth/login'
-      preLoaderRoute: typeof ApiAuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/forgot-password': {
-      id: '/api/auth/forgot-password'
-      path: '/api/auth/forgot-password'
-      fullPath: '/api/auth/forgot-password'
-      preLoaderRoute: typeof ApiAuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$lang/products/$productId': {
@@ -1449,13 +1349,8 @@ const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   ApiUploadRoute: ApiUploadRoute,
-  ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
-  ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
-  ApiAuthRegisterRoute: ApiAuthRegisterRoute,
-  ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
-  ApiAuthVerifyEmailRoute: ApiAuthVerifyEmailRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
   ApiCustomersRegisterRoute: ApiCustomersRegisterRoute,
   ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,

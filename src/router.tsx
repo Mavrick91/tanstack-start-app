@@ -13,6 +13,10 @@ const createQueryClient = () =>
       queries: {
         staleTime: 60 * 1000, // 1 minute
         refetchOnWindowFocus: false,
+        retry: false,
+      },
+      mutations: {
+        retry: false,
       },
     },
   })

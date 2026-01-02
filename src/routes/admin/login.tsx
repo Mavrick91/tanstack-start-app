@@ -7,12 +7,12 @@ import {
   type FormDefinition,
   type FNFormRef,
 } from '../../components/ui/fn-form'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuthLogin } from '../../hooks/useAuth'
 import { getMeFn } from '../../server/auth'
 
 const LoginPage = (): React.ReactNode => {
   const router = useRouter()
-  const login = useAuthStore((state) => state.login)
+  const loginMutation = useAuthLogin()
   const formRef = useRef<FNFormRef | null>(null)
 
   const formDefinition: FormDefinition = {
@@ -53,21 +53,26 @@ const LoginPage = (): React.ReactNode => {
     ],
   }
 
-  const handleSubmit = async (
-    values: Record<string, unknown>,
-  ): Promise<void> => {
+  const handleSubmit = (values: Record<string, unknown>): void => {
     const email = String(values.email || '')
     const password = String(values.password || '')
 
-    const result = await login(email, password)
-    if (result.success) {
-      router.navigate({ to: '/admin' })
-    } else {
-      formRef.current?.setFieldError(
-        'email',
-        result.error || 'Invalid email or password',
-      )
-    }
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          router.navigate({ to: '/admin' })
+        },
+        onError: (error) => {
+          formRef.current?.setFieldError(
+            'email',
+            error instanceof Error
+              ? error.message
+              : 'Invalid email or password',
+          )
+        },
+      },
+    )
   }
 
   return (
@@ -85,13 +90,13 @@ const LoginPage = (): React.ReactNode => {
           onSubmit={handleSubmit}
           formRef={formRef}
           className="space-y-6"
-          renderSubmitButton={(isSubmitting) => (
+          renderSubmitButton={() => (
             <Button
               type="submit"
               className="w-full py-3 bg-linear-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700"
-              disabled={isSubmitting}
+              disabled={loginMutation.isPending}
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
           )}
         />

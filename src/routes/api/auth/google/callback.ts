@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useSession } from '@tanstack/react-start/server'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../../../../db'
@@ -8,21 +7,7 @@ import {
   exchangeCodeForTokens,
   getGoogleUser,
 } from '../../../../features/auth/lib/google-oauth'
-import type { SessionUser } from '../../../../server/auth'
-
-// Session helper - must match the one in auth.ts
-const getAppSession = () => {
-  return useSession<SessionUser>({
-    name: 'app-session',
-    password: process.env.SESSION_SECRET!,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    },
-  })
-}
+import { getAppSession } from '../../../../server/session'
 
 export const Route = createFileRoute('/api/auth/google/callback')({
   server: {
@@ -30,9 +15,14 @@ export const Route = createFileRoute('/api/auth/google/callback')({
       GET: async ({ request }) => {
         const url = new URL(request.url)
         const code = url.searchParams.get('code')
-        const state = url.searchParams.get('state') || '/en/account'
+        let state = url.searchParams.get('state') || '/en/account'
         const error = url.searchParams.get('error')
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
+
+        // Validate state to prevent open redirect
+        if (!state.startsWith('/') || state.startsWith('//')) {
+          state = '/en/account'
+        }
 
         if (error) {
           return Response.redirect(`${baseUrl}/en/auth?error=oauth_denied`)

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useParams } from '@tanstack/react-router'
 
 import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
+import { useAuthRegister } from '@/hooks/useAuth'
 
 const registerFormDefinition: FormDefinition = {
   fields: [
@@ -14,38 +15,23 @@ const registerFormDefinition: FormDefinition = {
   ],
 }
 
+const SUPPORTED_LANGS = ['en', 'fr', 'id'] as const
+type SupportedLang = (typeof SUPPORTED_LANGS)[number]
+
+const isValidLang = (lang: unknown): lang is SupportedLang =>
+  typeof lang === 'string' && SUPPORTED_LANGS.includes(lang as SupportedLang)
+
 export const RegisterForm = () => {
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const params = useParams({ strict: false })
+  const lang = isValidLang(params.lang) ? params.lang : 'en'
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    setError(null)
-    setIsLoading(true)
+  const registerMutation = useAuthRegister()
 
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: values.email }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Registration failed')
-        return
-      }
-
-      setSuccess(true)
-    } catch {
-      setError('An unexpected error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSubmit = (values: Record<string, unknown>) => {
+    registerMutation.mutate({ email: String(values.email), lang })
   }
 
-  if (success) {
+  if (registerMutation.isSuccess) {
     return (
       <div className="rounded-md bg-green-50 p-4 text-center">
         <h3 className="font-medium text-green-800">Check your email</h3>
@@ -59,16 +45,20 @@ export const RegisterForm = () => {
 
   return (
     <div className="space-y-4">
-      {error && (
+      {registerMutation.error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-          {error}
+          {registerMutation.error instanceof Error
+            ? registerMutation.error.message
+            : 'Registration failed'}
         </div>
       )}
 
       <FNForm
         formDefinition={registerFormDefinition}
         onSubmit={handleSubmit}
-        submitButtonText={isLoading ? 'Creating account...' : 'Create account'}
+        submitButtonText={
+          registerMutation.isPending ? 'Creating account...' : 'Create account'
+        }
       />
 
       <p className="text-xs text-muted-foreground">

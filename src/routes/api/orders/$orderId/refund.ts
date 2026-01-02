@@ -5,10 +5,11 @@ import { db } from '../../../../db'
 import { orders } from '../../../../db/schema'
 import {
   errorResponse,
-  requireAuth,
+  requireAdmin,
   simpleErrorResponse,
   successResponse,
 } from '../../../../lib/api'
+import { findOrderById } from '../../../../lib/db/queries'
 import { processRefund, recordStatusChange } from '../../../../server/orders'
 
 export const Route = createFileRoute('/api/orders/$orderId/refund')({
@@ -16,27 +17,15 @@ export const Route = createFileRoute('/api/orders/$orderId/refund')({
     handlers: {
       POST: async ({ params, request }) => {
         try {
-          // Require admin authentication
-          const auth = await requireAuth(request)
-          if (!auth.success) return auth.response
-          if (!auth.user) {
-            return simpleErrorResponse('Unauthorized', 401)
-          }
-
-          if (auth.user.role !== 'admin') {
-            return new Response('Forbidden', { status: 403 })
-          }
+          const auth = await requireAdmin(request)
+          if (!auth.success || !auth.user) return auth.response
 
           const { orderId } = params
           const body = await request.json()
           const { reason } = body as { reason?: string }
 
           // Get order
-          const [order] = await db
-            .select()
-            .from(orders)
-            .where(eq(orders.id, orderId))
-            .limit(1)
+          const order = await findOrderById(orderId)
 
           if (!order) {
             return simpleErrorResponse('Order not found', 404)

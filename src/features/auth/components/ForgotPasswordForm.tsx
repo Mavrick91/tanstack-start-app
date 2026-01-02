@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useParams } from '@tanstack/react-router'
 
 import { useAuthModal } from '../hooks/useAuthModal'
 
 import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
+import { useAuthForgotPassword } from '@/hooks/useAuth'
 
 const forgotPasswordFormDefinition: FormDefinition = {
   fields: [
@@ -16,29 +17,24 @@ const forgotPasswordFormDefinition: FormDefinition = {
   ],
 }
 
+const SUPPORTED_LANGS = ['en', 'fr', 'id'] as const
+type SupportedLang = (typeof SUPPORTED_LANGS)[number]
+
+const isValidLang = (lang: unknown): lang is SupportedLang =>
+  typeof lang === 'string' && SUPPORTED_LANGS.includes(lang as SupportedLang)
+
 export const ForgotPasswordForm = () => {
-  const [success, setSuccess] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const { setView } = useAuthModal()
+  const params = useParams({ strict: false })
+  const lang = isValidLang(params.lang) ? params.lang : 'en'
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    setIsLoading(true)
+  const mutation = useAuthForgotPassword()
 
-    try {
-      await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: values.email }),
-      })
-
-      // Always show success to prevent email enumeration
-      setSuccess(true)
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSubmit = (values: Record<string, unknown>) => {
+    mutation.mutate({ email: String(values.email), lang })
   }
 
-  if (success) {
+  if (mutation.isSuccess) {
     return (
       <div className="space-y-4">
         <div className="rounded-md bg-green-50 p-4 text-center">
@@ -69,7 +65,7 @@ export const ForgotPasswordForm = () => {
       <FNForm
         formDefinition={forgotPasswordFormDefinition}
         onSubmit={handleSubmit}
-        submitButtonText={isLoading ? 'Sending...' : 'Send reset link'}
+        submitButtonText={mutation.isPending ? 'Sending...' : 'Send reset link'}
       />
 
       <button
