@@ -1,6 +1,7 @@
 import { Clock, Loader2, User, Bot, ArrowRight } from 'lucide-react'
 
 import { OrderStatusBadge } from './OrderStatusBadge'
+import { formatDate } from '../../../lib/format'
 
 import type {
   OrderStatus,
@@ -39,16 +40,6 @@ export const OrderHistory = ({
   entries,
   isLoading = false,
 }: OrderHistoryProps) => {
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
   const isSystem = (changedBy: string) => {
     return changedBy === 'system' || changedBy.startsWith('webhook')
   }
@@ -97,7 +88,7 @@ export const OrderHistory = ({
                       {FIELD_LABELS[entry.field] || entry.field}
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      {formatDate(entry.changedAt)}
+                      {formatDate(entry.changedAt, 'datetime')}
                     </span>
                   </div>
 
