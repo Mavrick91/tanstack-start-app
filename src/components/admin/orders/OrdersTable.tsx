@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { OrderRowActions } from './OrderRowActions'
-import { formatCurrency } from '../../../lib/format'
+import { formatCurrency, formatDate } from '../../../lib/format'
 import { Checkbox } from '../../ui/checkbox'
 import {
   Table,
@@ -52,16 +52,6 @@ export const OrdersTable = ({
   onSort,
 }: OrdersTableProps) => {
   const { t } = useTranslation()
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
 
   const handleSelectAll = (checked: boolean) => {
     if (!onSelectionChange) return
@@ -243,7 +233,7 @@ export const OrdersTable = ({
                   <AdminStatusBadge status={order.status} variant="order" />
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {formatDate(order.createdAt)}
+                  {formatDate(order.createdAt, 'datetime')}
                 </TableCell>
                 {onQuickStatusChange && (
                   <TableCell>
