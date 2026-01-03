@@ -116,9 +116,25 @@ Element.prototype.releasePointerCapture = () => {}
 Element.prototype.scrollIntoView = () => {}
 
 // =============================================================================
-// Console warning suppression (optional)
+// Console warning suppression
 // =============================================================================
+const originalWarn = console.warn
 const originalError = console.error
+
+console.warn = (...args: unknown[]) => {
+  // Suppress useRouter warnings - this is the correct approach for unit tests
+  // We mock router hooks globally for isolated component testing
+  // Adding RouterProvider would require defining full route trees for every test
+  // Integration/E2E tests should use full RouterProvider context
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes('useRouter must be used inside a <RouterProvider>')
+  ) {
+    return
+  }
+  originalWarn(...args)
+}
+
 console.error = (...args: unknown[]) => {
   // Suppress React act() warnings in async tests - these are often false positives
   if (typeof args[0] === 'string' && args[0].includes('not wrapped in act')) {

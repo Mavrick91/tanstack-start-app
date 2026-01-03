@@ -13,6 +13,7 @@ This document outlines improvements to the FineNail admin dashboard based on a c
 **Scope:** All admin pages including Dashboard, Products, Orders, Collections, and shared components.
 
 **Goals:**
+
 - Improve admin workflow efficiency
 - Ensure data consistency through better input controls
 - Create visual consistency across all admin pages
@@ -59,6 +60,7 @@ These items address missing functionality that impacts the admin's ability to ef
 The Orders page filter only shows `All | Pending | Processing | Shipped` but the schema supports additional statuses: `delivered` and `cancelled`. Similarly, Payment Status filter shows `All | Pending | Paid` but is missing `failed` and `refunded`.
 
 **Current State:**
+
 ```
 Order Status:    [All] [Pending] [Processing] [Shipped]
 Payment Status:  [All] [Pending] [Paid]
@@ -66,6 +68,7 @@ Fulfillment:     [All] [Unfulfilled] [Fulfilled]
 ```
 
 **Proposed State:**
+
 ```
 Order Status:    [All] [Pending] [Processing] [Shipped] [Delivered] [Cancelled]
 Payment Status:  [All] [Pending] [Paid] [Failed] [Refunded]
@@ -73,6 +76,7 @@ Fulfillment:     [All] [Unfulfilled] [Partial] [Fulfilled]
 ```
 
 **Files to Modify:**
+
 - `src/routes/admin/_authed/orders/index.tsx` - Add filter options
 - `src/components/admin/orders/OrdersTable.tsx` - Ensure status rendering handles all states
 
@@ -116,11 +120,13 @@ When editing a product or collection, navigating away without saving loses all c
 
 **Proposed Solution:**
 Implement a `useUnsavedChanges` hook that:
+
 1. Tracks form dirty state
 2. Intercepts navigation attempts (both router and browser back/close)
 3. Shows a confirmation dialog
 
 **Files to Create/Modify:**
+
 - `src/hooks/useUnsavedChanges.ts` - New hook
 - `src/components/ui/unsaved-changes-dialog.tsx` - Confirmation dialog
 - `src/components/admin/products/ProductForm.tsx` - Integrate hook
@@ -140,11 +146,13 @@ interface UseUnsavedChangesOptions {
 
 export function useUnsavedChanges({
   isDirty,
-  message = 'You have unsaved changes. Are you sure you want to leave?'
+  message = 'You have unsaved changes. Are you sure you want to leave?',
 }: UseUnsavedChangesOptions) {
   const router = useRouter()
   const [showDialog, setShowDialog] = useState(false)
-  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null)
+  const [pendingNavigation, setPendingNavigation] = useState<
+    (() => void) | null
+  >(null)
 
   // Handle browser back/refresh/close
   useEffect(() => {
@@ -271,16 +279,19 @@ return (
 
 **Problem:**
 The Vendor field is a plain text input. This leads to inconsistent data entry:
+
 - "FineNail" vs "Finenail" vs "Fine Nail"
 - No way to see what vendors already exist in the system
 
 **Proposed Solution:**
 Create a combobox component that:
+
 1. Fetches existing vendors from the database
 2. Allows selection from existing values
 3. Allows creating new vendors by typing
 
 **Files to Create/Modify:**
+
 - `src/server/products.ts` - Add `getDistinctVendors` function
 - `src/components/admin/products/VendorCombobox.tsx` - New component
 - `src/components/admin/products/ProductForm.tsx` - Replace input with combobox
@@ -289,8 +300,8 @@ Create a combobox component that:
 
 ```typescript
 // src/server/products.ts
-export const getDistinctVendorsFn = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const getDistinctVendorsFn = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const db = getDb()
     const result = await db
       .selectDistinct({ vendor: products.vendor })
@@ -298,8 +309,9 @@ export const getDistinctVendorsFn = createServerFn({ method: 'GET' })
       .where(isNotNull(products.vendor))
       .orderBy(products.vendor)
 
-    return result.map(r => r.vendor).filter(Boolean) as string[]
-  })
+    return result.map((r) => r.vendor).filter(Boolean) as string[]
+  },
+)
 ```
 
 **Component Implementation:**
@@ -441,6 +453,7 @@ Same issue as Vendor - plain text input leads to inconsistent product type categ
 Same pattern as Vendor combobox but for product types.
 
 **Files to Create/Modify:**
+
 - `src/server/products.ts` - Add `getDistinctProductTypes` function
 - `src/components/admin/products/ProductTypeCombobox.tsx` - New component
 - `src/components/admin/products/ProductForm.tsx` - Replace input with combobox
@@ -499,6 +512,7 @@ Then use it:
 
 **Problem:**
 The Tags input allows free-form entry but doesn't suggest existing tags. This leads to:
+
 - Duplicate tags with slight variations ("press-on nails" vs "press-on-nails")
 - Difficulty discovering what tags are available
 - Inconsistent categorization
@@ -508,12 +522,14 @@ Plain comma-separated text input.
 
 **Proposed Solution:**
 Create a multi-select tag input that:
+
 1. Shows existing tags as suggestions
 2. Allows selecting multiple tags
 3. Allows creating new tags inline
 4. Displays selected tags as removable chips
 
 **Files to Create/Modify:**
+
 - `src/server/products.ts` - Add `getDistinctTags` function
 - `src/components/ui/tag-input.tsx` - New component
 - `src/components/admin/products/ProductForm.tsx` - Replace input with tag component
@@ -522,8 +538,8 @@ Create a multi-select tag input that:
 
 ```typescript
 // src/server/products.ts
-export const getDistinctTagsFn = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const getDistinctTagsFn = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const db = getDb()
     const result = await db
       .select({ tags: products.tags })
@@ -532,11 +548,12 @@ export const getDistinctTagsFn = createServerFn({ method: 'GET' })
 
     // Flatten and dedupe all tags
     const allTags = result
-      .flatMap(r => r.tags?.split(',').map(t => t.trim()) || [])
+      .flatMap((r) => r.tags?.split(',').map((t) => t.trim()) || [])
       .filter(Boolean)
 
     return [...new Set(allTags)].sort()
-  })
+  },
+)
 ```
 
 **Component Implementation:**
@@ -641,7 +658,7 @@ export function TagInput({
           />
         </PopoverAnchor>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0"
+          className="w-(--radix-popover-trigger-width) p-0"
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
@@ -701,16 +718,19 @@ These items improve the admin experience but don't block core functionality.
 When deep in the admin (e.g., editing a product), users only have a back arrow for navigation. There's no visual indication of where they are in the hierarchy.
 
 **Current State:**
+
 ```
 ← Whimsical Icons Press-On Nail Set [EDITING]
 ```
 
 **Proposed State:**
+
 ```
 Products / Whimsical Icons Press-On Nail Set [EDITING]
 ```
 
 **Files to Create/Modify:**
+
 - `src/components/admin/Breadcrumbs.tsx` - New component
 - `src/routes/admin/_authed/products/$productId.tsx` - Add breadcrumbs
 - `src/routes/admin/_authed/collections/$collectionId.tsx` - Add breadcrumbs
@@ -788,16 +808,19 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
 The localized fields have EN/FR/ID tabs, but there's no way to know which languages have content without clicking each tab. This makes it easy to miss translations.
 
 **Current State:**
+
 ```
 [EN] [FR] [ID]    <- All tabs look identical
 ```
 
 **Proposed State:**
+
 ```
 [EN ●] [FR ○] [ID ○]    <- Filled dot for tabs with content
 ```
 
 **Files to Modify:**
+
 - `src/components/admin/products/LocalizedFieldTabs.tsx` - Add indicators
 
 **Implementation:**
@@ -883,11 +906,13 @@ Products can have many variants (e.g., 5 shapes × 4 lengths = 20 variants). Fin
 Simple table with all variants listed.
 
 **Proposed Solution:**
+
 1. Add a search input above the variants table
 2. Filter by variant name (e.g., "Coffin" or "Long")
 3. Show result count
 
 **Files to Modify:**
+
 - `src/components/admin/products/ProductVariantsTable.tsx` - Add search
 
 **Implementation:**
@@ -979,6 +1004,7 @@ export function ProductVariantsTable({
 The three filter groups (Order Status, Payment Status, Fulfillment Status) all use the same visual style and blend together. It's hard to distinguish which filter group you're looking at.
 
 **Current State:**
+
 ```
 [All][Pending][Processing][Shipped] [All][Pending][Paid] [All][Unfulfilled][Fulfilled]
 ```
@@ -987,6 +1013,7 @@ The three filter groups (Order Status, Payment Status, Fulfillment Status) all u
 Add labels and visual separation between filter groups.
 
 **Design Option A - Labeled Groups:**
+
 ```
 Order Status: [All][Pending][Processing][Shipped][Delivered][Cancelled]
 
@@ -996,6 +1023,7 @@ Fulfillment:  [All][Unfulfilled][Partial][Fulfilled]
 ```
 
 **Design Option B - Grouped with Dividers:**
+
 ```
 [All][Pending][Processing][Shipped][Delivered][Cancelled] │ [All][Pending][Paid][Failed][Refunded] │ [All][Unfulfilled][Partial][Fulfilled]
 ```
@@ -1003,6 +1031,7 @@ Fulfillment:  [All][Unfulfilled][Partial][Fulfilled]
 **Recommended: Option A** - Labels make the purpose of each filter group immediately clear.
 
 **Files to Modify:**
+
 - `src/routes/admin/_authed/orders/index.tsx` - Update filter layout
 
 **Implementation:**
@@ -1076,6 +1105,7 @@ Fulfillment:  [All][Unfulfilled][Partial][Fulfilled]
 Table rows in Products, Orders, and Collections are clickable but don't indicate this visually. There's no cursor change or background highlight on hover.
 
 **Files to Modify:**
+
 - `src/components/admin/products/ProductTable.tsx`
 - `src/components/admin/orders/OrdersTable.tsx`
 - `src/components/admin/collections/CollectionTable.tsx`
@@ -1122,6 +1152,7 @@ Show action buttons (edit, delete) only on hover:
 The Products page has stats cards (Total Products, Active, Drafts, Low Stock) but the Collections page doesn't. This creates visual inconsistency.
 
 **Current Collections Page:**
+
 ```
 Collections
 Curate and organize your products for the storefront
@@ -1130,6 +1161,7 @@ Curate and organize your products for the storefront
 ```
 
 **Proposed Collections Page:**
+
 ```
 Collections
 Curate and organize your products for the storefront
@@ -1141,6 +1173,7 @@ Curate and organize your products for the storefront
 ```
 
 **Files to Create/Modify:**
+
 - `src/components/admin/collections/CollectionStats.tsx` - New component
 - `src/routes/admin/_authed/collections/index.tsx` - Add stats cards
 - `src/server/collections.ts` - Add stats query
@@ -1149,14 +1182,20 @@ Curate and organize your products for the storefront
 
 ```typescript
 // src/server/collections.ts
-export const getCollectionStatsFn = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const getCollectionStatsFn = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const db = getDb()
 
     const [total, active, draft, productsInCollections] = await Promise.all([
       db.select({ count: count() }).from(collections),
-      db.select({ count: count() }).from(collections).where(eq(collections.status, 'active')),
-      db.select({ count: count() }).from(collections).where(eq(collections.status, 'draft')),
+      db
+        .select({ count: count() })
+        .from(collections)
+        .where(eq(collections.status, 'active')),
+      db
+        .select({ count: count() })
+        .from(collections)
+        .where(eq(collections.status, 'draft')),
       db.select({ count: count() }).from(collectionProducts),
     ])
 
@@ -1166,7 +1205,8 @@ export const getCollectionStatsFn = createServerFn({ method: 'GET' })
       draft: draft[0].count,
       productsInCollections: productsInCollections[0].count,
     }
-  })
+  },
+)
 ```
 
 ```typescript
@@ -1255,6 +1295,7 @@ Use "Add [Item]" consistently across all pages.
 | + Create Collection | + Add Collection |
 
 **Files to Modify:**
+
 - `src/routes/admin/_authed/collections/index.tsx` - Change button text
 
 **Effort:** Trivial (5 minutes)
@@ -1265,6 +1306,7 @@ Use "Add [Item]" consistently across all pages.
 
 **Problem:**
 Page subtitles vary in length and tone:
+
 - Dashboard: (none)
 - Products: "Manage your products and inventory"
 - Orders: "Manage and track customer orders"
@@ -1273,17 +1315,18 @@ Page subtitles vary in length and tone:
 **Proposed Standard:**
 Short, consistent format: "Manage your [items]"
 
-| Page | Current | Proposed |
-|------|---------|----------|
-| Dashboard | (none) | "Overview of your store" |
-| Products | "Manage your products and inventory" | "Manage your products" |
-| Orders | "Manage and track customer orders" | "Manage your orders" |
+| Page        | Current                                                | Proposed                  |
+| ----------- | ------------------------------------------------------ | ------------------------- |
+| Dashboard   | (none)                                                 | "Overview of your store"  |
+| Products    | "Manage your products and inventory"                   | "Manage your products"    |
+| Orders      | "Manage and track customer orders"                     | "Manage your orders"      |
 | Collections | "Curate and organize your products for the storefront" | "Manage your collections" |
 
 **Alternative:**
 Remove subtitles entirely - the page titles are self-explanatory.
 
 **Files to Modify:**
+
 - `src/routes/admin/_authed/index.tsx`
 - `src/routes/admin/_authed/products/index.tsx`
 - `src/routes/admin/_authed/orders/index.tsx`
@@ -1300,11 +1343,13 @@ The sidebar is always expanded, taking up ~260px. On smaller screens or when wor
 
 **Proposed Solution:**
 Add a collapse toggle that:
+
 1. Reduces sidebar to icon-only mode (~60px)
 2. Persists preference in localStorage
 3. Shows tooltips on icons when collapsed
 
 **Files to Create/Modify:**
+
 - `src/components/admin/Sidebar.tsx` - Add collapse functionality
 - `src/hooks/useSidebarState.ts` - Persist state
 
@@ -1326,8 +1371,8 @@ export const useSidebarState = create<SidebarState>()(
       collapsed: false,
       toggle: () => set((state) => ({ collapsed: !state.collapsed })),
     }),
-    { name: 'admin-sidebar' }
-  )
+    { name: 'admin-sidebar' },
+  ),
 )
 ```
 
@@ -1394,6 +1439,7 @@ export function Sidebar() {
 Status badges (ACTIVE, DRAFT, ARCHIVED) use light backgrounds that may be hard to read for some users.
 
 **Current:**
+
 - ACTIVE: Light green background, green text
 - DRAFT: Light orange background, orange text
 - ARCHIVED: Light gray background, gray text
@@ -1421,6 +1467,7 @@ const statusStyles = {
 ```
 
 **Files to Modify:**
+
 - `src/components/admin/products/StatusBadge.tsx`
 - `src/components/admin/orders/OrderStatusBadge.tsx`
 
@@ -1435,11 +1482,13 @@ Pages load instantly locally, but on slower connections there's no loading indic
 
 **Proposed Solution:**
 Add skeleton loading states for:
+
 1. Data tables (product/order/collection lists)
 2. Form pages (product/collection edit)
 3. Dashboard stats
 
 **Files to Create:**
+
 - `src/components/ui/skeleton-table.tsx`
 - `src/components/ui/skeleton-form.tsx`
 - `src/components/ui/skeleton-stats.tsx`
@@ -1515,6 +1564,7 @@ export const Route = createFileRoute('/admin/_authed/products/')({
 The "Generate Details with AI" button is positioned below the Media section, far from the Description field it generates content for. This feels disconnected.
 
 **Current Layout:**
+
 ```
 Product Details
   Name [EN][FR][ID]
@@ -1528,6 +1578,7 @@ Media
 ```
 
 **Proposed Layout:**
+
 ```
 Product Details
   Name [EN][FR][ID]
@@ -1541,12 +1592,14 @@ Media
 ```
 
 **Alternative - Inline with Description Label:**
+
 ```
 Description [EN][FR][ID]                    [✨ Generate with AI]
 [Rich text editor]
 ```
 
 **Files to Modify:**
+
 - `src/components/admin/products/ProductForm.tsx` - Move button
 
 **Effort:** Trivial (15 minutes)
@@ -1556,59 +1609,64 @@ Description [EN][FR][ID]                    [✨ Generate with AI]
 ## 4. Implementation Phases
 
 ### Phase 1: Critical Fixes (Week 1)
+
 Focus on functionality gaps that impact daily admin work.
 
-| Task | Effort | Files |
-|------|--------|-------|
-| 1.1 Complete Order Status Filters | 1-2h | 2 files |
-| 1.2 Unsaved Changes Warning | 3-4h | 4 files |
-| 2.5 Table Row Hover States | 1h | 3 files |
+| Task                              | Effort | Files   |
+| --------------------------------- | ------ | ------- |
+| 1.1 Complete Order Status Filters | 1-2h   | 2 files |
+| 1.2 Unsaved Changes Warning       | 3-4h   | 4 files |
+| 2.5 Table Row Hover States        | 1h     | 3 files |
 
 **Total: ~6-7 hours**
 
 ### Phase 2: Data Consistency (Week 2)
+
 Improve data quality through better input controls.
 
-| Task | Effort | Files |
-|------|--------|-------|
-| 1.3 Vendor Field Autocomplete | 2-3h | 3 files |
-| 1.4 Product Type Autocomplete | 1-2h | 2 files (reuses 1.3) |
-| 1.5 Tags Input with Suggestions | 3-4h | 3 files |
+| Task                            | Effort | Files                |
+| ------------------------------- | ------ | -------------------- |
+| 1.3 Vendor Field Autocomplete   | 2-3h   | 3 files              |
+| 1.4 Product Type Autocomplete   | 1-2h   | 2 files (reuses 1.3) |
+| 1.5 Tags Input with Suggestions | 3-4h   | 3 files              |
 
 **Total: ~6-9 hours**
 
 ### Phase 3: Navigation & Orientation (Week 3)
+
 Help admins understand where they are and navigate efficiently.
 
-| Task | Effort | Files |
-|------|--------|-------|
-| 2.1 Breadcrumb Navigation | 1-2h | 4 files |
-| 2.2 Language Tab Completion Indicators | 1-2h | 1 file |
-| 2.4 Orders Filter Visual Separation | 1-2h | 1 file |
+| Task                                   | Effort | Files   |
+| -------------------------------------- | ------ | ------- |
+| 2.1 Breadcrumb Navigation              | 1-2h   | 4 files |
+| 2.2 Language Tab Completion Indicators | 1-2h   | 1 file  |
+| 2.4 Orders Filter Visual Separation    | 1-2h   | 1 file  |
 
 **Total: ~3-6 hours**
 
 ### Phase 4: Visual Consistency (Week 4)
+
 Standardize appearance across admin pages.
 
-| Task | Effort | Files |
-|------|--------|-------|
-| 2.3 Variants Table Search/Filter | 1-2h | 1 file |
-| 2.6 Collections Stats Cards | 1-2h | 3 files |
-| 3.4 Status Badge Contrast | 15m | 2 files |
-| 3.1 Standardize Action Button Verbs | 5m | 1 file |
-| 3.2 Standardize Page Subtitles | 15m | 4 files |
-| 3.6 AI Generate Button Placement | 15m | 1 file |
+| Task                                | Effort | Files   |
+| ----------------------------------- | ------ | ------- |
+| 2.3 Variants Table Search/Filter    | 1-2h   | 1 file  |
+| 2.6 Collections Stats Cards         | 1-2h   | 3 files |
+| 3.4 Status Badge Contrast           | 15m    | 2 files |
+| 3.1 Standardize Action Button Verbs | 5m     | 1 file  |
+| 3.2 Standardize Page Subtitles      | 15m    | 4 files |
+| 3.6 AI Generate Button Placement    | 15m    | 1 file  |
 
 **Total: ~3-5 hours**
 
 ### Phase 5: Advanced Polish (Future)
+
 Nice-to-have improvements.
 
-| Task | Effort | Files |
-|------|--------|-------|
-| 3.3 Collapsible Sidebar | 2-3h | 2 files |
-| 3.5 Loading Skeletons | 2-3h | 5+ files |
+| Task                    | Effort | Files    |
+| ----------------------- | ------ | -------- |
+| 3.3 Collapsible Sidebar | 2-3h   | 2 files  |
+| 3.5 Loading Skeletons   | 2-3h   | 5+ files |
 
 **Total: ~4-6 hours**
 
@@ -1617,26 +1675,31 @@ Nice-to-have improvements.
 ## 5. Technical Considerations
 
 ### State Management
+
 - Unsaved changes tracking uses form library's `isDirty` state
 - Sidebar collapse state persisted via Zustand + localStorage
 - Filter states already use URL params (no changes needed)
 
 ### Performance
+
 - Autocomplete queries should be cached (React Query handles this)
 - Skeleton components are lightweight
 - No new API calls on critical render path
 
 ### Accessibility
+
 - All new interactive elements need proper ARIA labels
 - Keyboard navigation must work for comboboxes
 - Color contrast ratios should meet WCAG AA (4.5:1 for text)
 
 ### Testing
+
 - Unsaved changes warning needs E2E tests
 - Autocomplete components need unit tests for filtering logic
 - Skeleton components are presentational (no tests needed)
 
 ### Browser Support
+
 - `beforeunload` event works in all modern browsers
 - Combobox patterns use Radix UI (full browser support)
 - No experimental APIs used
@@ -1646,16 +1709,19 @@ Nice-to-have improvements.
 ## 6. Success Metrics
 
 ### Quantitative
+
 - **Data consistency:** Reduction in duplicate vendors/tags (measure via DB query)
 - **Form completion:** Increase in products with FR/ID translations
 - **Error prevention:** Reduction in support tickets about lost changes
 
 ### Qualitative
+
 - Admin users can navigate without confusion
 - Form inputs feel predictable and helpful
 - Visual consistency builds trust in the platform
 
 ### Technical
+
 - No increase in bundle size > 10KB
 - No new runtime errors in production
 - Lighthouse accessibility score maintains 90+
@@ -1665,6 +1731,7 @@ Nice-to-have improvements.
 ## Appendix: Component Inventory
 
 ### New Components to Create
+
 1. `src/hooks/useUnsavedChanges.ts`
 2. `src/components/ui/unsaved-changes-dialog.tsx`
 3. `src/components/ui/autocomplete-combobox.tsx`
@@ -1675,6 +1742,7 @@ Nice-to-have improvements.
 8. `src/hooks/useSidebarState.ts`
 
 ### Existing Components to Modify
+
 1. `src/components/admin/products/ProductForm.tsx`
 2. `src/components/admin/products/ProductVariantsTable.tsx`
 3. `src/components/admin/products/LocalizedFieldTabs.tsx`
@@ -1687,6 +1755,7 @@ Nice-to-have improvements.
 10. `src/components/admin/Sidebar.tsx`
 
 ### Routes to Modify
+
 1. `src/routes/admin/_authed/products/index.tsx`
 2. `src/routes/admin/_authed/products/$productId.tsx`
 3. `src/routes/admin/_authed/products/new.tsx`
@@ -1698,6 +1767,7 @@ Nice-to-have improvements.
 9. `src/routes/admin/_authed/index.tsx`
 
 ### Server Functions to Add
+
 1. `getDistinctVendorsFn` in `src/server/products.ts`
 2. `getDistinctProductTypesFn` in `src/server/products.ts`
 3. `getDistinctTagsFn` in `src/server/products.ts`

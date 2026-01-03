@@ -79,10 +79,18 @@ describe('OrderCancellationDialog', () => {
     expect(onConfirm).toHaveBeenCalledWith('Customer requested cancellation')
   })
 
-  it('should show loading state when isLoading is true', () => {
+  it('should disable buttons when isLoading is true', () => {
     render(<OrderCancellationDialog {...defaultProps} isLoading={true} />)
 
-    expect(screen.getByText(/cancelling/i)).toBeInTheDocument()
+    // Check that buttons are disabled during loading to prevent duplicate submissions
+    const confirmButton = screen.getByRole('button', { name: /cancel order/i })
+    const keepButton = screen.getByRole('button', { name: /keep order/i })
+    expect(confirmButton).toBeDisabled()
+    expect(keepButton).toBeDisabled()
+
+    // Textarea should also be disabled during loading
+    const textarea = screen.getByPlaceholderText(/reason for cancellation/i)
+    expect(textarea).toBeDisabled()
   })
 
   it('should call onOpenChange when cancel button is clicked', async () => {

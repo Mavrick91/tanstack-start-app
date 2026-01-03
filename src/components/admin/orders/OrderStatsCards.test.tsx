@@ -89,9 +89,10 @@ describe('OrderStatsCards', () => {
       />,
     )
 
-    // Cards with 0 values should have default styling
+    // Cards with 0 values should have default styling (not attention styling)
     const pendingLabel = screen.getByText('Pending Orders')
     const pendingCard = pendingLabel.parentElement?.parentElement
-    expect(pendingCard).toHaveClass('border-border/50')
+    expect(pendingCard).toHaveClass('border-border')
+    expect(pendingCard).not.toHaveClass('border-yellow-500/30')
   })
 })

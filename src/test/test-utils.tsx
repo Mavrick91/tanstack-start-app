@@ -24,6 +24,12 @@ const createTestQueryClient = () => {
 /**
  * Default wrapper component with common providers.
  * Includes QueryClientProvider by default.
+ *
+ * Note: RouterProvider is NOT included because:
+ * - We mock router hooks globally in setup.ts for unit testing
+ * - Adding RouterProvider would require defining routes for every test
+ * - Unit tests should test components in isolation
+ * - Integration/E2E tests should use full router context
  */
 const AllProviders = ({ children }: { children: React.ReactNode }) => {
   const queryClient = createTestQueryClient()

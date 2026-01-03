@@ -1,0 +1,401 @@
+{
+    "version": "1.0",
+    "description": "Skill activation triggers for TanStack Start e-commerce application",
+    "skills": {
+        "skill-developer": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Meta-skill for creating and managing Claude Code skills",
+            "promptTriggers": {
+                "keywords": [
+                    "skill system",
+                    "create skill",
+                    "add skill",
+                    "skill triggers",
+                    "skill rules",
+                    "hook system",
+                    "skill development",
+                    "skill-rules.json"
+                ],
+                "intentPatterns": [
+                    "(how do|how does|explain).*?skill",
+                    "(create|add|modify|build).*?skill",
+                    "skill.*?(work|trigger|activate|system)"
+                ]
+            }
+        },
+        "admin-crud": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Admin dashboard pages with data tables, filters, bulk actions, and forms",
+            "promptTriggers": {
+                "keywords": [
+                    "admin",
+                    "dashboard",
+                    "data table",
+                    "crud",
+                    "bulk actions",
+                    "filters",
+                    "admin panel",
+                    "management page"
+                ],
+                "intentPatterns": [
+                    "(create|add|build).*?(admin|dashboard|data table|crud)",
+                    "(how to|best practice).*?(admin|dashboard)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/components/admin/**/*.tsx",
+                    "src/components/admin/**/*.ts",
+                    "src/routes/**/admin/**/*.tsx"
+                ],
+                "pathExclusions": [
+                    "**/*.test.tsx",
+                    "**/*.test.ts"
+                ]
+            }
+        },
+        "api-routes": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "TanStack Start API routes with authentication, validation, and error handling",
+            "promptTriggers": {
+                "keywords": [
+                    "API",
+                    "endpoint",
+                    "route",
+                    "server function",
+                    "authentication",
+                    "validation",
+                    "middleware",
+                    "rate limiting"
+                ],
+                "intentPatterns": [
+                    "(create|add|implement).*?(route|endpoint|API|server function)",
+                    "(add|implement).*?(auth|validation|rate limiting)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/server/**/*.ts",
+                    "src/routes/**/*.tsx"
+                ],
+                "pathExclusions": [
+                    "**/*.test.ts"
+                ],
+                "contentPatterns": [
+                    "createServerFn",
+                    "validateSession",
+                    "requireAuth"
+                ]
+            }
+        },
+        "checkout": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Checkout flow with cart, shipping, Stripe/PayPal payments, and order completion",
+            "promptTriggers": {
+                "keywords": [
+                    "checkout",
+                    "cart",
+                    "payment",
+                    "stripe",
+                    "paypal",
+                    "shipping",
+                    "order",
+                    "payment processing"
+                ],
+                "intentPatterns": [
+                    "(implement|modify|fix|debug).*?(checkout|payment|cart|order)",
+                    "(add|integrate).*?(stripe|paypal|payment)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/components/checkout/**/*.tsx",
+                    "src/components/checkout/**/*.ts",
+                    "src/server/checkout.ts",
+                    "src/hooks/useCheckout.ts"
+                ]
+            }
+        },
+        "database": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Drizzle ORM schema design, migrations, queries, and performance optimization",
+            "promptTriggers": {
+                "keywords": [
+                    "database",
+                    "schema",
+                    "migration",
+                    "query",
+                    "drizzle",
+                    "ORM",
+                    "PostgreSQL",
+                    "performance"
+                ],
+                "intentPatterns": [
+                    "(create|modify|update).*?(schema|migration|database)",
+                    "(optimize|improve).*?(query|performance|database)",
+                    "(add|implement).*?(table|column|relation)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/db/schema.ts",
+                    "src/db/**/*.ts",
+                    "drizzle/**/*.ts"
+                ],
+                "contentPatterns": [
+                    "pgTable",
+                    "drizzle",
+                    "db\\."
+                ]
+            }
+        },
+        "debugging": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Debug authentication, payments, database queries, React components, and API routes",
+            "promptTriggers": {
+                "keywords": [
+                    "debug",
+                    "fix",
+                    "error",
+                    "bug",
+                    "troubleshoot",
+                    "investigate",
+                    "not working"
+                ],
+                "intentPatterns": [
+                    "(debug|fix|solve|troubleshoot).*?(error|bug|issue|problem)",
+                    "(not working|broken|failing)"
+                ]
+            }
+        },
+        "design-system": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Create distinctive, production-grade frontend interfaces with high design quality",
+            "promptTriggers": {
+                "keywords": [
+                    "component",
+                    "UI",
+                    "interface",
+                    "design",
+                    "frontend",
+                    "styling",
+                    "layout",
+                    "responsive"
+                ],
+                "intentPatterns": [
+                    "(create|build|design).*?(component|UI|interface|page)",
+                    "(style|design|layout).*?(component|UI)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/components/**/*.tsx",
+                    "src/routes/**/*.tsx"
+                ],
+                "pathExclusions": [
+                    "**/*.test.tsx",
+                    "src/components/admin/**/*.tsx"
+                ]
+            }
+        },
+        "forms": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Build forms with FNForm component including validation, grid layouts, and custom fields",
+            "promptTriggers": {
+                "keywords": [
+                    "form",
+                    "validation",
+                    "FNForm",
+                    "form field",
+                    "form control",
+                    "form validation"
+                ],
+                "intentPatterns": [
+                    "(create|build|add).*?form",
+                    "(add|implement).*?validation"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/components/**/Form*.tsx",
+                    "src/components/**/*Form.tsx"
+                ],
+                "contentPatterns": [
+                    "FNForm",
+                    "@tanstack/react-form"
+                ]
+            }
+        },
+        "i18n": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Internationalization with i18next for UI translations and JSONB for database content",
+            "promptTriggers": {
+                "keywords": [
+                    "translation",
+                    "i18n",
+                    "internationalization",
+                    "localization",
+                    "locale",
+                    "language"
+                ],
+                "intentPatterns": [
+                    "(add|implement).*?(translation|i18n|internationalization)",
+                    "(translate|localize).*?(text|content|UI)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/locales/**/*.json",
+                    "src/lib/i18n.ts"
+                ],
+                "contentPatterns": [
+                    "useTranslation",
+                    "i18next",
+                    "t\\("
+                ]
+            }
+        },
+        "security": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Security auditing and implementation for authentication, rate limiting, CSRF protection, and validation",
+            "promptTriggers": {
+                "keywords": [
+                    "security",
+                    "authentication",
+                    "authorization",
+                    "CSRF",
+                    "rate limiting",
+                    "validation",
+                    "XSS",
+                    "SQL injection",
+                    "secure"
+                ],
+                "intentPatterns": [
+                    "(add|implement|improve).*?(security|auth|rate limiting|CSRF)",
+                    "(secure|protect).*?(endpoint|route|API)",
+                    "(audit|review).*?security"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/lib/auth.ts",
+                    "src/lib/csrf.ts",
+                    "src/lib/security-headers.ts",
+                    "src/server/**/*.ts"
+                ]
+            }
+        },
+        "testing": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Write Vitest tests with mocks for API routes, hooks, components, and utilities",
+            "promptTriggers": {
+                "keywords": [
+                    "test",
+                    "testing",
+                    "vitest",
+                    "mock",
+                    "coverage",
+                    "unit test",
+                    "integration test"
+                ],
+                "intentPatterns": [
+                    "(write|add|create).*?test",
+                    "(test|mock).*?(component|hook|API|function)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.test.ts",
+                    "**/*.test.tsx",
+                    "src/test/**/*.ts"
+                ],
+                "contentPatterns": [
+                    "describe\\(",
+                    "it\\(",
+                    "test\\(",
+                    "expect\\("
+                ]
+            }
+        },
+        "typescript-lsp": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Use TypeScript LSP for code intelligence, go-to-definition, find references, and type checking",
+            "promptTriggers": {
+                "keywords": [
+                    "find definition",
+                    "find references",
+                    "type checking",
+                    "go to definition",
+                    "LSP",
+                    "code navigation"
+                ],
+                "intentPatterns": [
+                    "(find|locate|search).*?(definition|references|usage)",
+                    "(navigate|go to).*?definition"
+                ]
+            }
+        },
+        "codebase-guide": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Master guide for TanStack Start e-commerce application architecture",
+            "promptTriggers": {
+                "keywords": [
+                    "architecture",
+                    "codebase",
+                    "project structure",
+                    "how does it work",
+                    "overview",
+                    "onboarding"
+                ],
+                "intentPatterns": [
+                    "(how does|how do|explain).*?(work|architecture|structure)",
+                    "(where is|where are|find).*?(located|stored)"
+                ]
+            }
+        }
+    },
+    "notes": {
+        "enforcement_types": {
+            "suggest": "Skill suggestion appears but doesn't block execution",
+            "block": "Requires skill to be used before proceeding (guardrail)",
+            "warn": "Shows warning but allows proceeding"
+        },
+        "priority_levels": {
+            "critical": "Highest - Always trigger when matched",
+            "high": "Important - Trigger for most matches",
+            "medium": "Moderate - Trigger for clear matches",
+            "low": "Optional - Trigger only for explicit matches"
+        },
+        "customization": {
+            "pathPatterns": "Configured for TanStack Start project structure (src/**/*)",
+            "keywords": "Domain-specific terms for e-commerce application",
+            "intentPatterns": "Regex patterns for flexible user intent matching"
+        }
+    }
+}

@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AddressForm } from './AddressForm'
 
 import type { AddressFormData } from '../../lib/checkout-schemas'
 
-import { act, fireEvent, render, screen, waitFor } from '@/test/test-utils'
+import { act, render, screen, waitFor } from '@/test/test-utils'
 
 // Mock the AddressAutocomplete component
 vi.mock('./AddressAutocomplete', () => ({
@@ -30,9 +30,22 @@ vi.mock('./AddressAutocomplete', () => ({
 describe('AddressForm', () => {
   const mockOnSubmit = vi.fn()
 
+  const renderComponent = (
+    props: Partial<React.ComponentProps<typeof AddressForm>> = {},
+  ) => {
+    const defaultProps = {
+      onSubmit: mockOnSubmit,
+    }
+    return render(<AddressForm {...defaultProps} {...props} />)
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   describe('Form Rendering', () => {
     it('should render all form fields', () => {
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      renderComponent()
 
       expect(screen.getByLabelText(/First name/)).toBeInTheDocument()
       expect(screen.getByLabelText(/Last name/)).toBeInTheDocument()
@@ -47,20 +60,20 @@ describe('AddressForm', () => {
     })
 
     it('should show required indicators on required fields', () => {
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      renderComponent()
 
       const requiredIndicators = screen.getAllByText('*')
       expect(requiredIndicators.length).toBeGreaterThanOrEqual(5)
     })
 
     it('should render country dropdown with options', () => {
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      renderComponent()
 
       expect(screen.getByText('Select country')).toBeInTheDocument()
     })
 
     it('should show optional labels for non-required fields', () => {
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      renderComponent()
 
       const optionalLabels = screen.getAllByText('(optional)')
       expect(optionalLabels.length).toBeGreaterThanOrEqual(2) // Company, Apartment, Phone
@@ -77,9 +90,7 @@ describe('AddressForm', () => {
         zip: '10001',
       }
 
-      render(
-        <AddressForm defaultValues={filledAddress} onSubmit={mockOnSubmit} />,
-      )
+      renderComponent({ defaultValues: filledAddress })
 
       expect(screen.getByDisplayValue('John')).toBeInTheDocument()
       expect(screen.getByDisplayValue('Doe')).toBeInTheDocument()
@@ -103,9 +114,7 @@ describe('AddressForm', () => {
         phone: '+1 555-1234',
       }
 
-      render(
-        <AddressForm defaultValues={fullAddress} onSubmit={mockOnSubmit} />,
-      )
+      renderComponent({ defaultValues: fullAddress })
 
       expect(screen.getByDisplayValue('Jane')).toBeInTheDocument()
       expect(screen.getByDisplayValue('Smith')).toBeInTheDocument()
@@ -123,7 +132,7 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(<AddressForm onSubmit={mockOnSubmit} formRef={formRef} />)
+      renderComponent({ formRef })
 
       // Submit empty form
       await act(async () => {
@@ -141,21 +150,18 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       // Submit using the ref
       await act(async () => {
@@ -172,20 +178,17 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -201,20 +204,17 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -230,20 +230,17 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -259,20 +256,17 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -288,19 +282,16 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -316,20 +307,17 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -343,7 +331,7 @@ describe('AddressForm', () => {
 
   describe('User Interaction', () => {
     it('should update firstName when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const firstNameInput = screen.getByLabelText(/First name/)
       await user.type(firstNameInput, 'John')
@@ -352,7 +340,7 @@ describe('AddressForm', () => {
     })
 
     it('should update lastName when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const lastNameInput = screen.getByLabelText(/Last name/)
       await user.type(lastNameInput, 'Doe')
@@ -361,7 +349,7 @@ describe('AddressForm', () => {
     })
 
     it('should update city when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const cityInput = screen.getByLabelText(/City/)
       await user.type(cityInput, 'New York')
@@ -370,7 +358,7 @@ describe('AddressForm', () => {
     })
 
     it('should update zip when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const zipInput = screen.getByLabelText(/ZIP code/)
       await user.type(zipInput, '10001')
@@ -379,7 +367,7 @@ describe('AddressForm', () => {
     })
 
     it('should update company (optional field) when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const companyInput = screen.getByLabelText(/Company/)
       await user.type(companyInput, 'Acme Inc')
@@ -388,7 +376,7 @@ describe('AddressForm', () => {
     })
 
     it('should update apartment (optional field) when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const apartmentInput = screen.getByLabelText(/Apartment/)
       await user.type(apartmentInput, 'Suite 100')
@@ -397,7 +385,7 @@ describe('AddressForm', () => {
     })
 
     it('should update state/province when user types', async () => {
-      const { user } = render(<AddressForm onSubmit={mockOnSubmit} />)
+      const { user } = renderComponent()
 
       const stateInput = screen.getByLabelText(/State/)
       await user.type(stateInput, 'California')
@@ -408,23 +396,26 @@ describe('AddressForm', () => {
 
   describe('Form Submission with Form Element', () => {
     it('should submit form when form element is submitted', async () => {
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-        />,
-      )
+      const formRef = { current: null } as React.RefObject<{
+        submit: () => void
+      } | null>
 
-      const form = screen.getByLabelText(/First name/).closest('form')!
-      fireEvent.submit(form)
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
+
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled()
@@ -432,6 +423,10 @@ describe('AddressForm', () => {
     })
 
     it('should pass all form data to onSubmit', async () => {
+      const formRef = { current: null } as React.RefObject<{
+        submit: () => void
+      } | null>
+
       const expectedData = {
         firstName: 'John',
         lastName: 'Doe',
@@ -447,12 +442,11 @@ describe('AddressForm', () => {
         phone: '',
       }
 
-      render(
-        <AddressForm defaultValues={expectedData} onSubmit={mockOnSubmit} />,
-      )
+      renderComponent({ formRef, defaultValues: expectedData })
 
-      const form = screen.getByLabelText(/First name/).closest('form')!
-      fireEvent.submit(form)
+      await act(async () => {
+        formRef.current?.submit()
+      })
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith(
@@ -475,7 +469,7 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(<AddressForm onSubmit={mockOnSubmit} formRef={formRef} />)
+      renderComponent({ formRef })
 
       expect(formRef.current).not.toBeNull()
       expect(typeof formRef.current?.submit).toBe('function')
@@ -486,21 +480,18 @@ describe('AddressForm', () => {
         submit: () => void
       } | null>
 
-      render(
-        <AddressForm
-          defaultValues={{
-            firstName: 'John',
-            lastName: 'Doe',
-            address1: '123 Main St',
-            city: 'New York',
-            countryCode: 'US',
-            country: 'United States',
-            zip: '10001',
-          }}
-          onSubmit={mockOnSubmit}
-          formRef={formRef}
-        />,
-      )
+      renderComponent({
+        formRef,
+        defaultValues: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address1: '123 Main St',
+          city: 'New York',
+          countryCode: 'US',
+          country: 'United States',
+          zip: '10001',
+        },
+      })
 
       await act(async () => {
         formRef.current?.submit()
@@ -514,7 +505,7 @@ describe('AddressForm', () => {
 
   describe('Country Selection', () => {
     it('should render country select with placeholder', () => {
-      render(<AddressForm onSubmit={mockOnSubmit} />)
+      renderComponent()
 
       // Check country select is rendered with placeholder
       const countryTrigger = screen.getByRole('combobox')

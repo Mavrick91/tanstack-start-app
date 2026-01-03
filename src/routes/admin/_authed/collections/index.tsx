@@ -154,7 +154,7 @@ const CollectionsPage = () => {
       <CollectionStats stats={stats} />
 
       {/* Filter / Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 px-1">
+      <div className="flex flex-col sm:flex-row gap-3">
         <AdminSearchInput
           value={table.search}
           onChange={table.setSearch}

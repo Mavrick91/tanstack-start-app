@@ -3,8 +3,7 @@ import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useDataTable } from './useDataTable'
-
-import { act, renderHook, waitFor } from '@/test/test-utils'
+import { act, renderHook, waitFor } from '../test/test-utils'
 
 interface TestItem {
   id: string

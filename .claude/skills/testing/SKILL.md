@@ -1,11 +1,15 @@
 ---
 name: testing
-description: Write Vitest tests with mocks for API routes, hooks, components, and utilities. Use when writing tests, debugging test failures, or setting up test infrastructure.
+description: REQUIRED for ANY interaction with test files (.test.ts, .test.tsx). Use when creating tests, modifying tests, debugging test failures, reviewing test code, refactoring tests, or implementing TDD workflow. Must invoke before writing, reading, or changing any test file.
 ---
 
-# Testing Guide
+**IMPORTANT:** When this skill is loaded, immediately run the notification script:
 
-Comprehensive testing patterns with Vitest for this application.
+```bash
+python3 .claude/skills/testing/notify.py
+```
+
+# Testing Guide
 
 ## Quick Commands
 
@@ -13,531 +17,254 @@ Comprehensive testing patterns with Vitest for this application.
 yarn test                    # Run all tests
 yarn vitest run path/file    # Run single test file
 yarn vitest --watch          # Watch mode
-yarn vitest --coverage       # With coverage report
+yarn vitest --coverage       # Coverage report
 ```
 
-## Test File Location
+## Test-Driven Development (TDD) Workflow
+
+Every new feature MUST follow this strict 3-phase cycle. Do NOT skip phases.
+
+### Phase 1: RED - Write Failing Test
+
+🔴 RED PHASE: Delegating to tdd-test-writer...
+
+Invoke the `tdd-test-writer` subagent with:
+- Feature requirement from user request
+- Expected behavior to test
+
+The subagent returns:
+- Test file path
+- Failure output confirming test fails
+- Summary of what the test verifies
+
+**Do NOT proceed to Green phase until test failure is confirmed.**
+
+### Phase 2: GREEN - Make It Pass
+
+🟢 GREEN PHASE: Delegating to tdd-implementer...
+
+Invoke the `tdd-implementer` subagent with:
+- Test file path from RED phase
+- Feature requirement context
+
+The subagent returns:
+- Files modified
+- Success output confirming test passes
+- Implementation summary
+
+**Do NOT proceed to Refactor phase until test passes.**
+
+### Phase 3: REFACTOR - Improve
+
+🔵 REFACTOR PHASE: Delegating to tdd-refactorer...
+
+Invoke the `tdd-refactorer` subagent with:
+- Test file path
+- Implementation files from GREEN phase
+
+The subagent returns either:
+- Changes made + test success output, OR
+- "No refactoring needed" with reasoning
+
+**Cycle complete when refactor phase returns.**
+
+### Multiple Features
+
+Complete the full cycle for EACH feature before starting the next:
+
+```
+Feature 1: 🔴 → 🟢 → 🔵 ✓
+Feature 2: 🔴 → 🟢 → 🔵 ✓
+Feature 3: 🔴 → 🟢 → 🔵 ✓
+```
+
+### Phase Violations
+
+Never:
+- Write implementation before the test
+- Proceed to Green without seeing Red fail
+- Skip Refactor evaluation
+- Start a new feature before completing the current cycle
+
+## Core Principles
+
+### Test User Behavior, Not Implementation
+
+**DO:** Test what users see and do
+- Can user click this button?
+- Does the correct text appear?
+- Does form submission work?
+
+**DON'T:** Test implementation details
+- Does component have specific CSS classes?
+- How many separators are rendered?
+- What's the internal state shape?
+
+### The renderComponent Helper Pattern
+
+**ALWAYS** create a helper that takes `Partial<React.ComponentProps<typeof Component>>`:
+
+```typescript
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof MyComponent>> = {},
+) => {
+  const defaultProps = { /* sensible defaults */ }
+  return render(<MyComponent {...defaultProps} {...props} />)
+}
+```
+
+**Benefits:**
+- No repeating default props
+- Type-safe prop overrides
+- Easy to test edge cases
+- Consistent across all tests
+
+### Organize with Describe Blocks
+
+Group related tests logically:
+
+- `Rendering` - What gets displayed
+- `Click interactions` - User actions and callbacks
+- `Navigation buttons` - Pagination, next/prev
+- `Loading state` - Spinners, disabled states
+- `Edge cases` - Empty data, long text
+- `Styling` - Conditional CSS (only when user-visible)
+- `Combinations` - Multiple props together
+
+### Use userEvent, Not fireEvent
+
+**ALWAYS** use `user` from render result:
+
+```typescript
+const { user } = renderComponent({ onClick })
+await user.click(screen.getByRole('button'))
+```
+
+**Why:** userEvent simulates real browser events (hover, focus, blur), better async handling, catches edge cases.
+
+## What NOT to Test
+
+### Implementation Details
+
+**DON'T** test:
+- Number of DOM elements (separators, wrappers)
+- Specific CSS class names (unless visually different to user)
+- Internal state structure
+- Component lifecycle methods
+- Rendering optimization details
+
+**Example of what to avoid:**
+```typescript
+// ❌ Testing implementation
+expect(container.querySelectorAll('.separator')).toHaveLength(2)
+expect(button).toHaveAttribute('data-disabled', 'true')
+
+// ✅ Testing user behavior
+expect(screen.getByText('Delete')).toBeInTheDocument()
+expect(screen.getByRole('button')).toBeDisabled()
+```
+
+### Redundant Tests
+
+**DON'T** create tests that verify the same behavior multiple ways.
+
+If you test "button is disabled when loading", you don't need another test for "button has disabled class when loading".
+
+### Framework/Library Behavior
+
+**DON'T** test that React works, or that libraries work correctly.
+
+**Example:**
+```typescript
+// ❌ Testing React
+it('renders without crashing', () => {
+  renderComponent()
+})
+
+// ❌ Testing Radix UI
+it('dropdown has correct ARIA attributes', () => {
+  // Radix UI already tests this
+})
+```
+
+## Testing Dropdown Menus (Radix UI)
+
+Dropdowns require opening before testing content:
+
+```typescript
+it('shows delete option', async () => {
+  const { user } = renderComponent({ onDelete: vi.fn() })
+
+  await user.click(screen.getByRole('button')) // Open menu
+
+  await waitFor(() => {
+    expect(screen.getByText('Delete')).toBeInTheDocument()
+  })
+})
+```
+
+## Testing Async Interactions
+
+Use `waitFor` for async assertions:
+
+```typescript
+it('calls callback after async action', async () => {
+  const onClick = vi.fn()
+  const { user } = renderComponent({ onClick })
+
+  await user.click(screen.getByRole('button'))
+
+  await waitFor(() => {
+    expect(onClick).toHaveBeenCalled()
+  })
+})
+```
+
+## Mocking Patterns
+
+### Mock Before Import
+
+Always mock dependencies BEFORE importing the module under test:
+
+```typescript
+vi.mock('../db', () => ({ db: { select: vi.fn() } }))
+vi.mock('@tanstack/react-router', () => ({ Link: ... }))
+
+import { MyComponent } from './MyComponent'
+```
+
+### Global Mocks
+
+Router and i18n are mocked globally in `src/test/setup.ts`. Don't mock them again unless you need custom behavior.
+
+## File Structure
 
 Tests are colocated with source files:
 
 ```
-src/
-├── lib/
-│   ├── utils.ts
-│   └── utils.test.ts      # Test file next to source
-├── hooks/
-│   ├── useCart.ts
-│   └── useCart.test.ts
-└── server/
-    ├── orders.ts
-    └── orders.test.ts
+src/components/
+  Button.tsx
+  Button.test.tsx
 ```
 
-## Basic Test Structure
-
-```typescript
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-
-describe('FeatureName', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  describe('functionName', () => {
-    it('should do something specific', () => {
-      const result = functionName(input)
-      expect(result).toBe(expected)
-    })
-
-    it('should handle edge case', () => {
-      expect(() => functionName(null)).toThrow()
-    })
-  })
-})
-```
-
-## Mocking Modules
-
-**Important:** Mock BEFORE importing the module under test.
-
-```typescript
-// 1. Mock dependencies FIRST
-vi.mock('../db', () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue([]),
-  },
-}))
-
-vi.mock('../lib/stripe', () => ({
-  stripe: {
-    refunds: {
-      create: vi.fn(),
-    },
-  },
-}))
-
-// 2. THEN import the module under test
-import { myFunction } from './myModule'
-```
-
-## Database Mocking
-
-### Simple Mock
-
-```typescript
-vi.mock('../db', () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockResolvedValue([{ id: '1', name: 'Test Item' }]),
-  },
-}))
-```
-
-### Chained Query Mock
-
-```typescript
-vi.mock('../db', () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    orderBy: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    offset: vi.fn().mockResolvedValue([
-      { id: '1', name: 'Product 1' },
-      { id: '2', name: 'Product 2' },
-    ]),
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    returning: vi.fn().mockResolvedValue([{ id: 'new-id' }]),
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-  },
-}))
-```
-
-### In-Memory State Mock
-
-```typescript
-let mockData: Array<{ id: string; name: string }> = []
-
-vi.mock('../db', () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockImplementation(() => ({
-      limit: vi.fn().mockImplementation(() => Promise.resolve(mockData)),
-    })),
-    insert: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockImplementation((values) => {
-        mockData.push(values)
-        return {
-          returning: vi.fn().mockResolvedValue([values]),
-        }
-      }),
-    })),
-  },
-}))
-
-beforeEach(() => {
-  mockData = []
-})
-
-it('should insert and retrieve', async () => {
-  await insertItem({ id: '1', name: 'Test' })
-  const items = await getItems()
-  expect(items).toHaveLength(1)
-})
-```
-
-## Testing Utilities
-
-```typescript
-// src/lib/utils.test.ts
-import { describe, expect, it } from 'vitest'
-import { formatCurrency, parseDecimal, toDecimalString } from './utils'
-
-describe('formatCurrency', () => {
-  it('should format USD correctly', () => {
-    expect(formatCurrency(1234.56, 'USD')).toBe('$1,234.56')
-  })
-
-  it('should handle zero', () => {
-    expect(formatCurrency(0, 'USD')).toBe('$0.00')
-  })
-
-  it('should handle negative numbers', () => {
-    expect(formatCurrency(-10.5, 'USD')).toBe('-$10.50')
-  })
-})
-
-describe('parseDecimal', () => {
-  it('should parse decimal string to number', () => {
-    expect(parseDecimal('99.99')).toBe(99.99)
-    expect(parseDecimal('0.01')).toBe(0.01)
-  })
-
-  it('should round to 2 decimal places', () => {
-    expect(parseDecimal('99.999')).toBe(100)
-    expect(parseDecimal('99.994')).toBe(99.99)
-  })
-})
-```
-
-## Testing Hooks
-
-```typescript
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-
-// Mock dependencies
-vi.mock('../lib/api', () => ({
-  fetchProducts: vi.fn().mockResolvedValue([{ id: '1', name: 'Product' }]),
-}))
-
-describe('useProducts', () => {
-  it('should return initial loading state', () => {
-    const { result } = renderHook(() => useProducts())
-
-    expect(result.current.isLoading).toBe(true)
-    expect(result.current.products).toEqual([])
-  })
-
-  it('should load products', async () => {
-    const { result } = renderHook(() => useProducts())
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false)
-    })
-
-    expect(result.current.products).toHaveLength(1)
-  })
-})
-
-describe('useCart', () => {
-  it('should add item to cart', async () => {
-    const { result } = renderHook(() => useCart())
-
-    act(() => {
-      result.current.addItem('product-1', 'variant-1')
-    })
-
-    expect(result.current.items).toHaveLength(1)
-    expect(result.current.items[0].productId).toBe('product-1')
-  })
-
-  it('should increment quantity for existing item', async () => {
-    const { result } = renderHook(() => useCart())
-
-    act(() => {
-      result.current.addItem('product-1', 'variant-1')
-      result.current.addItem('product-1', 'variant-1')
-    })
-
-    expect(result.current.items).toHaveLength(1)
-    expect(result.current.items[0].quantity).toBe(2)
-  })
-})
-```
-
-## Testing Components
-
-```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { ProductCard } from './ProductCard'
-
-// Mock router
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useParams: () => ({ lang: 'en' }),
-}))
-
-describe('ProductCard', () => {
-  const mockProduct = {
-    id: '1',
-    name: { en: 'Test Product' },
-    price: 99.99,
-    imageUrl: '/image.jpg',
-  }
-
-  it('should render product name', () => {
-    render(<ProductCard product={mockProduct} />)
-    expect(screen.getByText('Test Product')).toBeInTheDocument()
-  })
-
-  it('should render formatted price', () => {
-    render(<ProductCard product={mockProduct} />)
-    expect(screen.getByText('$99.99')).toBeInTheDocument()
-  })
-
-  it('should call onAddToCart when button clicked', async () => {
-    const onAddToCart = vi.fn()
-
-    render(<ProductCard product={mockProduct} onAddToCart={onAddToCart} />)
-
-    fireEvent.click(screen.getByRole('button', { name: /add to cart/i }))
-
-    await waitFor(() => {
-      expect(onAddToCart).toHaveBeenCalledWith('1')
-    })
-  })
-
-  it('should show loading state', () => {
-    render(<ProductCard product={mockProduct} isLoading />)
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
-  })
-})
-```
-
-## Testing Admin Tables
-
-```typescript
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { OrdersTable } from './OrdersTable'
-
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-}))
-
-const MOCK_ORDERS = [
-  {
-    id: '1',
-    orderNumber: 1001,
-    email: 'test@example.com',
-    total: 99.99,
-    status: 'pending',
-    paymentStatus: 'paid',
-    fulfillmentStatus: 'unfulfilled',
-    createdAt: new Date('2024-01-15'),
-  },
-]
-
-describe('OrdersTable', () => {
-  it('should render table headers', () => {
-    render(<OrdersTable orders={MOCK_ORDERS} />)
-
-    expect(screen.getByText('Order')).toBeInTheDocument()
-    expect(screen.getByText('Customer')).toBeInTheDocument()
-    expect(screen.getByText('Total')).toBeInTheDocument()
-    expect(screen.getByText('Status')).toBeInTheDocument()
-  })
-
-  it('should render order number with prefix', () => {
-    render(<OrdersTable orders={MOCK_ORDERS} />)
-    expect(screen.getByText('#1001')).toBeInTheDocument()
-  })
-
-  it('should render status badges', () => {
-    render(<OrdersTable orders={MOCK_ORDERS} />)
-    expect(screen.getByText('pending')).toBeInTheDocument()
-    expect(screen.getByText('paid')).toBeInTheDocument()
-  })
-})
-```
-
-## Testing API Routes
-
-```typescript
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-
-// Mock dependencies
-vi.mock('../db', () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue([{ id: '1', name: 'Test' }]),
-  },
-}))
-
-vi.mock('../lib/auth', () => ({
-  requireAuth: vi.fn().mockResolvedValue({
-    success: true,
-    user: { id: 'user-1', role: 'admin' },
-  }),
-}))
-
-import { handlers } from './products'
-
-describe('GET /api/products', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('should return products for authenticated user', async () => {
-    const request = new Request('http://localhost/api/products')
-
-    const response = await handlers.GET({ request })
-    const data = await response.json()
-
-    expect(response.status).toBe(200)
-    expect(data.success).toBe(true)
-    expect(data.items).toHaveLength(1)
-  })
-
-  it('should return 401 for unauthenticated user', async () => {
-    const { requireAuth } = await import('../lib/auth')
-    vi.mocked(requireAuth).mockResolvedValueOnce({
-      success: false,
-      response: new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-      }),
-    })
-
-    const request = new Request('http://localhost/api/products')
-    const response = await handlers.GET({ request })
-
-    expect(response.status).toBe(401)
-  })
-})
-```
-
-## Testing Without Mocks
-
-Use `vi.importActual` to test real implementations:
-
-```typescript
-it('should work with real implementation', async () => {
-  // Import actual module, bypassing mocks
-  const { parseDecimal } =
-    await vi.importActual<typeof import('./utils')>('./utils')
-
-  expect(parseDecimal('99.99')).toBe(99.99)
-})
-```
-
-## Common Assertions
-
-```typescript
-// Equality
-expect(value).toBe(exact) // Strict equality
-expect(value).toEqual(deepEqual) // Deep equality
-expect(value).toStrictEqual(strict) // Strict deep equality
-
-// Truthiness
-expect(value).toBeTruthy()
-expect(value).toBeFalsy()
-expect(value).toBeNull()
-expect(value).toBeUndefined()
-expect(value).toBeDefined()
-
-// Numbers
-expect(value).toBeGreaterThan(3)
-expect(value).toBeLessThan(5)
-expect(value).toBeCloseTo(0.3, 5) // Floating point
-
-// Strings
-expect(string).toMatch(/regex/)
-expect(string).toContain('substring')
-
-// Arrays
-expect(array).toContain(item)
-expect(array).toHaveLength(3)
-expect(array).toContainEqual({ id: 1 })
-
-// Objects
-expect(object).toHaveProperty('key')
-expect(object).toHaveProperty('key', 'value')
-expect(object).toMatchObject({ partial: true })
-
-// Errors
-expect(() => fn()).toThrow()
-expect(() => fn()).toThrow('message')
-expect(() => fn()).toThrow(ErrorClass)
-
-// Async
-await expect(asyncFn()).resolves.toBe(value)
-await expect(asyncFn()).rejects.toThrow('error')
-
-// Mocks
-expect(mockFn).toHaveBeenCalled()
-expect(mockFn).toHaveBeenCalledTimes(2)
-expect(mockFn).toHaveBeenCalledWith(arg1, arg2)
-expect(mockFn).toHaveBeenLastCalledWith(arg)
-expect(mockFn).toHaveBeenNthCalledWith(1, arg)
-```
-
-## Async Testing
-
-```typescript
-// Waiting for async result
-it('should load data', async () => {
-  const result = await fetchData()
-  expect(result).toBeDefined()
-})
-
-// Using waitFor
-it('should update after async action', async () => {
-  const { result } = renderHook(() => useData())
-
-  await waitFor(() => {
-    expect(result.current.isLoading).toBe(false)
-  })
-
-  expect(result.current.data).toHaveLength(5)
-})
-
-// Testing rejection
-it('should reject with error', async () => {
-  await expect(failingAsync()).rejects.toThrow('Error message')
-})
-```
-
-## Test Setup
-
-```typescript
-// src/test/setup.ts
-import '@testing-library/jest-dom/vitest'
-
-// Mock ResizeObserver (required for Radix UI)
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
-
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
-```
-
-## Snapshot Testing
-
-```typescript
-it('should match snapshot', () => {
-  const { container } = render(<MyComponent />)
-  expect(container).toMatchSnapshot()
-})
-
-// Update snapshots: yarn vitest -u
-```
-
-## See Also
-
-- `src/test/setup.ts` - Test setup
-- `vitest.config.ts` - Vitest config
-- `src/server/orders.test.ts` - Comprehensive example
-- `src/hooks/useCart.test.ts` - Hook testing
+## Key Testing Utilities
+
+- `render()` - Render component with test-utils wrapper
+- `screen` - Query rendered output
+- `waitFor()` - Wait for async assertions
+- `vi.fn()` - Create mock function
+- `vi.mock()` - Mock modules
+
+## Common Queries (Preference Order)
+
+1. `getByRole()` - Accessible queries (best)
+2. `getByLabelText()` - Form inputs
+3. `getByText()` - Non-interactive elements
+4. `getByTestId()` - Last resort
+
+## Real Examples
+
+See these files for reference:
+- `src/components/admin/components/AdminPagination.test.tsx` - Complex logic
+- `src/components/admin/components/AdminRowActions.test.tsx` - Dropdown testing
+- `src/components/admin/components/AdminBulkActionsBar.test.tsx` - User interactions

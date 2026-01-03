@@ -38,12 +38,12 @@ const ProductDetailPage = () => {
   const canAddToCart = !hasVariants || (selectedVariant?.available ?? false)
 
   return (
-    <div className="container mx-auto px-6 md:px-12 py-24">
+    <div className="container mx-auto px-6 md:p-10">
       <BackButton
         to="/$lang/products"
         params={{ lang }}
         label={t('Back to all products')}
-        className="mb-12"
+        className="mb-10"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">

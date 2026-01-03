@@ -175,31 +175,25 @@ const AdminOrdersPage = () => {
       />
 
       {/* Stats Cards */}
-      {stats && (
-        <div className="px-1">
-          <OrderStatsCards stats={stats} isLoading={false} />
-        </div>
-      )}
+      {stats && <OrderStatsCards stats={stats} isLoading={false} />}
 
       {/* Search */}
-      <div className="px-1">
-        <AdminSearchInput
-          value={search}
-          onChange={(value) => {
-            setSearch(value)
-            updateSearch({ q: value || undefined })
-          }}
-          placeholder={t('Search by email or order number...')}
-          ariaLabel={t('Search orders')}
-          className="max-w-md"
-        />
-      </div>
+      <AdminSearchInput
+        value={search}
+        onChange={(value) => {
+          setSearch(value)
+          updateSearch({ q: value || undefined })
+        }}
+        placeholder={t('Search by email or order number...')}
+        ariaLabel={t('Search orders')}
+        className="max-w-md"
+      />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap gap-3 px-1">
+      <div className="flex flex-wrap gap-3">
         {/* Status filter */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
             {t('Status')}
           </span>
           <StatusFilterTabs
@@ -214,7 +208,7 @@ const AdminOrdersPage = () => {
 
         {/* Payment filter */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
             {t('Payment')}
           </span>
           <StatusFilterTabs
@@ -229,7 +223,7 @@ const AdminOrdersPage = () => {
 
         {/* Fulfillment filter */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 px-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
             {t('Fulfillment')}
           </span>
           <StatusFilterTabs

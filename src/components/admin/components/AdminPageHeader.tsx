@@ -23,7 +23,7 @@ export const AdminPageHeader = ({
   const ActionIcon = action?.icon || Plus
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {description && (
