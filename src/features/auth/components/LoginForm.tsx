@@ -1,33 +1,37 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 import { useAuthLogin } from '../../../hooks/useAuth'
 import { useAuthModal } from '../hooks/useAuthModal'
 
 import { FNForm, type FormDefinition } from '@/components/ui/fn-form'
 
-const loginFormDefinition: FormDefinition = {
-  fields: [
-    {
-      name: 'email',
-      type: 'email',
-      label: 'Email',
-      placeholder: 'you@example.com',
-      required: true,
-    },
-    {
-      name: 'password',
-      type: 'password',
-      label: 'Password',
-      placeholder: '********',
-      required: true,
-    },
-  ],
-}
-
 export const LoginForm = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
+  const { lang } = useParams({ from: '/$lang' })
   const loginMutation = useAuthLogin()
-  const { close, setView, returnUrl } = useAuthModal()
+  const { close, setView } = useAuthModal()
+
+  const loginFormDefinition: FormDefinition = {
+    fields: [
+      {
+        name: 'email',
+        type: 'email',
+        label: t('Email'),
+        placeholder: t('you@example.com'),
+        required: true,
+      },
+      {
+        name: 'password',
+        type: 'password',
+        label: t('Password'),
+        placeholder: '********',
+        required: true,
+      },
+    ],
+  }
 
   const handleSubmit = (values: Record<string, unknown>) => {
     loginMutation.mutate(
@@ -38,9 +42,7 @@ export const LoginForm = () => {
       {
         onSuccess: () => {
           close()
-          if (returnUrl) {
-            navigate({ to: returnUrl })
-          }
+          navigate({ to: '/$lang/account', params: { lang } })
         },
       },
     )
@@ -48,27 +50,40 @@ export const LoginForm = () => {
 
   return (
     <div className="space-y-4">
-      {loginMutation.error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-          {loginMutation.error instanceof Error
-            ? loginMutation.error.message
-            : 'Login failed'}
-        </div>
-      )}
+      <AnimatePresence>
+        {loginMutation.error && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="rounded-lg bg-destructive/10 p-3 text-[11px] text-destructive border border-destructive/20 font-medium"
+          >
+            {loginMutation.error instanceof Error
+              ? loginMutation.error.message
+              : t('Login failed')}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <FNForm
         formDefinition={loginFormDefinition}
         onSubmit={handleSubmit}
-        submitButtonText={loginMutation.isPending ? 'Signing in...' : 'Sign in'}
+        submitButtonText={
+          loginMutation.isPending ? t('Signing in...') : t('Sign in')
+        }
+        className="space-y-4"
+        submitButtonClassName="w-full"
       />
 
-      <button
-        type="button"
-        className="text-sm text-muted-foreground hover:text-primary"
-        onClick={() => setView('forgot-password')}
-      >
-        Forgot your password?
-      </button>
+      <div className="flex justify-center pt-2">
+        <button
+          type="button"
+          className="text-[10px] font-bold text-muted-foreground/70 hover:text-primary transition-colors uppercase tracking-widest"
+          onClick={() => setView('forgot-password')}
+        >
+          {t('Forgot your password?')}
+        </button>
+      </div>
     </div>
   )
 }

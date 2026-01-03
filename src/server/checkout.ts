@@ -666,7 +666,7 @@ export const createCheckoutFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const result = await createCheckout(data)
     if (!result.success) {
-      throw Response.json({ error: result.error }, { status: result.status })
+      throw new Error(result.error)
     }
     return { checkout: result.checkout }
   })
@@ -687,18 +687,15 @@ export const getCheckoutFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
+      throw new Error('Checkout not found')
     }
 
     if (checkout.completedAt) {
-      throw Response.json(
-        { error: 'Checkout already completed' },
-        { status: 410 },
-      )
+      throw new Error('Checkout already completed')
     }
 
     if (checkout.expiresAt < new Date()) {
-      throw Response.json({ error: 'Checkout expired' }, { status: 410 })
+      throw new Error('Checkout expired')
     }
 
     return {
@@ -737,7 +734,7 @@ export const getShippingRatesFn = createServerFn()
       .limit(1)
 
     if (!checkout) {
-      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
+      throw new Error('Checkout not found')
     }
 
     const subtotal = parseFloat(checkout.subtotal)
@@ -776,7 +773,7 @@ export const saveCustomerInfoFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw Response.json({ error: result.error }, { status: result.status })
+      throw new Error(result.error)
     }
 
     return { checkout: result.checkout }
@@ -791,7 +788,7 @@ export const saveShippingAddressFn = createServerFn({ method: 'POST' })
     const result = await saveShippingAddress({ checkoutId, address })
 
     if (!result.success) {
-      throw Response.json({ error: result.error }, { status: result.status })
+      throw new Error(result.error)
     }
 
     return { checkout: result.checkout }
@@ -806,7 +803,7 @@ export const saveShippingMethodFn = createServerFn({ method: 'POST' })
     const result = await saveShippingMethod({ checkoutId, shippingRateId })
 
     if (!result.success) {
-      throw Response.json({ error: result.error }, { status: result.status })
+      throw new Error(result.error)
     }
 
     return { checkout: result.checkout }
@@ -825,14 +822,13 @@ export const completeCheckoutFn = createServerFn({ method: 'POST' })
     })
 
     if (!result.success) {
-      throw Response.json({ error: result.error }, { status: result.status })
+      throw new Error(result.error)
     }
 
     return { order: result.order }
   })
 
-// Create Stripe payment intent server function
-export const createStripePaymentIntentFn = createServerFn({ method: 'POST' })
+export const createStripePaymentIntentFn = createServerFn({ method: 'GET' })
   .inputValidator(checkoutIdSchema.parse)
   .handler(async ({ data }) => {
     const { checkoutId } = data
@@ -848,40 +844,28 @@ export const createStripePaymentIntentFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!checkout) {
-      throw Response.json({ error: 'Checkout not found' }, { status: 404 })
+      throw new Error('Checkout not found')
     }
 
     if (checkout.completedAt) {
-      throw Response.json(
-        { error: 'Checkout already completed' },
-        { status: 410 },
-      )
+      throw new Error('Checkout already completed')
     }
 
     if (checkout.expiresAt < new Date()) {
-      throw Response.json({ error: 'Checkout expired' }, { status: 410 })
+      throw new Error('Checkout expired')
     }
 
     // Validate checkout is ready for payment
     if (!checkout.email) {
-      throw Response.json(
-        { error: 'Customer email is required' },
-        { status: 400 },
-      )
+      throw new Error('Customer email is required')
     }
 
     if (!checkout.shippingAddress) {
-      throw Response.json(
-        { error: 'Shipping address is required' },
-        { status: 400 },
-      )
+      throw new Error('Shipping address is required')
     }
 
     if (!checkout.shippingRateId) {
-      throw Response.json(
-        { error: 'Shipping method is required' },
-        { status: 400 },
-      )
+      throw new Error('Shipping method is required')
     }
 
     // Dynamic import to prevent Node.js code from leaking into client bundle

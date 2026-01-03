@@ -1,4 +1,8 @@
+import { toast } from 'sonner'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import { useAIGeneration } from './useAIGeneration'
+import { generateProductDetailsFn } from '../server/ai'
 
 import { renderHook, act, waitFor } from '@/test/test-utils'
 
@@ -13,12 +17,6 @@ vi.mock('sonner', () => ({
 vi.mock('../server/ai', () => ({
   generateProductDetailsFn: vi.fn(),
 }))
-
-import { toast } from 'sonner'
-
-import { generateProductDetailsFn } from '../server/ai'
-
-import { useAIGeneration } from './useAIGeneration'
 
 describe('useAIGeneration', () => {
   beforeEach(() => {
@@ -120,9 +118,7 @@ describe('useAIGeneration', () => {
       })
 
       expect(generatedData).toBeNull()
-      expect(toast.error).toHaveBeenCalledWith(
-        'Please add an image URL first',
-      )
+      expect(toast.error).toHaveBeenCalledWith('Please add an image URL first')
       expect(generateProductDetailsFn).not.toHaveBeenCalled()
     })
 
@@ -183,7 +179,9 @@ describe('useAIGeneration', () => {
         result: 'data:image/jpeg;base64,mockBase64String',
       }
 
-      global.FileReader = vi.fn(() => mockFileReader) as unknown as typeof FileReader
+      global.FileReader = vi.fn(
+        () => mockFileReader,
+      ) as unknown as typeof FileReader
 
       const mockData = {
         name: { en: 'Local Product' },
@@ -244,9 +242,7 @@ describe('useAIGeneration', () => {
       })
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          'Local image file is missing',
-        )
+        expect(toast.error).toHaveBeenCalledWith('Local image file is missing')
       })
     })
   })

@@ -1,4 +1,4 @@
-import { Fancybox } from '@fancyapps/ui'
+import { Fancybox } from '@fancyapps/ui/dist/fancybox/'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 import { useEffect } from 'react'
 
@@ -30,7 +30,7 @@ export const ProductGallery = ({
         href={images[0]}
         data-fancybox="gallery"
         data-caption={productName}
-        className="block aspect-[4/5] rounded-3xl overflow-hidden bg-secondary/30 cursor-zoom-in group"
+        className="block aspect-4/5 rounded-3xl overflow-hidden bg-secondary/30 cursor-zoom-in group"
       >
         <img
           src={images[0]}

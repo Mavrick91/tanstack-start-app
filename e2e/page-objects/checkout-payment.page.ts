@@ -12,7 +12,7 @@ export class CheckoutPaymentPage {
     this.page = page
     this.cardTab = page.locator('[role="tab"]:has-text("Credit Card")')
     this.paypalTab = page.locator('[role="tab"]:has-text("PayPal")')
-    this.payNowButton = page.locator('button:has-text("Pay")')
+    this.payNowButton = page.getByRole('button', { name: /pay now/i })
   }
 
   async waitForPage() {
@@ -28,7 +28,16 @@ export class CheckoutPaymentPage {
     await this.paypalTab.click()
   }
 
-  async fillStripeCard(card: typeof TEST_DATA.stripe) {
+  async fillStripeCard(
+    card:
+      | typeof TEST_DATA.stripe
+      | {
+          cardNumber: string
+          expiry: string
+          cvc: string
+          postalCode?: string
+        },
+  ) {
     // Wait for Stripe to initialize
     await this.page.waitForTimeout(2000)
 
@@ -37,22 +46,39 @@ export class CheckoutPaymentPage {
       .frameLocator('iframe[title*="Secure payment"]')
       .first()
 
+    // Determine card number and expiry based on input format
+    const cardNumber = 'cardNumber' in card ? card.cardNumber : card.valid
+    const expiry =
+      'expiry' in card && card.expiry
+        ? card.expiry
+        : 'expiryDate' in card
+          ? card.expiryDate
+          : '1234'
+
     // Fill card number
     const cardNumberInput = stripeFrame.locator('[name="number"]')
     if (await cardNumberInput.isVisible({ timeout: 5000 })) {
-      await cardNumberInput.fill(card.valid)
+      await cardNumberInput.fill(cardNumber)
     }
 
     // Fill expiry
     const expiryInput = stripeFrame.locator('[name="expiry"]')
     if (await expiryInput.isVisible()) {
-      await expiryInput.fill(card.expiryDate)
+      await expiryInput.fill(expiry)
     }
 
     // Fill CVC
     const cvcInput = stripeFrame.locator('[name="cvc"]')
     if (await cvcInput.isVisible()) {
       await cvcInput.fill(card.cvc)
+    }
+
+    // Fill postal code if provided
+    if ('postalCode' in card && card.postalCode) {
+      const postalCodeInput = stripeFrame.locator('[name="postalCode"]')
+      if (await postalCodeInput.isVisible()) {
+        await postalCodeInput.fill(card.postalCode)
+      }
     }
   }
 
@@ -68,8 +94,7 @@ export class CheckoutPaymentPage {
   }
 
   async expectPaymentError() {
-    await expect(
-      this.page.locator('text=declined').or(this.page.locator('.text-red')),
-    ).toBeVisible({ timeout: 10000 })
+    // Use semantic role="alert" locator (best practice for accessibility and testing)
+    await expect(this.page.getByRole('alert')).toBeVisible({ timeout: 10000 })
   }
 }

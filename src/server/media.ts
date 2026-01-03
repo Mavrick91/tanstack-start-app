@@ -4,7 +4,7 @@
  * Uses standardized patterns:
  * - Middleware for authentication (adminMiddleware)
  * - Top-level imports for database
- * - Error helpers for consistent responses (throwBadRequest)
+ * - Standard Error throwing for React Query error handling
  */
 
 import { createServerFn } from '@tanstack/react-start'
@@ -13,7 +13,7 @@ import { desc, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '../db'
-import { adminMiddleware, throwBadRequest } from './middleware'
+import { adminMiddleware } from './middleware'
 import { media } from '../db/schema'
 
 // Configure Cloudinary
@@ -57,7 +57,7 @@ export const deleteMediaFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => deleteMediaSchema.parse(data))
   .handler(async ({ data }) => {
     if (data.ids.length === 0) {
-      throwBadRequest('No media IDs provided')
+      throw new Error('No media IDs provided')
     }
 
     // Get media items to delete (for Cloudinary cleanup)

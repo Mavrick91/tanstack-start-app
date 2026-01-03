@@ -84,9 +84,6 @@ const CheckoutPaymentPage = () => {
       })
     } catch (err) {
       console.error('Failed to complete checkout:', err)
-      toast.error(
-        err instanceof Error ? err.message : t('Failed to complete order'),
-      )
     }
   }
 
@@ -252,7 +249,6 @@ const CheckoutPaymentPage = () => {
                         onSuccess={(paymentId) =>
                           handlePaymentSuccess('stripe', paymentId)
                         }
-                        onError={handlePaymentError}
                         returnUrl={`${window.location.origin}/${lang}/checkout/confirmation`}
                       />
                     </Elements>

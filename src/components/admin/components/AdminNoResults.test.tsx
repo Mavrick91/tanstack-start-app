@@ -147,7 +147,9 @@ describe('AdminNoResults', () => {
       })
 
       expect(
-        screen.getByText('No results found! Try searching for something else...'),
+        screen.getByText(
+          'No results found! Try searching for something else...',
+        ),
       ).toBeInTheDocument()
     })
 

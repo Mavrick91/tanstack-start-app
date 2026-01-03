@@ -56,8 +56,12 @@ describe('AdminBulkActionsBar', () => {
 
     it('renders all action buttons', () => {
       renderComponent()
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /archive/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /delete/i }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /archive/i }),
+      ).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: /send email/i }),
       ).toBeInTheDocument()
@@ -88,7 +92,9 @@ describe('AdminBulkActionsBar', () => {
         },
       ]
       renderComponent({ actions: singleAction })
-      expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /delete/i }),
+      ).toBeInTheDocument()
     })
   })
 
@@ -147,7 +153,9 @@ describe('AdminBulkActionsBar', () => {
       renderComponent({ isPending: false })
 
       expect(screen.getByRole('button', { name: /delete/i })).not.toBeDisabled()
-      expect(screen.getByRole('button', { name: /archive/i })).not.toBeDisabled()
+      expect(
+        screen.getByRole('button', { name: /archive/i }),
+      ).not.toBeDisabled()
       expect(
         screen.getByRole('button', { name: 'Clear selection' }),
       ).not.toBeDisabled()

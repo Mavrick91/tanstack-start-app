@@ -1,14 +1,30 @@
-import { Link, useParams } from '@tanstack/react-router'
-import { Menu, Search, ShoppingBag, User } from 'lucide-react'
+import { Link, useParams, useNavigate } from '@tanstack/react-router'
+import {
+  Menu,
+  Search,
+  ShoppingBag,
+  User,
+  LogOut,
+  Package,
+  Shield,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getProducts } from '../../data/storefront'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth, useAuthLogout } from '../../hooks/useAuth'
 import { useCartStore } from '../../hooks/useCart'
 import { cn } from '../../lib/utils'
 import { CartDrawer } from '../cart/CartDrawer'
 import { Button } from '../ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
 
 import type { Product } from '../../types/store'
 
@@ -17,6 +33,7 @@ import { AuthModal, useAuthModal } from '@/features/auth'
 export const Navbar = () => {
   const { lang } = useParams({ strict: false }) as { lang?: string }
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [products, setProducts] = useState<Array<Product>>([])
   const items = useCartStore((state) => state.items)
@@ -24,8 +41,17 @@ export const Navbar = () => {
   const { data: user } = useAuth()
   const isAuthenticated = !!user
   const { open } = useAuthModal()
+  const logoutMutation = useAuthLogout()
 
   const currentLang = lang || 'en'
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate({ to: '/$lang', params: { lang: currentLang } })
+      },
+    })
+  }
 
   useEffect(() => {
     getProducts({ data: { lang: currentLang } })
@@ -111,19 +137,78 @@ export const Navbar = () => {
           />
 
           {isAuthenticated ? (
-            <Link to="/$lang/account" params={{ lang: currentLang }}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-primary/5"
-                icon={<User className="w-5 h-5" />}
-              />
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-primary/5"
+                  aria-label="account"
+                  icon={<User className="w-5 h-5" />}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {t('My Account')}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate({
+                      to: '/$lang/account',
+                      params: { lang: currentLang },
+                    })
+                  }
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{t('Account Details')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate({
+                      to: '/$lang/account/orders',
+                      params: { lang: currentLang },
+                    })
+                  }
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  <span>{t('My Orders')}</span>
+                </DropdownMenuItem>
+                {user?.role === 'admin' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() =>
+                        navigate({
+                          to: '/admin',
+                        })
+                      }
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>{t('Admin Panel')}</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t('Log out')}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button
               variant="ghost"
               size="icon"
               className="hover:bg-primary/5"
+              aria-label="account"
               onClick={() => open('login')}
               icon={<User className="w-5 h-5" />}
             />

@@ -5,13 +5,13 @@ export const TEST_DATA = {
   },
 
   customer: {
-    email: 'test@playwright.dev',
+    email: 'mavrick@realadvisor.com',
     firstName: 'Test',
     lastName: 'Customer',
   },
 
   registeredCustomer: {
-    email: 'registered@playwright.dev',
+    email: 'mavrick@realadvisor.com',
     password: 'TestPassword123!',
     firstName: 'Registered',
     lastName: 'User',

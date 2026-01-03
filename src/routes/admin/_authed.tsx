@@ -9,11 +9,8 @@ export const Route = createFileRoute('/admin/_authed')({
     // Use user from parent context (admin.tsx) to avoid duplicate fetch
     const user = context.user
 
-    if (!user) {
-      throw redirect({ to: '/admin/login' })
-    }
-
-    if (user.role !== 'admin') {
+    // Redirect to homepage if user is not authenticated or not an admin
+    if (!user || user.role !== 'admin') {
       throw redirect({ to: '/' })
     }
 

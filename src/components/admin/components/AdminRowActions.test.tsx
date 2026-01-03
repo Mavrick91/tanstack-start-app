@@ -191,8 +191,18 @@ describe('AdminRowActions', () => {
       const onClick1 = vi.fn()
       const onClick2 = vi.fn()
       const statusActions: StatusAction[] = [
-        { key: 'process', label: 'Mark as Processing', icon: Package, onClick: onClick1 },
-        { key: 'complete', label: 'Mark as Complete', icon: Package, onClick: onClick2 },
+        {
+          key: 'process',
+          label: 'Mark as Processing',
+          icon: Package,
+          onClick: onClick1,
+        },
+        {
+          key: 'complete',
+          label: 'Mark as Complete',
+          icon: Package,
+          onClick: onClick2,
+        },
       ]
 
       const { user } = renderComponent({
@@ -300,7 +310,6 @@ describe('AdminRowActions', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument()
       })
     })
-
   })
 
   describe('Destructive actions', () => {

@@ -97,6 +97,7 @@ export interface FNFormProps {
   className?: string
   renderSubmitButton?: (isSubmitting: boolean) => React.ReactNode
   renderBeforeSubmit?: (values: Record<string, unknown>) => React.ReactNode
+  submitButtonClassName?: string
 }
 
 const getAllFields = (formDefinition: FormDefinition) => {
@@ -123,6 +124,7 @@ export const FNForm = ({
   className,
   renderSubmitButton,
   renderBeforeSubmit,
+  submitButtonClassName,
 }: FNFormProps) => {
   const allFields = getAllFields(formDefinition)
 
@@ -249,7 +251,21 @@ export const FNForm = ({
       )
     }
 
-    return <Button type="submit">{submitButtonText}</Button>
+    return (
+      <form.Subscribe selector={(state) => state.isSubmitting}>
+        {(isSubmitting) => (
+          <Button
+            type="submit"
+            className={cn('w-full', submitButtonClassName)}
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+            data-loading={isSubmitting}
+          >
+            {submitButtonText}
+          </Button>
+        )}
+      </form.Subscribe>
+    )
   }
 
   const renderBeforeSubmitContent = () => {
@@ -264,10 +280,10 @@ export const FNForm = ({
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         e.stopPropagation()
-        form.handleSubmit()
+        await form.handleSubmit()
       }}
       className={cn('space-y-4', className)}
     >

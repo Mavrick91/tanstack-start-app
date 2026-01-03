@@ -1,15 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../../fixtures/cleanup-fixture'
 import { ProductPage } from '../../page-objects/product.page'
 import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
 import { CheckoutShippingPage } from '../../page-objects/checkout-shipping.page'
 import { CheckoutPaymentPage } from '../../page-objects/checkout-payment.page'
 import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
 import { CartHelper } from '../../helpers/cart.helper'
-import {
-  seedProduct,
-  cleanupTestData,
-  TEST_PREFIX,
-} from '../../helpers/db.helper'
+import { seedProduct, cleanupTestData } from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
 import { TEST_DATA } from '../../fixtures/test-data'
 
@@ -43,7 +39,7 @@ test.describe('Checkout Edge Cases', () => {
       page,
     }) => {
       const product = await seedProduct()
-      const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+      const testEmail = 'mavrick@realadvisor.com'
 
       await productPage.goto(product.handle)
       await productPage.addToCart()
@@ -83,7 +79,7 @@ test.describe('Checkout Edge Cases', () => {
 
     test('page refresh preserves checkout session', async ({ page }) => {
       const product = await seedProduct()
-      const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+      const testEmail = 'mavrick@realadvisor.com'
 
       await productPage.goto(product.handle)
       await productPage.addToCart()
@@ -120,7 +116,7 @@ test.describe('Checkout Edge Cases', () => {
       page,
     }) => {
       const product = await seedProduct()
-      const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+      const testEmail = 'mavrick@realadvisor.com'
 
       await productPage.goto(product.handle)
       await productPage.addToCart()
@@ -154,7 +150,7 @@ test.describe('Checkout Edge Cases', () => {
       page,
     }) => {
       const product = await seedProduct()
-      const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+      const testEmail = 'mavrick@realadvisor.com'
 
       await productPage.goto(product.handle)
       await productPage.addToCart()
@@ -188,9 +184,7 @@ test.describe('Checkout Edge Cases', () => {
 
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.declined })
       await checkoutPaymentPage.submitPayment()
-      await expect(page.locator('text=/declined|error/i')).toBeVisible({
-        timeout: 15000,
-      })
+      await checkoutPaymentPage.expectPaymentError()
 
       await fillStripeCard(page, { cardNumber: STRIPE_TEST_CARDS.valid })
       await checkoutPaymentPage.submitPayment()

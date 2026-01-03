@@ -42,7 +42,7 @@ export interface VerificationEmailData {
   firstName?: string
 }
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@finenail.com'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@finenailseason.com'
 const FROM_NAME = process.env.FROM_NAME || 'FineNail'
 
 export const isEmailConfigured = () => {
@@ -370,12 +370,12 @@ const generateVerificationEmailHtml = (data: VerificationEmailData) => {
     <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
       <p style="font-size: 16px; color: #333; margin-bottom: 24px;">
         ${greeting}<br><br>
-        Click the button below to verify your email and set your password.
+        Click the button below to verify your email and activate your account.
       </p>
 
       <div style="text-align: center; margin: 30px 0;">
         <a href="${data.verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Set Password
+          Verify Email
         </a>
       </div>
 
@@ -423,7 +423,7 @@ export const sendVerificationEmail = async (data: VerificationEmailData) => {
 
     return { success: true }
   } catch (error) {
-    console.error('Failed to send verification email:', error)
+    console.error('Failed to send verification email:', JSON.stringify(error))
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',

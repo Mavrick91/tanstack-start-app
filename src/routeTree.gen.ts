@@ -14,7 +14,6 @@ import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
 import { Route as LangAccountRouteImport } from './routes/$lang/account'
 import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
@@ -32,7 +31,6 @@ import { Route as ApiProductsStatsRouteImport } from './routes/api/products/stat
 import { Route as ApiOrdersStatsRouteImport } from './routes/api/orders/stats'
 import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
-import { Route as ApiCustomersRegisterRouteImport } from './routes/api/customers/register'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -94,11 +92,6 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
   id: '/api/upload',
   path: '/api/upload',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuthedRoute = AdminAuthedRouteImport.update({
   id: '/_authed',
@@ -182,11 +175,6 @@ const ApiOrdersBulkRoute = ApiOrdersBulkRouteImport.update({
 const ApiOrdersOrderIdRoute = ApiOrdersOrderIdRouteImport.update({
   id: '/api/orders/$orderId',
   path: '/api/orders/$orderId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCustomersRegisterRoute = ApiCustomersRegisterRouteImport.update({
-  id: '/api/customers/register',
-  path: '/api/customers/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
@@ -387,7 +375,6 @@ export interface FileRoutesByFullPath {
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminAuthedRouteWithChildren
   '/$lang/account': typeof LangAccountRouteWithChildren
-  '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
@@ -404,7 +391,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
@@ -446,7 +432,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminAuthedIndexRoute
-  '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
@@ -463,7 +448,6 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
@@ -508,7 +492,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/$lang/account': typeof LangAccountRouteWithChildren
   '/admin/_authed': typeof AdminAuthedRouteWithChildren
-  '/admin/login': typeof AdminLoginRoute
   '/api/upload': typeof ApiUploadRoute
   '/$lang/': typeof LangIndexRoute
   '/$lang/account/addresses': typeof LangAccountAddressesRoute
@@ -525,7 +508,6 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/customers/register': typeof ApiCustomersRegisterRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
   '/api/orders/bulk': typeof ApiOrdersBulkRoute
   '/api/orders/stats': typeof ApiOrdersStatsRoute
@@ -571,7 +553,6 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/$lang/account'
-    | '/admin/login'
     | '/api/upload'
     | '/$lang/'
     | '/$lang/account/addresses'
@@ -588,7 +569,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
@@ -630,7 +610,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
-    | '/admin/login'
     | '/api/upload'
     | '/$lang'
     | '/$lang/account/addresses'
@@ -647,7 +626,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
@@ -691,7 +669,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/$lang/account'
     | '/admin/_authed'
-    | '/admin/login'
     | '/api/upload'
     | '/$lang/'
     | '/$lang/account/addresses'
@@ -708,7 +685,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/customers/register'
     | '/api/orders/$orderId'
     | '/api/orders/bulk'
     | '/api/orders/stats'
@@ -756,7 +732,6 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
-  ApiCustomersRegisterRoute: typeof ApiCustomersRegisterRoute
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
   ApiOrdersBulkRoute: typeof ApiOrdersBulkRoute
   ApiOrdersStatsRoute: typeof ApiOrdersStatsRoute
@@ -807,13 +782,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/upload'
       preLoaderRoute: typeof ApiUploadRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof AdminRoute
     }
     '/admin/_authed': {
       id: '/admin/_authed'
@@ -932,13 +900,6 @@ declare module '@tanstack/react-router' {
       path: '/api/orders/$orderId'
       fullPath: '/api/orders/$orderId'
       preLoaderRoute: typeof ApiOrdersOrderIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/customers/register': {
-      id: '/api/customers/register'
-      path: '/api/customers/register'
-      fullPath: '/api/customers/register'
-      preLoaderRoute: typeof ApiCustomersRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/cleanup-checkouts': {
@@ -1306,12 +1267,10 @@ const AdminAuthedRouteWithChildren = AdminAuthedRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAuthedRoute: typeof AdminAuthedRouteWithChildren
-  AdminLoginRoute: typeof AdminLoginRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuthedRoute: AdminAuthedRouteWithChildren,
-  AdminLoginRoute: AdminLoginRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1352,7 +1311,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
-  ApiCustomersRegisterRoute: ApiCustomersRegisterRoute,
   ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,
   ApiOrdersBulkRoute: ApiOrdersBulkRoute,
   ApiOrdersStatsRoute: ApiOrdersStatsRoute,

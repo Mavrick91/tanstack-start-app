@@ -9,14 +9,11 @@ const mockLoginMutate = vi.fn()
 const mockNavigate = vi.fn()
 const mockClose = vi.fn()
 const mockSetView = vi.fn()
+const mockUseParams = vi.fn()
 
 let mockLoginState = {
   isPending: false,
   error: null as Error | string | null,
-}
-
-let mockModalState = {
-  returnUrl: undefined as string | undefined,
 }
 
 vi.mock('../../../hooks/useAuth', () => ({
@@ -47,9 +44,6 @@ vi.mock('../hooks/useAuthModal', () => ({
   useAuthModal: () => ({
     close: mockClose,
     setView: mockSetView,
-    get returnUrl() {
-      return mockModalState.returnUrl
-    },
     isOpen: true,
     view: 'login' as const,
     open: vi.fn(),
@@ -57,11 +51,11 @@ vi.mock('../hooks/useAuthModal', () => ({
 }))
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@tanstack/react-router')>()
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
   return {
     ...actual,
     useNavigate: () => mockNavigate,
+    useParams: () => mockUseParams(),
   }
 })
 
@@ -75,9 +69,8 @@ describe('LoginForm', () => {
       isPending: false,
       error: null,
     }
-    mockModalState = {
-      returnUrl: undefined,
-    }
+    // Default to English language
+    mockUseParams.mockReturnValue({ lang: 'en' })
   })
 
   describe('Rendering', () => {
@@ -168,9 +161,31 @@ describe('LoginForm', () => {
   })
 
   describe('Navigation', () => {
-    it('should navigate to returnUrl on successful login', async () => {
-      // Set returnUrl for this test
-      mockModalState.returnUrl = '/checkout/payment'
+    it('should navigate to account page after successful login', async () => {
+      mockLoginMutate.mockImplementation((_, options) => {
+        options.onSuccess()
+      })
+
+      const { user } = render(<LoginForm />)
+
+      await user.type(
+        screen.getByPlaceholderText('you@example.com'),
+        'test@example.com',
+      )
+      await user.type(screen.getByPlaceholderText('********'), 'password123')
+      await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith({
+          to: '/$lang/account',
+          params: { lang: 'en' },
+        })
+      })
+    })
+
+    it('should preserve language when navigating to account page', async () => {
+      // Mock useParams to return French language
+      mockUseParams.mockReturnValue({ lang: 'fr' })
 
       mockLoginMutate.mockImplementation((_, options) => {
         options.onSuccess()
@@ -187,12 +202,13 @@ describe('LoginForm', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({
-          to: '/checkout/payment',
+          to: '/$lang/account',
+          params: { lang: 'fr' },
         })
       })
     })
 
-    it('should not navigate when no returnUrl', async () => {
+    it('should close modal after successful login', async () => {
       mockLoginMutate.mockImplementation((_, options) => {
         options.onSuccess()
       })
@@ -209,8 +225,6 @@ describe('LoginForm', () => {
       await waitFor(() => {
         expect(mockClose).toHaveBeenCalled()
       })
-
-      expect(mockNavigate).not.toHaveBeenCalled()
     })
   })
 
@@ -243,14 +257,14 @@ describe('LoginForm', () => {
       expect(screen.getByText('Login failed')).toBeInTheDocument()
     })
 
-    it('should display error in red background', () => {
+    it('should display error in destructive background', () => {
       mockLoginState.error = new Error('Test error')
 
       render(<LoginForm />)
 
       const errorDiv = screen.getByText('Test error').closest('div')
-      expect(errorDiv).toHaveClass('bg-red-50')
-      expect(errorDiv).toHaveClass('text-red-600')
+      expect(errorDiv).toHaveClass('bg-destructive/10')
+      expect(errorDiv).toHaveClass('text-destructive')
     })
   })
 

@@ -22,7 +22,7 @@ import {
 import { z } from 'zod'
 
 import { db } from '../db'
-import { adminMiddleware, throwBadRequest, throwNotFound } from './middleware'
+import { adminMiddleware } from './middleware'
 import { customers, orderItems, orders, orderStatusHistory } from '../db/schema'
 
 import type { SQL } from 'drizzle-orm'
@@ -632,7 +632,7 @@ export const getAdminOrderFn = createServerFn()
       .limit(1)
 
     if (!order) {
-      throwNotFound('Order')
+      throw new Error('Order not found')
     }
 
     // Get order items
@@ -727,7 +727,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!order) {
-      throwNotFound('Order')
+      throw new Error('Order not found')
     }
 
     // Handle cancellation with refund
@@ -739,7 +739,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
       )
 
       if (!cancellationResult.success) {
-        throwBadRequest(cancellationResult.error || 'Failed to cancel order')
+        throw new Error(cancellationResult.error || 'Failed to cancel order')
       }
 
       // Fetch updated order
@@ -793,7 +793,7 @@ export const updateOrderStatusFn = createServerFn({ method: 'POST' })
       )
 
       if (!validation.allowed) {
-        throwBadRequest(validation.error || 'Payment status change not allowed')
+        throw new Error(validation.error || 'Payment status change not allowed')
       }
 
       updates.paymentStatus = paymentStatus
@@ -875,7 +875,7 @@ export const bulkUpdateOrdersFn = createServerFn({ method: 'POST' })
     }
 
     if (!validValues[action].includes(value)) {
-      throwBadRequest(`Invalid value for ${action}`)
+      throw new Error(`Invalid value for ${action}`)
     }
 
     // Get current orders to record changes

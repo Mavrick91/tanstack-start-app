@@ -22,7 +22,9 @@ describe('AddressAutocomplete', () => {
     // Clear Google Maps from window
     delete (window as { google?: unknown }).google
     // Reset any script tags
-    document.querySelectorAll('script[src*="maps.googleapis.com"]').forEach((el) => el.remove())
+    document
+      .querySelectorAll('script[src*="maps.googleapis.com"]')
+      .forEach((el) => el.remove())
   })
 
   describe('Fallback Mode (Without Google Maps)', () => {
@@ -44,7 +46,9 @@ describe('AddressAutocomplete', () => {
     })
 
     it('should render placeholder text', () => {
-      render(<AddressAutocomplete {...defaultProps} placeholder="Enter address" />)
+      render(
+        <AddressAutocomplete {...defaultProps} placeholder="Enter address" />,
+      )
 
       expect(screen.getByPlaceholderText('Enter address')).toBeInTheDocument()
     })
@@ -52,7 +56,9 @@ describe('AddressAutocomplete', () => {
     it('should use default placeholder when not provided', () => {
       render(<AddressAutocomplete {...defaultProps} />)
 
-      expect(screen.getByPlaceholderText(/start typing an address/i)).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText(/start typing an address/i),
+      ).toBeInTheDocument()
     })
 
     it('should be disabled when disabled prop is true', () => {
@@ -123,7 +129,9 @@ describe('AddressAutocomplete', () => {
     })
 
     it('should handle being enabled and disabled', () => {
-      const { rerender } = render(<AddressAutocomplete {...defaultProps} disabled={true} />)
+      const { rerender } = render(
+        <AddressAutocomplete {...defaultProps} disabled={true} />,
+      )
 
       let input = screen.getByRole('textbox')
       expect(input).toBeDisabled()
@@ -135,7 +143,9 @@ describe('AddressAutocomplete', () => {
     })
 
     it('should update value when prop changes', () => {
-      const { rerender } = render(<AddressAutocomplete {...defaultProps} value="First value" />)
+      const { rerender } = render(
+        <AddressAutocomplete {...defaultProps} value="First value" />,
+      )
 
       let input = screen.getByRole('textbox')
       expect(input).toHaveValue('First value')
@@ -156,7 +166,12 @@ describe('AddressAutocomplete', () => {
     })
 
     it('should have proper placeholder for screen readers', () => {
-      render(<AddressAutocomplete {...defaultProps} placeholder="Enter your address" />)
+      render(
+        <AddressAutocomplete
+          {...defaultProps}
+          placeholder="Enter your address"
+        />,
+      )
 
       const input = screen.getByPlaceholderText('Enter your address')
       expect(input).toBeInTheDocument()

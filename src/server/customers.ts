@@ -14,7 +14,6 @@ import { and, count, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '../db'
-import { throwNotFound, throwUnauthorized } from './middleware'
 import { getOrderItemsByOrderIds, parseDecimal } from './orders'
 import { addresses, customers, orderItems, orders } from '../db/schema'
 
@@ -30,6 +29,7 @@ export type CustomerProfile = {
   phone: string | null
   acceptsMarketing: boolean | null
   createdAt: Date
+  role?: string
 }
 
 export type CustomerAddress = {
@@ -69,12 +69,12 @@ const requireCustomer = async () => {
   const { getMeFn } = await import('./auth')
   const user = await getMeFn()
   if (!user) {
-    return throwUnauthorized()
+    throw new Error('Unauthorized')
   }
 
   const customer = await getCustomerForUser(user.id)
   if (!customer) {
-    throwNotFound('Customer profile')
+    throw new Error('Customer profile not found')
   }
 
   return { user, customer }
@@ -106,6 +106,7 @@ export const getCustomerSessionFn = createServerFn().handler(async () => {
       phone: customer.phone,
       acceptsMarketing: customer.acceptsMarketing,
       createdAt: customer.createdAt,
+      role: user.role,
     } satisfies CustomerProfile,
   }
 })
@@ -320,7 +321,7 @@ export const deleteAddressFn = createServerFn({ method: 'POST' })
       .limit(1)
 
     if (!address) {
-      throwNotFound('Address')
+      throw new Error('Address not found')
     }
 
     await db.delete(addresses).where(eq(addresses.id, addressId))

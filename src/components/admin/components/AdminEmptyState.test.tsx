@@ -37,7 +37,9 @@ describe('AdminEmptyState', () => {
 
       expect(screen.getByText('No orders found')).toBeInTheDocument()
       expect(
-        screen.getByText('Orders will appear here when customers make purchases'),
+        screen.getByText(
+          'Orders will appear here when customers make purchases',
+        ),
       ).toBeInTheDocument()
     })
 
@@ -99,7 +101,10 @@ describe('AdminEmptyState', () => {
       renderComponent()
 
       const button = screen.getByRole('button', { name: 'Create Product' })
-      expect(button.parentElement).toHaveAttribute('href', '/admin/products/new')
+      expect(button.parentElement).toHaveAttribute(
+        'href',
+        '/admin/products/new',
+      )
     })
   })
 
@@ -135,7 +140,9 @@ describe('AdminEmptyState', () => {
       renderComponent(customProps)
 
       expect(screen.getByText('No customers')).toBeInTheDocument()
-      expect(screen.getByText('Your customer list is empty')).toBeInTheDocument()
+      expect(
+        screen.getByText('Your customer list is empty'),
+      ).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: 'Invite Customer' }),
       ).toBeInTheDocument()

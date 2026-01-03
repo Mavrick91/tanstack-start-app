@@ -55,6 +55,22 @@ const Button = ({
   }) => {
   const Comp = asChild ? Slot : 'button'
 
+  // When asChild is true, icon prop is not supported - just pass children through
+  // This is because Slot needs exactly one child to merge props with
+  if (asChild) {
+    return (
+      <Comp
+        data-slot="button"
+        data-variant={variant}
+        data-size={size}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      >
+        {children}
+      </Comp>
+    )
+  }
+
   return (
     <Comp
       data-slot="button"

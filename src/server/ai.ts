@@ -11,11 +11,7 @@ import { createServerFn } from '@tanstack/react-start'
 import OpenAI from 'openai'
 import { z } from 'zod'
 
-import {
-  adminMiddleware,
-  throwBadRequest,
-  throwServerError,
-} from './middleware'
+import { adminMiddleware } from './middleware'
 
 const GEMINI_TEXT_MODEL = 'gemini-2.0-flash' as const
 
@@ -280,7 +276,7 @@ export const generateProductDetailsFn = createServerFn({ method: 'POST' })
         : process.env.GEMINI_API_KEY
 
     if (!apiKey) {
-      return throwBadRequest(
+      throw new Error(
         `${data.provider === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY'} is not configured`,
       )
     }
@@ -296,7 +292,7 @@ export const generateProductDetailsFn = createServerFn({ method: 'POST' })
       return { success: true, data: result }
     } catch (error) {
       console.error('AI Generation Error:', error)
-      return throwServerError(
+      throw new Error(
         error instanceof Error ? error.message : 'Failed to generate details',
       )
     }

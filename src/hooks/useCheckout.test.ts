@@ -24,7 +24,12 @@ import {
   createStripePaymentIntentFn,
 } from '../server/checkout'
 
-import { renderHook, waitFor, act, createTestQueryClient } from '@/test/test-utils'
+import {
+  renderHook,
+  waitFor,
+  act,
+  createTestQueryClient,
+} from '@/test/test-utils'
 
 // Mock the server functions
 vi.mock('../server/checkout', () => ({

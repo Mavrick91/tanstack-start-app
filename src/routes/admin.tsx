@@ -3,7 +3,6 @@ import {
   Outlet,
   createFileRoute,
   useRouter,
-  useRouterState,
   Link,
 } from '@tanstack/react-router'
 import {
@@ -28,20 +27,15 @@ const navItems = [
 const AdminLayout = () => {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const { location } = useRouterState()
   const { user } = Route.useRouteContext()
-  const isLoginPage = location.pathname === '/admin/login'
 
   const handleLogout = async () => {
     // Call server function directly instead of Zustand action
     await logoutFn()
     // Invalidate cached auth to force re-fetch on next login
     queryClient.removeQueries({ queryKey: ['admin', 'auth'] })
-    router.navigate({ to: '/admin/login' })
+    router.navigate({ to: '/' })
   }
-
-  // Login page renders without the admin layout chrome
-  if (isLoginPage) return <Outlet />
 
   // Auth is handled by _authed.tsx beforeLoad - if we get here, user is authenticated
   return (

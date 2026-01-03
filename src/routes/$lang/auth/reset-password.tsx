@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch } from '@tanstack/react-router'
 
-import { PasswordSetupForm } from '@/features/auth'
+import { PasswordResetForm } from '@/features/auth'
 
 const ResetPasswordPage = () => {
   const { token } = useSearch({ from: '/$lang/auth/reset-password' })
@@ -27,7 +27,7 @@ const ResetPasswordPage = () => {
             Enter your new password below.
           </p>
         </div>
-        <PasswordSetupForm token={token} type="reset" />
+        <PasswordResetForm token={token} />
       </div>
     </div>
   )

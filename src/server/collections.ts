@@ -23,7 +23,7 @@ import {
 } from 'drizzle-orm'
 
 import { db } from '../db'
-import { adminMiddleware, throwNotFound } from './middleware'
+import { adminMiddleware } from './middleware'
 import {
   collectionProducts,
   collections,
@@ -203,7 +203,7 @@ export const getCollectionFn = createServerFn({ method: 'GET' })
       .where(eq(collections.id, data.id))
 
     if (!collection) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     const collectionProductsList = await db
@@ -288,7 +288,7 @@ export const updateCollectionFn = createServerFn({ method: 'POST' })
       .returning()
 
     if (!updated) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     return { success: true, data: updated }
@@ -304,7 +304,7 @@ export const deleteCollectionFn = createServerFn({ method: 'POST' })
       .returning()
 
     if (!deleted) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     return { success: true }
@@ -408,7 +408,7 @@ export const publishCollectionFn = createServerFn({ method: 'POST' })
       .returning()
 
     if (!updated) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     return { success: true, data: updated }
@@ -425,7 +425,7 @@ export const unpublishCollectionFn = createServerFn({ method: 'POST' })
       .returning()
 
     if (!updated) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     return { success: true, data: updated }
@@ -473,7 +473,7 @@ export const duplicateCollectionFn = createServerFn({ method: 'POST' })
       .where(eq(collections.id, data.id))
 
     if (!original) {
-      throwNotFound('Collection')
+      throw new Error('Collection not found')
     }
 
     // Generate unique handle

@@ -21,7 +21,7 @@ import {
 import { z } from 'zod'
 
 import { db } from '../db'
-import { adminMiddleware, throwBadRequest, throwNotFound } from './middleware'
+import { adminMiddleware } from './middleware'
 import {
   productImages,
   productOptions,
@@ -269,7 +269,7 @@ export const duplicateProductFn = createServerFn({ method: 'POST' })
       .where(eq(products.id, data.productId))
 
     if (!original) {
-      return throwNotFound('Product')
+      throw new Error('Product not found')
     }
 
     const originalImages = await db
@@ -474,7 +474,7 @@ export const bulkUpdateProductsFn = createServerFn({ method: 'POST' })
     const { action, ids } = data
 
     if (ids.length === 0) {
-      return throwBadRequest('No items selected')
+      throw new Error('No items selected')
     }
 
     if (action === 'delete') {
@@ -516,7 +516,7 @@ export const getProductByIdFn = createServerFn()
       .where(eq(products.id, data.productId))
 
     if (!product) {
-      return throwNotFound('Product')
+      throw new Error('Product not found')
     }
 
     const images = await db
@@ -643,7 +643,7 @@ export const updateProductFn = createServerFn({ method: 'POST' })
         .returning()
 
       if (!updated) {
-        return throwNotFound('Product')
+        throw new Error('Product not found')
       }
 
       if (options !== undefined) {

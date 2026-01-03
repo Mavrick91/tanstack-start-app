@@ -46,7 +46,7 @@ describe('Admin Login Page Structure', () => {
     render(
       <form>
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" placeholder="admin@finenail.com" />
+        <input id="email" type="email" placeholder="admin@finenailseason.com" />
         <label htmlFor="password">Password</label>
         <input id="password" type="password" placeholder="••••••••" />
         <Button type="submit">Sign In</Button>
@@ -64,7 +64,7 @@ describe('Admin Login Page Structure', () => {
         <input
           id="email"
           type="email"
-          placeholder="admin@finenail.com"
+          placeholder="admin@finenailseason.com"
           aria-label="email"
         />
         <input
@@ -77,7 +77,7 @@ describe('Admin Login Page Structure', () => {
     )
 
     expect(
-      screen.getByPlaceholderText('admin@finenail.com'),
+      screen.getByPlaceholderText('admin@finenailseason.com'),
     ).toBeInTheDocument()
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
   })
@@ -85,12 +85,12 @@ describe('Admin Login Page Structure', () => {
   it('should show demo credentials hint', () => {
     render(
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Demo: admin@finenail.com / admin123
+        Demo: admin@finenailseason.com / admin123
       </p>,
     )
 
     expect(screen.getByText(/Demo:/)).toBeInTheDocument()
-    expect(screen.getByText(/admin@finenail.com/)).toBeInTheDocument()
+    expect(screen.getByText(/admin@finenailseason.com/)).toBeInTheDocument()
   })
 })
 

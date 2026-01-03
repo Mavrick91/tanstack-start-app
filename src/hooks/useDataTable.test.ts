@@ -6,7 +6,12 @@ import { useDataTable } from './useDataTable'
 
 import type { TableResponse, TableState } from './useDataTable'
 
-import { act, renderHook, waitFor, createTestQueryClient } from '@/test/test-utils'
+import {
+  act,
+  renderHook,
+  waitFor,
+  createTestQueryClient,
+} from '@/test/test-utils'
 
 // Create wrapper with QueryClient
 const createWrapper = () => {
@@ -26,9 +31,12 @@ const createWrapper = () => {
 const createMockItem = (id: string) => ({ id, name: `Item ${id}` })
 
 describe('useDataTable', () => {
-  const mockQueryFn = vi.fn<
-    (state: TableState<string>) => Promise<TableResponse<{ id: string; name: string }>>
-  >()
+  const mockQueryFn =
+    vi.fn<
+      (
+        state: TableState<string>,
+      ) => Promise<TableResponse<{ id: string; name: string }>>
+    >()
 
   const defaultOptions = {
     id: 'test-table',
@@ -493,11 +501,7 @@ describe('useDataTable', () => {
   describe('Selection', () => {
     beforeEach(() => {
       mockQueryFn.mockResolvedValue({
-        data: [
-          createMockItem('1'),
-          createMockItem('2'),
-          createMockItem('3'),
-        ],
+        data: [createMockItem('1'), createMockItem('2'), createMockItem('3')],
         total: 3,
         page: 1,
         limit: 10,

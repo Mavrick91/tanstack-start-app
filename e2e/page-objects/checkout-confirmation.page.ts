@@ -11,9 +11,10 @@ export class CheckoutConfirmationPage {
 
   constructor(page: Page) {
     this.page = page
-    this.orderNumber = page.locator(
-      '[data-testid="order-number"], .order-number, text=/Order #\\d+/',
-    )
+    // Use getByText with regex for semantic selection (Playwright best practice)
+    this.orderNumber = page
+      .getByText(/Order #\d+/)
+      .or(page.locator('[data-testid="order-number"], .order-number'))
     this.thankYouMessage = page.locator(
       'h1:has-text("Thank you"), h1:has-text("Order confirmed")',
     )
@@ -33,9 +34,8 @@ export class CheckoutConfirmationPage {
 
   async waitForPage(): Promise<void> {
     await this.page.waitForURL('**/checkout/confirmation**', { timeout: 30000 })
-    await expect(
-      this.thankYouMessage.or(this.page.locator('text=/order|thank/i')),
-    ).toBeVisible({ timeout: 10000 })
+    // Use specific h1 locator - no overly broad fallback needed
+    await expect(this.thankYouMessage).toBeVisible({ timeout: 10000 })
   }
 
   async getOrderNumber(): Promise<string | null> {

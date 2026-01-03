@@ -28,7 +28,9 @@ describe('AdminPageHeader', () => {
         description: 'Manage your product catalog',
       })
 
-      expect(screen.getByText('Manage your product catalog')).toBeInTheDocument()
+      expect(
+        screen.getByText('Manage your product catalog'),
+      ).toBeInTheDocument()
     })
 
     it('does not render description when not provided', () => {
@@ -101,7 +103,9 @@ describe('AdminPageHeader', () => {
       })
 
       expect(screen.getByText('Products')).toBeInTheDocument()
-      expect(screen.getByText('Manage your product catalog')).toBeInTheDocument()
+      expect(
+        screen.getByText('Manage your product catalog'),
+      ).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: /add product/i }),
       ).toBeInTheDocument()
@@ -117,7 +121,9 @@ describe('AdminPageHeader', () => {
       })
 
       expect(screen.getByText('Products')).toBeInTheDocument()
-      expect(screen.getByText('Manage your product catalog')).toBeInTheDocument()
+      expect(
+        screen.getByText('Manage your product catalog'),
+      ).toBeInTheDocument()
       expect(screen.queryByRole('button')).not.toBeInTheDocument()
     })
 
@@ -180,7 +186,9 @@ describe('AdminPageHeader', () => {
 
   describe('Edge cases', () => {
     it('handles long title', () => {
-      renderComponent({ title: 'Product Inventory Management System Dashboard' })
+      renderComponent({
+        title: 'Product Inventory Management System Dashboard',
+      })
 
       expect(
         screen.getByText('Product Inventory Management System Dashboard'),

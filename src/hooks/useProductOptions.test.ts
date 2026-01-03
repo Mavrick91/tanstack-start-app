@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 
-
 import { useProductOptions } from './useProductOptions'
 
 import type { ProductOption } from '../components/admin/products/components/ProductOptions'
@@ -32,9 +31,7 @@ describe('useProductOptions', () => {
         ],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.options).toEqual([
         { name: 'Size', values: ['Small', 'Large'] },
@@ -70,9 +67,7 @@ describe('useProductOptions', () => {
         ],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.variants).toEqual([
         {
@@ -120,9 +115,7 @@ describe('useProductOptions', () => {
         ],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.variants[0].available).toBe(true)
       expect(result.current.variants[1].available).toBe(false)
@@ -247,7 +240,10 @@ describe('useProductOptions', () => {
       act(() => {
         result.current.addOption({ name: 'Size', values: ['S', 'L'] })
         result.current.addOption({ name: 'Color', values: ['Red'] })
-        result.current.addOption({ name: 'Material', values: ['Cotton', 'Poly'] })
+        result.current.addOption({
+          name: 'Material',
+          values: ['Cotton', 'Poly'],
+        })
       })
 
       const combinations = result.current.generateVariantCombinations()
@@ -463,9 +459,7 @@ describe('useProductOptions', () => {
         options: [],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.options).toEqual([])
       expect(result.current.variants).toEqual([
@@ -483,9 +477,7 @@ describe('useProductOptions', () => {
         variants: [],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.variants).toEqual([
         {
@@ -511,9 +503,7 @@ describe('useProductOptions', () => {
         ],
       }
 
-      const { result } = renderHook(() =>
-        useProductOptions(product as Product),
-      )
+      const { result } = renderHook(() => useProductOptions(product as Product))
 
       expect(result.current.variants[0].sku).toBeUndefined()
     })

@@ -7,11 +7,13 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
 ## Critical Rules
 
 ### Component Patterns
+
 - **ALWAYS use FNForm** for forms - never raw form elements or other form libraries
 - **NEVER use direct React Testing Library imports** - always import from `@/test/test-utils`
 - **UI components from shadcn pattern** - use existing components in `src/components/ui/`, don't create alternatives
 
 ### Import Organization
+
 - **Test files follow strict patterns** (see testing-patterns-guide.md):
   - Pattern 1 (no mocks): vitest → component → types → test-utils
   - Pattern 2 (with mocks): vitest → test-utils → mock setup → vi.mock() → component
@@ -20,8 +22,10 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
 - **Path aliases**: Always use `@/` for src imports, never relative paths across directories
 
 ### Server Functions Pattern (MANDATORY)
+
 - **PREFER server functions** over API routes for all data operations
 - **Structure**:
+
   ```typescript
   // Top-level imports (db, schemas, middleware)
   import { createServerFn } from '@tanstack/react-start'
@@ -35,23 +39,21 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
       return { success: true, data: {...} }
     })
   ```
+
 - **Middleware choices**:
   - `adminMiddleware` - Admin-only operations (products, orders management)
   - `authMiddleware` - Any authenticated user
   - No middleware - Public operations
-- **Error handling**: Use helpers from `./middleware`:
-  - `throwNotFound('Resource')` - 404 errors
-  - `throwBadRequest('message')` - 400 errors
-  - `throwUnauthorized()` - 401 errors
-  - `throwForbidden()` - 403 errors
 
 ### API Routes (LIMITED USE)
+
 - **ONLY for authentication flows**: login, logout, OAuth callbacks, customer registration
 - **Location**: `src/routes/api/auth/` only
 - **Pattern**: TanStack Router `createFileRoute` with server handlers
 - **Helpers**: Use `successResponse()`, `errorResponse()`, `simpleErrorResponse()` from `@/lib/api`
 
 ### File Organization
+
 - **Tests colocated** with source files (ComponentName.test.tsx next to ComponentName.tsx)
 - **Server functions** in `src/server/` modules (products.ts, orders.ts, etc.)
 - **API routes** in `src/routes/api/auth/` (authentication only)
@@ -62,12 +64,14 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
 ## Skills Quick Reference
 
 ### Mandatory Skills
+
 - **`testing`** - REQUIRED for ANY interaction with test files (.test.ts, .test.tsx)
   - Use BEFORE reading, writing, modifying, or debugging tests
   - Enforces patterns from testing-patterns-guide.md
   - Prevents import order violations and mock duplication
 
 ### Architectural Skills
+
 - **`codebase-guide`** - Master reference for understanding the application
   - Use when: Onboarding, exploring architecture, understanding how systems connect
   - Contains: Tech stack overview, directory structure, key patterns
@@ -76,6 +80,7 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
   - Faster and more accurate than text search
 
 ### Feature Development Skills
+
 - **`forms`** - Build forms with FNForm component
   - Use when: Creating forms, adding validation, building complex form UIs
   - Covers: Grid layouts, custom fields, external control, validation patterns
@@ -96,6 +101,7 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
   - Generates: Production-grade, distinctive UI (avoids generic AI aesthetics)
 
 ### Support Skills
+
 - **`debugging`** - Systematic debugging
   - Use when: Encountering bugs, test failures, unexpected behavior
   - Covers: Auth issues, payments, database queries, React components, API routes
@@ -107,6 +113,7 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
   - Note: For data operations, use server functions instead
 
 ### Skill Invocation Rule
+
 **If there's even a 1% chance a skill applies, invoke it.** Skills prevent mistakes and enforce patterns. Don't rationalize skipping them.
 
 ---
@@ -114,6 +121,7 @@ TanStack Start (SSR/SSG) + PostgreSQL e-commerce application with admin dashboar
 ## Key Utilities (Do Not Reimplement)
 
 ### Formatting (`src/lib/format.ts`)
+
 ```typescript
 import { formatCurrency, formatDate } from '@/lib/format'
 
@@ -122,47 +130,53 @@ formatCurrency({ value: 99.99, currency: 'USD', locale: 'en-US' })
 // → "$99.99"
 
 // Date formatting
-formatDate(new Date(), 'medium')      // → "Jan 3, 2026"
-formatDate(new Date(), 'datetime')    // → "Jan 3, 2026, 10:30 AM"
+formatDate(new Date(), 'medium') // → "Jan 3, 2026"
+formatDate(new Date(), 'datetime') // → "Jan 3, 2026, 10:30 AM"
 ```
+
 **Rule**: ALWAYS use these for currency/date display. Never reimplement.
 
 ### Class Names (`src/lib/utils.ts`)
+
 ```typescript
 import { cn } from '@/lib/utils'
 
 // Merge Tailwind classes with conflict resolution
 cn('px-2 py-1', props.className)
 ```
+
 **Rule**: Use `cn()` for all className merging. Never use string concatenation.
 
 ### API Helpers (`src/lib/api.ts`)
+
 ```typescript
 // For API routes only (auth endpoints)
 import {
-  successResponse,      // { success: true, ...data }
-  errorResponse,        // { success: false, error, details }
-  simpleErrorResponse,  // { success: false, error }
-  requireAuth,          // Check authentication
-  requireAdmin,         // Check admin role
-  emptyToNull,          // Convert empty strings to null
+  successResponse, // { success: true, ...data }
+  errorResponse, // { success: false, error, details }
+  simpleErrorResponse, // { success: false, error }
+  requireAuth, // Check authentication
+  requireAdmin, // Check admin role
+  emptyToNull, // Convert empty strings to null
 } from '@/lib/api'
 ```
 
 ### Server Middleware (`src/server/middleware.ts`)
+
 ```typescript
 // For server functions (primary pattern)
 import {
-  authMiddleware,      // Requires valid session
-  adminMiddleware,     // Requires admin role
-  throwNotFound,       // 404 error
-  throwBadRequest,     // 400 error
-  throwUnauthorized,   // 401 error
-  throwForbidden,      // 403 error
+  authMiddleware, // Requires valid session
+  adminMiddleware, // Requires admin role
+  throwNotFound, // 404 error
+  throwBadRequest, // 400 error
+  throwUnauthorized, // 401 error
+  throwForbidden, // 403 error
 } from '@/server/middleware'
 ```
 
 ### Session Management (`src/server/session.ts`)
+
 ```typescript
 import { getAppSession } from '@/server/session'
 
@@ -171,13 +185,16 @@ const session = await getAppSession()
 ```
 
 ### Database (`src/db/`)
+
 ```typescript
 import { db } from '@/db'
 import { products, orders, users } from '@/db/schema'
 ```
+
 **Rule**: Import db and schemas at top-level in server functions. Never inside handlers.
 
 ### Other Critical Utilities
+
 - **Authentication**: `src/lib/auth.ts` - verifyPassword, hashPassword, session management
 - **CSRF Protection**: `src/lib/csrf.ts` - validateCsrf, generateCsrfToken
 - **Rate Limiting**: `src/lib/rate-limit.ts` - rateLimiter
@@ -187,6 +204,7 @@ import { products, orders, users } from '@/db/schema'
 - **Email**: `src/lib/email.ts` - SendGrid integration
 
 ### Discovery Rule
+
 **Before creating any utility function, check if it exists in `src/lib/` or `src/server/`**. Use Glob or typescript-lsp to search.
 
 ---
@@ -194,64 +212,78 @@ import { products, orders, users } from '@/db/schema'
 ## Architecture Principles (Why Things Work This Way)
 
 ### Server Functions Over API Routes
+
 **Why**: Type safety, better DX, automatic serialization, no manual Response objects
+
 - Server functions share types between client/server automatically
 - Middleware provides reusable authentication/authorization
 - Only use API routes for auth flows that need specific HTTP handling (cookies, OAuth redirects)
 
 ### Middleware Pattern
+
 **Why**: Type safety, reusability, consistent error handling
+
 - `adminMiddleware` and `authMiddleware` provide typed `context.user`
 - Error helpers (`throwNotFound`, `throwBadRequest`) ensure consistent response format
 - Middleware chains correctly: `adminMiddleware` inherits `authMiddleware`
 
 ### Top-Level Imports in Server Functions
+
 **Why**: Prevents runtime module loading issues, better performance
+
 ```typescript
 // ✅ CORRECT - Top-level
 import { db } from '../db'
 import { products } from '../db/schema'
 
-export const getProductsFn = createServerFn()
-  .handler(async () => {
-    return await db.select().from(products)
-  })
+export const getProductsFn = createServerFn().handler(async () => {
+  return await db.select().from(products)
+})
 
 // ❌ WRONG - Inside handler
-export const getProductsFn = createServerFn()
-  .handler(async () => {
-    const { db } = await import('../db')  // Don't do this
-  })
+export const getProductsFn = createServerFn().handler(async () => {
+  const { db } = await import('../db') // Don't do this
+})
 ```
 
 ### FNForm Standardization
+
 **Why**: Consistency, maintainability, reduced duplication
+
 - Single form component handles: validation, grid layouts, custom fields, i18n
 - TanStack Form integration provides type-safe field management
 - All forms look and behave consistently across admin/customer UI
 
 ### Test Colocation
+
 **Why**: Easier to find, easier to maintain, enforces test coverage
+
 - `ComponentName.tsx` and `ComponentName.test.tsx` live together
 - Reduces friction: no hunting for test files
 - Test patterns guide in `docs/testing-patterns-guide.md`
 
 ### i18n Database Pattern
+
 **Why**: Performance, flexibility, type safety
+
 - JSONB fields store translations: `{ en: "English", fr?: "French", id?: "Indonesian" }`
 - Single query returns all languages (no joins)
 - Optional translations: French/Indonesian can be null
 - Helper: `getLocalizedValue(obj, lang)` extracts correct language
 
 ### State Management Split
+
 **Why**: Right tool for each job
+
 - **Zustand** (client state): Cart, auth - needs persistence, simple updates
 - **React Query** (server state): Products, orders - needs caching, refetch, optimistic updates
 - **TanStack Form** (form state): Validation, field-level control, submission
 - Don't mix: server data in Zustand causes stale data issues
 
 ### Security Layers
+
 **Why**: Defense in depth
+
 - Rate limiting on all endpoints (prevents brute force)
 - CSRF tokens for mutations (prevents cross-site attacks)
 - Session-based auth with HTTP-only cookies (prevents XSS token theft)
@@ -259,6 +291,7 @@ export const getProductsFn = createServerFn()
 - Security headers on all responses (XSS, clickjacking protection)
 
 ### Performance Patterns
+
 - Database queries use `inArray` for batch loading (reduces N+1 queries)
 - Images served via Cloudinary CDN (automatic optimization, caching)
 - Server functions minimize client bundle (code stays on server)
@@ -271,6 +304,7 @@ export const getProductsFn = createServerFn()
 ### Directory Rules
 
 #### Components
+
 ```
 src/components/
 ├── ui/                    # Reusable UI primitives (shadcn pattern)
@@ -286,11 +320,13 @@ src/components/
 ```
 
 **Rules**:
+
 - UI components are **primitives only** - no business logic
 - Admin components can be feature-specific
 - Never create a new form component - use FNForm
 
 #### Server Functions
+
 ```
 src/server/
 ├── products.ts           # Product CRUD operations
@@ -305,12 +341,14 @@ src/server/
 ```
 
 **Rules**:
+
 - One file per domain (products, orders, collections)
 - Export multiple server functions from same file
 - Keep validation schemas in `schemas/` subdirectory
 - Top-level imports only
 
 #### Routes
+
 ```
 src/routes/
 ├── $lang/                # Localized customer pages (/en, /fr, /id)
@@ -332,11 +370,13 @@ src/routes/
 ```
 
 **Rules**:
+
 - Customer routes under `$lang/` for i18n
 - Admin routes under `admin/_authed/` for auth protection
 - API routes ONLY in `api/auth/` - no other API routes
 
 #### Utilities
+
 ```
 src/lib/
 ├── format.ts             # formatCurrency, formatDate
@@ -352,11 +392,13 @@ src/lib/
 ```
 
 **Rules**:
+
 - Check existing utilities BEFORE creating new ones
 - One utility = one concern (formatting, auth, payments, etc.)
 - Pure functions preferred - no side effects
 
 #### Tests
+
 ```
 src/
 ├── components/
@@ -375,6 +417,7 @@ src/
 ```
 
 **Rules**:
+
 - Tests colocated with source files (same directory)
 - Naming: `FileName.test.tsx` or `fileName.test.ts`
 - Server function tests in `src/tests/server/`
@@ -382,30 +425,33 @@ src/
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `PaymentForm.tsx` |
-| Utilities | camelCase | `formatCurrency.ts` |
-| Server functions | camelCase + "Fn" | `getProductsFn`, `createOrderFn` |
-| Hooks | camelCase + "use" prefix | `useCart.ts`, `useAuth.ts` |
-| Types/Interfaces | PascalCase | `ProductInput`, `SessionUser` |
-| Database schema | camelCase (plural) | `products`, `orders`, `users` |
-| Test files | Match source + `.test` | `PaymentForm.test.tsx` |
+| Type             | Convention               | Example                          |
+| ---------------- | ------------------------ | -------------------------------- |
+| Components       | PascalCase               | `PaymentForm.tsx`                |
+| Utilities        | camelCase                | `formatCurrency.ts`              |
+| Server functions | camelCase + "Fn"         | `getProductsFn`, `createOrderFn` |
+| Hooks            | camelCase + "use" prefix | `useCart.ts`, `useAuth.ts`       |
+| Types/Interfaces | PascalCase               | `ProductInput`, `SessionUser`    |
+| Database schema  | camelCase (plural)       | `products`, `orders`, `users`    |
+| Test files       | Match source + `.test`   | `PaymentForm.test.tsx`           |
 
 ### When to Create New Files
 
 **Create new file when**:
+
 - New domain/feature (new server function module)
 - New reusable component
 - New utility with distinct concern
 - File exceeds ~500 lines (consider splitting)
 
 **DON'T create new file for**:
+
 - One-off helpers (add to existing utility file)
 - Component variations (use props instead)
 - Single function (add to related module)
 
 ### Import Path Rules
+
 - **ALWAYS use `@/` alias** for src imports: `import { db } from '@/db'`
 - **NEVER use relative paths** across directories: `import { db } from '../../../db'` ❌
 - Relative paths OK within same directory: `import { helper } from './helper'` ✅
@@ -415,6 +461,7 @@ src/
 ## Development Workflow
 
 ### Commands
+
 ```bash
 # Development
 yarn dev              # Start dev server (port 3000)
@@ -449,25 +496,91 @@ yarn e2e:headed       # Run with browser visible
 ```
 
 ### Git Workflow
+
 - **Branch naming**: `feature/description`, `fix/description`, `refactor/description`
 - **Commits**: Use conventional commits format when possible
 - **Before committing**: Run `yarn check` to format and lint
 - **Husky hooks**: Pre-commit runs type checking and tests
 
 ### Testing Requirements
+
 - **All new components** must have tests
 - **All new server functions** must have tests
 - **Use `testing` skill** for ANY test file work
 - **Run tests before committing**: `yarn test`
 - **Colocate tests** with source files
 
+#### Test Strategy
+
+We follow a **testing pyramid** approach:
+
+- **Unit Tests** (base): Fast, isolated tests for components and utilities (70%)
+- **Integration Tests** (middle): Tests for server functions and API routes (20%)
+- **E2E Tests** (top): Critical user journeys and business flows (10%)
+
+#### Running Tests
+
+```bash
+# Unit & Integration Tests
+yarn test              # Run all tests
+yarn test Component    # Run specific test
+yarn test --watch      # Watch mode
+yarn test --coverage   # With coverage
+
+# E2E Tests
+yarn e2e              # Run all E2E tests
+yarn e2e:ui           # Playwright UI mode
+yarn e2e:headed       # Run with browser visible
+```
+
+#### When to Write Which Test
+
+**Unit Tests (Component/Function Level)**
+
+- ✅ Form validation rules
+- ✅ Utility functions
+- ✅ Component rendering logic
+- ✅ State management hooks
+- **Speed:** ~1ms per test
+- **Examples:** Password validation, email format, date formatting
+
+**Integration Tests (API/Server Level)**
+
+- ✅ Server function responses
+- ✅ Database queries
+- ✅ Middleware authentication
+- **Speed:** ~10-100ms per test
+- **Examples:** Creating orders, fetching products, authentication
+
+**E2E Tests (User Journey Level)**
+
+- ✅ Complete checkout flow
+- ✅ Payment processing (Stripe/PayPal)
+- ✅ Email verification flow
+- ✅ Admin access control
+- **Speed:** ~5-30s per test
+- **Examples:** Guest checkout, customer registration, admin login
+
+#### E2E Testing Guidelines
+
+See [`docs/e2e-testing-strategy.md`](docs/e2e-testing-strategy.md) for detailed guidelines.
+
+**Quick Checklist:**
+
+- Does it test a critical business flow? → E2E ✅
+- Does it test form validation? → Unit Test ❌
+- Does it use `waitForTimeout()`? → Fix it ❌
+- Can it run in parallel? → Should be Yes ✅
+
 ### Database Changes
+
 1. Modify `src/db/schema.ts`
 2. Run `yarn db:generate` to create migration
 3. Run `yarn db:migrate` to apply migration
 4. **Never use `db:push` in production** (dev only)
 
 ### Adding Translations
+
 1. Add keys to `src/i18n/locales/en.json` (required)
 2. Add to `fr.json` and `id.json` (optional)
 3. Run `yarn locales:scan` to verify
@@ -476,6 +589,7 @@ yarn e2e:headed       # Run with browser visible
 ### Common Workflows
 
 #### Adding a New Admin Feature
+
 1. Use **`brainstorming` skill** to plan feature
 2. Use **`admin-crud` skill** for UI generation
 3. Create server function in `src/server/`
@@ -484,6 +598,7 @@ yarn e2e:headed       # Run with browser visible
 6. Run `yarn check && yarn test`
 
 #### Modifying Database Schema
+
 1. Use **`database` skill** for schema guidance
 2. Edit `src/db/schema.ts`
 3. Run `yarn db:generate` → creates migration
@@ -492,6 +607,7 @@ yarn e2e:headed       # Run with browser visible
 6. Update TypeScript types (auto-generated)
 
 #### Fixing a Bug
+
 1. Use **`systematic-debugging` skill**
 2. Write failing test first (TDD)
 3. Fix the bug
@@ -499,12 +615,14 @@ yarn e2e:headed       # Run with browser visible
 5. Run `yarn check && yarn test`
 
 #### Creating a Form
+
 1. Use **`forms` skill**
 2. Always use `FNForm` component
 3. Define Zod schema for validation
 4. Test form validation and submission
 
 ### Pre-Deployment Checklist
+
 - [ ] `yarn typecheck` passes
 - [ ] `yarn test` passes (all tests)
 - [ ] `yarn build` succeeds
@@ -513,12 +631,14 @@ yarn e2e:headed       # Run with browser visible
 - [ ] No console errors in browser
 
 ### Performance Checks
+
 - Bundle size: Check after `yarn build`
 - Database queries: Look for N+1 patterns
 - Images: Ensure Cloudinary optimization
 - Server functions: Keep client bundle small
 
 ### When Stuck
+
 1. Check **`codebase-guide` skill** for architecture
 2. Check **`debugging` skill** for systematic approach
 3. Check `docs/` folder for design documents

@@ -241,7 +241,9 @@ describe('AdminPagination', () => {
       renderComponent({ currentPage: 1, totalPages: 2 })
       expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: '3' })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: '3' }),
+      ).not.toBeInTheDocument()
     })
 
     it('handles totalPages of 3', () => {

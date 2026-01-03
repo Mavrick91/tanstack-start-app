@@ -35,8 +35,7 @@ vi.mock('../server/auth-customer', () => ({
 // Mock router
 const mockInvalidate = vi.fn()
 vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@tanstack/react-router')>()
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
   return {
     ...actual,
     useRouter: () => ({
@@ -262,12 +261,13 @@ describe('useAuth', () => {
       await act(async () => {
         await result.current.mutateAsync({
           email: 'new@example.com',
+          password: 'password123',
           lang: 'en',
         })
       })
 
       expect(registerCustomerFn).toHaveBeenCalledWith({
-        data: { email: 'new@example.com', lang: 'en' },
+        data: { email: 'new@example.com', password: 'password123', lang: 'en' },
       })
     })
 
@@ -283,12 +283,13 @@ describe('useAuth', () => {
       await act(async () => {
         await result.current.mutateAsync({
           email: 'new@example.com',
+          password: 'password123',
           lang: 'fr',
         })
       })
 
       expect(registerCustomerFn).toHaveBeenCalledWith({
-        data: { email: 'new@example.com', lang: 'fr' },
+        data: { email: 'new@example.com', password: 'password123', lang: 'fr' },
       })
     })
 
@@ -304,6 +305,7 @@ describe('useAuth', () => {
         act(async () => {
           await result.current.mutateAsync({
             email: 'existing@example.com',
+            password: 'password123',
             lang: 'en',
           })
         }),
@@ -355,9 +357,7 @@ describe('useAuth', () => {
     })
 
     it('should handle forgot password error', async () => {
-      vi.mocked(forgotPasswordFn).mockRejectedValue(
-        new Error('User not found'),
-      )
+      vi.mocked(forgotPasswordFn).mockRejectedValue(new Error('User not found'))
 
       const { wrapper } = createWrapper()
       const { result } = renderHook(() => useAuthForgotPassword(), { wrapper })

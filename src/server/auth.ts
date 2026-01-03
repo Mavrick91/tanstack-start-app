@@ -14,11 +14,6 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '../db'
-import {
-  createErrorResponse,
-  throwServerError,
-  throwUnauthorized,
-} from './middleware'
 import { getAppSession, type SessionUser } from './session'
 import { sessions, users } from '../db/schema'
 
@@ -54,17 +49,14 @@ export const loginFn = createServerFn({ method: 'POST' })
     // Rate limiting
     const request = getRequest()
     if (!request) {
-      throwServerError('No request found')
+      throw new Error('No request found')
     }
 
     const key = getRateLimitKey(request)
     const rateLimit = await checkRateLimit('auth', key)
 
     if (!rateLimit.allowed) {
-      throw createErrorResponse(
-        'Too many attempts. Please try again later.',
-        429,
-      )
+      throw new Error('Too many attempts. Please try again later.')
     }
 
     // Find user
@@ -74,18 +66,18 @@ export const loginFn = createServerFn({ method: 'POST' })
       .where(eq(users.email, data.email))
 
     if (!user) {
-      throwUnauthorized('Invalid email or password')
+      throw new Error('Invalid email or password')
     }
 
     // Check if user has a password (Google OAuth users don't)
     if (!user.passwordHash) {
-      return throwUnauthorized('Invalid email or password')
+      throw new Error('Invalid email or password')
     }
 
     // Verify password
     const validPassword = await verifyPassword(data.password, user.passwordHash)
     if (!validPassword) {
-      throwUnauthorized('Invalid email or password')
+      throw new Error('Invalid email or password')
     }
 
     // Create DB session (for audit/revocation)

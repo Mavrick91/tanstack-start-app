@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { Button } from '@/components/ui/button'
 
 interface GoogleButtonProps {
@@ -5,6 +7,8 @@ interface GoogleButtonProps {
 }
 
 export const GoogleButton = ({ returnUrl }: GoogleButtonProps) => {
+  const { t } = useTranslation()
+
   const handleClick = () => {
     const params = returnUrl
       ? `?returnUrl=${encodeURIComponent(returnUrl)}`
@@ -16,10 +20,10 @@ export const GoogleButton = ({ returnUrl }: GoogleButtonProps) => {
     <Button
       type="button"
       variant="outline"
-      className="w-full"
+      className="w-full h-10 rounded-md gap-3 font-bold border-border/60 hover:bg-muted/50 transition-all duration-300 shadow-sm"
       onClick={handleClick}
     >
-      <svg className="h-4 w-4" viewBox="0 0 24 24">
+      <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
         <path
           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
           fill="#4285F4"
@@ -37,7 +41,7 @@ export const GoogleButton = ({ returnUrl }: GoogleButtonProps) => {
           fill="#EA4335"
         />
       </svg>
-      Continue with Google
+      {t('Continue with Google')}
     </Button>
   )
 }

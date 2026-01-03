@@ -22,6 +22,7 @@
 ## File Structure
 
 ### Location
+
 Tests are **colocated** with source files:
 
 ```
@@ -45,6 +46,7 @@ src/
 ```
 
 ### Naming Convention
+
 - Component tests: `ComponentName.test.tsx`
 - Utility tests: `utilityName.test.ts`
 - File names match exactly: `PaymentForm.tsx` → `PaymentForm.test.tsx`
@@ -144,6 +146,7 @@ const { useCart, useCartStore } = await vi.importActual<{
 **Location:** `src/test/setup.ts`
 
 **Global mocks include:**
+
 - `@tanstack/react-router` (Link, useParams, useNavigate, useRouter)
 - `react-i18next` (useTranslation, Trans)
 - `ResizeObserver` (for Radix UI)
@@ -167,6 +170,7 @@ vi.mock('@tanstack/react-router', () => ({
 ### Component-Specific Mocks
 
 **When to mock:**
+
 - External libraries (`@stripe/react-stripe-js`, `@paypal/react-paypal-js`)
 - Child components that are complex or not relevant to test
 - Third-party UI components that fail in JSDOM (Radix Select, Fancybox)
@@ -374,6 +378,7 @@ describe('createCheckout', () => {
 ### ✅ DO Test
 
 #### 1. **User-Visible Behavior**
+
 - Elements render correctly
 - User interactions work (clicks, typing, form submission)
 - Correct content is displayed based on props/state
@@ -392,6 +397,7 @@ it('should show error message on failure', () => {
 ```
 
 #### 2. **Accessibility**
+
 - ARIA labels and roles
 - Keyboard navigation
 - Screen reader compatibility
@@ -410,6 +416,7 @@ it('should have accessible button', () => {
 ```
 
 #### 3. **State Changes**
+
 - State updates correctly on user actions
 - Props changes trigger re-renders
 - Side effects occur as expected
@@ -427,6 +434,7 @@ it('should toggle expanded state on click', () => {
 ```
 
 #### 4. **Edge Cases**
+
 - Empty states (no data, empty arrays)
 - Null/undefined values
 - Maximum/minimum values
@@ -448,6 +456,7 @@ it('should not allow negative quantity', () => {
 ```
 
 #### 5. **Validation Logic**
+
 - Form validation rules
 - Input constraints
 - Business logic rules
@@ -461,6 +470,7 @@ it('should validate email format', () => {
 ```
 
 #### 6. **Callbacks/Event Handlers**
+
 - Functions are called with correct arguments
 - Events bubble correctly
 
@@ -483,6 +493,7 @@ it('should call onSubmit with form values', async () => {
 ### ❌ DON'T Test
 
 #### 1. **Implementation Details**
+
 - Internal component state variable names
 - Private functions
 - CSS class names (unless part of API)
@@ -503,6 +514,7 @@ it('should show menu when button clicked', () => {
 ```
 
 #### 2. **Third-Party Libraries**
+
 - Don't test React itself
 - Don't test library internals
 - Trust that libraries work
@@ -521,6 +533,7 @@ it('should have correct href attribute', () => {
 ```
 
 #### 3. **Styles and Layout**
+
 - Specific pixel values
 - CSS properties (unless critical to functionality)
 - Responsive breakpoints (use visual regression instead)
@@ -539,10 +552,12 @@ it('should hide on mobile when minimized', () => {
 ```
 
 #### 4. **Browser APIs**
+
 - Don't test `localStorage`, `fetch`, etc.
 - Mock them instead
 
 #### 5. **Constants and Static Data**
+
 - Don't test hardcoded values unless they're computed
 
 ```typescript
@@ -564,6 +579,7 @@ it('should calculate total correctly', () => {
 ### Custom Render (from `@/test/test-utils`)
 
 **Automatically includes:**
+
 - `QueryClientProvider` wrapper
 - Fresh `userEvent` instance per render
 
@@ -597,7 +613,7 @@ import { createProduct, createCartItem, createAddress } from '@/test/factories'
 const product = createProduct()
 const premiumProduct = createProduct({
   price: 999.99,
-  name: { en: 'Premium Item' }
+  name: { en: 'Premium Item' },
 })
 
 const item = createCartItem({ quantity: 5 })
@@ -677,11 +693,11 @@ screen.getByTestId('submit-button')
 
 ### Query Variants
 
-| Query | Returns | Throws? | Use When |
-|-------|---------|---------|----------|
-| `getBy*` | Element | Yes (if not found) | Element should exist |
-| `queryBy*` | Element \| null | No | Checking absence |
-| `findBy*` | Promise<Element> | Yes (if not found/timeout) | Async appearance |
+| Query      | Returns          | Throws?                    | Use When             |
+| ---------- | ---------------- | -------------------------- | -------------------- |
+| `getBy*`   | Element          | Yes (if not found)         | Element should exist |
+| `queryBy*` | Element \| null  | No                         | Checking absence     |
+| `findBy*`  | Promise<Element> | Yes (if not found/timeout) | Async appearance     |
 
 ```typescript
 // Element should exist
@@ -849,6 +865,7 @@ npm test -- --coverage       # With coverage
 ---
 
 **For more examples, see:**
+
 - Component tests: `src/components/checkout/*.test.tsx`
 - Hook tests: `src/hooks/*.test.ts`
 - Validation tests: `src/lib/validation/*.test.ts`

@@ -52,9 +52,7 @@ describe('CheckoutLayout', () => {
       expect(within(footer).getByText(/refund policy/i)).toBeInTheDocument()
       expect(within(footer).getByText(/shipping policy/i)).toBeInTheDocument()
       expect(within(footer).getByText(/privacy policy/i)).toBeInTheDocument()
-      expect(
-        within(footer).getByText(/terms of service/i),
-      ).toBeInTheDocument()
+      expect(within(footer).getByText(/terms of service/i)).toBeInTheDocument()
     })
   })
 

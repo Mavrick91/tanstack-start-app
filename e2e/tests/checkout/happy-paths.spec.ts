@@ -1,12 +1,8 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../../fixtures/cleanup-fixture'
 
 import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
-import {
-  seedProduct,
-  cleanupTestData,
-  TEST_PREFIX,
-} from '../../helpers/db.helper'
+import { seedProduct, cleanupTestData } from '../../helpers/db.helper'
 import { fillStripeCard, STRIPE_TEST_CARDS } from '../../helpers/stripe.helper'
 import { CheckoutConfirmationPage } from '../../page-objects/checkout-confirmation.page'
 import { CheckoutInfoPage } from '../../page-objects/checkout-info.page'
@@ -41,7 +37,7 @@ test.describe('Checkout Happy Paths', () => {
 
   test('guest checkout with Stripe - complete flow', async ({ page }) => {
     const product = await seedProduct({ price: 29.99 })
-    const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+    const testEmail = 'mavrick@realadvisor.com'
 
     await productPage.goto(product.handle)
     await productPage.addToCart()
@@ -88,7 +84,7 @@ test.describe('Checkout Happy Paths', () => {
 
   test('guest checkout with free shipping (order >= $75)', async ({ page }) => {
     const product = await seedProduct({ price: 80.0 })
-    const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+    const testEmail = 'mavrick@realadvisor.com'
 
     await productPage.goto(product.handle)
     await productPage.addToCart()
@@ -141,7 +137,7 @@ test.describe('Checkout Happy Paths', () => {
       await import('../../helpers/paypal.helper')
 
     const product = await seedProduct({ price: 29.99 })
-    const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+    const testEmail = 'mavrick@realadvisor.com'
 
     await productPage.goto(product.handle)
     await productPage.addToCart()

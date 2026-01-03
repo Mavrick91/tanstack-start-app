@@ -15,6 +15,10 @@ const langSchema = z.enum(['en', 'fr', 'id']).default('en')
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/\d/, 'Password must contain at least one number'),
   lang: langSchema,
 })
 
@@ -36,51 +40,35 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
       const key = getRateLimitKey(request)
       const rateLimit = await checkRateLimit('auth', key)
       if (!rateLimit.allowed) {
-        throw Response.json(
-          { error: 'Too many attempts. Please try again later.' },
-          { status: 429 },
-        )
+        throw new Error('Too many attempts. Please try again later.')
       }
     }
 
     const email = data.email.toLowerCase().trim()
 
-    // Check if user already exists
+    // Check if user already exists (verified or unverified)
     const [existingUser] = await db
       .select()
       .from(users)
       .where(eq(users.email, email))
 
     if (existingUser) {
-      if (existingUser.emailVerified) {
-        throw Response.json(
-          { error: 'An account with this email already exists. Please login.' },
-          { status: 409 },
-        )
-      }
-      // User exists but not verified - resend verification email
-      const token = generateToken()
-      const tokenHash = hashToken(token)
-
-      await db.insert(emailVerificationTokens).values({
-        userId: existingUser.id,
-        tokenHash,
-        type: 'verify_email',
-        expiresAt: generateExpiresAt('verify_email'),
-      })
-
-      const verifyUrl = `${getBaseUrl()}/${data.lang}/auth/verify?token=${token}`
-      await sendVerificationEmail({ email, verifyUrl })
-
-      return { success: true, message: 'Verification email sent' }
+      // Error for any existing user (verified OR unverified)
+      throw new Error(
+        'An account with this email already exists. Please login instead.',
+      )
     }
 
-    // Create new unverified user (no password yet)
+    // Hash password immediately
+    const { hashPassword } = await import('../lib/auth')
+    const passwordHash = await hashPassword(data.password)
+
+    // Create new unverified user with password already set
     const [newUser] = await db
       .insert(users)
       .values({
         email,
-        passwordHash: '', // Will be set during verification
+        passwordHash,
         emailVerified: false,
       })
       .returning()
@@ -129,24 +117,19 @@ export const registerCustomerFn = createServerFn({ method: 'POST' })
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/\d/, 'Password must contain at least one number'),
 })
 
 export const verifyEmailFn = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => verifyEmailSchema.parse(data))
   .handler(async ({ data }) => {
-    const { and, gt, eq } = await import('drizzle-orm')
-    const { hashPassword } = await import('../lib/auth')
+    const { and, eq } = await import('drizzle-orm')
     const { db } = await import('../db')
     const { users, customers, emailVerificationTokens, sessions } =
       await import('../db/schema')
 
     const tokenHash = hashToken(data.token)
 
-    // Find valid, unused token
+    // Find token (including expired and used ones for smart handling)
     const [tokenRecord] = await db
       .select()
       .from(emailVerificationTokens)
@@ -154,22 +137,16 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
         and(
           eq(emailVerificationTokens.tokenHash, tokenHash),
           eq(emailVerificationTokens.type, 'verify_email'),
-          gt(emailVerificationTokens.expiresAt, new Date()),
         ),
       )
 
     if (!tokenRecord) {
-      throw Response.json(
-        { error: 'Invalid or expired token' },
-        { status: 400 },
-      )
+      throw new Error('Invalid or expired token')
     }
 
-    if (tokenRecord.usedAt) {
-      throw Response.json(
-        { error: 'This link has already been used' },
-        { status: 400 },
-      )
+    // Check if token expired
+    if (tokenRecord.expiresAt < new Date()) {
+      throw new Error('Invalid or expired token')
     }
 
     // Get user
@@ -179,16 +156,40 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
       .where(eq(users.id, tokenRecord.userId))
 
     if (!user) {
-      throw Response.json({ error: 'User not found' }, { status: 404 })
+      throw new Error('User not found')
     }
 
-    // Hash password and update user
-    const passwordHash = await hashPassword(data.password)
+    // Smart handling for already-used tokens
+    if (tokenRecord.usedAt) {
+      // If user already verified, auto-login them
+      if (user.emailVerified) {
+        // Create session
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        await db.insert(sessions).values({ userId: user.id, expiresAt })
 
+        // Set cookie session
+        const { getAppSession } = await import('./session')
+        const appSession = await getAppSession()
+        await appSession.update({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        })
+
+        return {
+          success: true,
+          user: { id: user.id, email: user.email, role: user.role },
+        }
+      } else {
+        // Token used but user not verified (shouldn't happen, but handle it)
+        throw new Error('This link has already been used')
+      }
+    }
+
+    // Update user to mark email as verified (password already set)
     await db
       .update(users)
       .set({
-        passwordHash,
         emailVerified: true,
         updatedAt: new Date(),
       })
@@ -339,17 +340,11 @@ export const resetPasswordFn = createServerFn({ method: 'POST' })
       )
 
     if (!tokenRecord) {
-      throw Response.json(
-        { error: 'Invalid or expired token' },
-        { status: 400 },
-      )
+      throw new Error('Invalid or expired token')
     }
 
     if (tokenRecord.usedAt) {
-      throw Response.json(
-        { error: 'This link has already been used' },
-        { status: 400 },
-      )
+      throw new Error('This link has already been used')
     }
 
     // Get user
@@ -359,7 +354,7 @@ export const resetPasswordFn = createServerFn({ method: 'POST' })
       .where(eq(users.id, tokenRecord.userId))
 
     if (!user) {
-      throw Response.json({ error: 'User not found' }, { status: 404 })
+      throw new Error('User not found')
     }
 
     // Hash password and update user
@@ -380,4 +375,80 @@ export const resetPasswordFn = createServerFn({ method: 'POST' })
       .where(eq(emailVerificationTokens.id, tokenRecord.id))
 
     return { success: true }
+  })
+
+// ============================================
+// RESEND VERIFICATION EMAIL
+// ============================================
+
+const resendVerificationSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  lang: langSchema,
+})
+
+export const resendVerificationEmailFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: unknown) => resendVerificationSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { getRequest } = await import('@tanstack/react-start/server')
+    const { checkRateLimit, getRateLimitKey } =
+      await import('../lib/rate-limit')
+    const { eq } = await import('drizzle-orm')
+    const { db } = await import('../db')
+    const { users, emailVerificationTokens } = await import('../db/schema')
+    const { sendVerificationEmail } = await import('../lib/email')
+
+    // Rate limiting
+    const request = getRequest()
+    if (request) {
+      const key = getRateLimitKey(request)
+      const rateLimit = await checkRateLimit('auth', key)
+      if (!rateLimit.allowed) {
+        // Always return success to prevent email enumeration
+        return {
+          success: true,
+          message: 'If an account exists, a verification email has been sent',
+        }
+      }
+    }
+
+    const email = data.email.toLowerCase().trim()
+
+    // Find user
+    const [user] = await db.select().from(users).where(eq(users.email, email))
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return {
+        success: true,
+        message: 'If an account exists, a verification email has been sent',
+      }
+    }
+
+    // If user already verified, return success without revealing this
+    if (user.emailVerified) {
+      return {
+        success: true,
+        message: 'If an account exists, a verification email has been sent',
+      }
+    }
+
+    // User exists and not verified - send new verification email
+    const token = generateToken()
+    const tokenHash = hashToken(token)
+
+    await db.insert(emailVerificationTokens).values({
+      userId: user.id,
+      tokenHash,
+      type: 'verify_email',
+      expiresAt: generateExpiresAt('verify_email'),
+    })
+
+    // Send verification email
+    const verifyUrl = `${getBaseUrl()}/${data.lang}/auth/verify?token=${token}`
+    await sendVerificationEmail({ email, verifyUrl })
+
+    return {
+      success: true,
+      message: 'If an account exists, a verification email has been sent',
+    }
   })

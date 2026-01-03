@@ -2,7 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { getMeFn, loginFn, logoutFn, type AuthUser } from '../server/auth'
-import { registerCustomerFn, forgotPasswordFn } from '../server/auth-customer'
+import {
+  registerCustomerFn,
+  forgotPasswordFn,
+  resendVerificationEmailFn,
+} from '../server/auth-customer'
 
 export const AUTH_QUERY_KEY = ['auth'] as const
 
@@ -49,8 +53,11 @@ export const useAuthLogout = () => {
 
 export const useAuthRegister = () => {
   return useMutation({
-    mutationFn: (data: { email: string; lang: 'en' | 'fr' | 'id' }) =>
-      registerCustomerFn({ data }),
+    mutationFn: (data: {
+      email: string
+      password: string
+      lang: 'en' | 'fr' | 'id'
+    }) => registerCustomerFn({ data }),
   })
 }
 
@@ -58,6 +65,13 @@ export const useAuthForgotPassword = () => {
   return useMutation({
     mutationFn: (data: { email: string; lang: 'en' | 'fr' | 'id' }) =>
       forgotPasswordFn({ data }),
+  })
+}
+
+export const useResendVerification = () => {
+  return useMutation({
+    mutationFn: (data: { email: string; lang: 'en' | 'fr' | 'id' }) =>
+      resendVerificationEmailFn({ data }),
   })
 }
 

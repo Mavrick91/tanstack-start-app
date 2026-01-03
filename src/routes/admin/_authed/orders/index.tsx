@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { AdminFilterSelect } from '../../../../components/admin/components/AdminFilterSelect'
 import { AdminPageHeader } from '../../../../components/admin/components/AdminPageHeader'
 import { AdminPagination } from '../../../../components/admin/components/AdminPagination'
 import { AdminSearchInput } from '../../../../components/admin/components/AdminSearchInput'
-import { StatusFilterTabs } from '../../../../components/admin/components/StatusFilterTabs'
 import { OrderBulkActionsBar } from '../../../../components/admin/orders/OrderBulkActionsBar'
 import { OrdersTable } from '../../../../components/admin/orders/OrdersTable'
 import { OrderStatsCards } from '../../../../components/admin/orders/OrderStatsCards'
@@ -177,58 +177,48 @@ const AdminOrdersPage = () => {
       {/* Stats Cards */}
       {stats && <OrderStatsCards stats={stats} isLoading={false} />}
 
-      {/* Search */}
-      <AdminSearchInput
-        value={search}
-        onChange={(value) => {
-          setSearch(value)
-          updateSearch({ q: value || undefined })
-        }}
-        placeholder={t('Search by email or order number...')}
-        ariaLabel={t('Search orders')}
-        className="max-w-md"
-      />
+      {/* Search and Filters */}
+      <div className="flex flex-wrap items-end gap-4">
+        <AdminSearchInput
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            updateSearch({ q: value || undefined })
+          }}
+          placeholder={t('Search by email or order number...')}
+          ariaLabel={t('Search orders')}
+          className="max-w-md"
+        />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap gap-3">
-        {/* Status filter */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-            {t('Status')}
-          </span>
-          <StatusFilterTabs
-            options={statusOptions}
+        {/* Filter Bar */}
+        <div className="flex flex-wrap gap-3">
+          {/* Status filter */}
+          <AdminFilterSelect
+            label={t('Status')}
             value={status}
+            options={statusOptions}
             onChange={(value) => updateSearch({ status: value })}
             ariaLabel={t('Filter by status')}
           />
-        </div>
 
-        <div className="w-px h-12 bg-border/50 self-end mb-1" />
+          <div className="w-px h-12 bg-border/50 self-end mb-1" />
 
-        {/* Payment filter */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-            {t('Payment')}
-          </span>
-          <StatusFilterTabs
-            options={paymentOptions}
+          {/* Payment filter */}
+          <AdminFilterSelect
+            label={t('Payment')}
             value={paymentStatus}
+            options={paymentOptions}
             onChange={(value) => updateSearch({ paymentStatus: value })}
             ariaLabel={t('Filter by payment')}
           />
-        </div>
 
-        <div className="w-px h-12 bg-border/50 self-end mb-1" />
+          <div className="w-px h-12 bg-border/50 self-end mb-1" />
 
-        {/* Fulfillment filter */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-            {t('Fulfillment')}
-          </span>
-          <StatusFilterTabs
-            options={fulfillmentOptions}
+          {/* Fulfillment filter */}
+          <AdminFilterSelect
+            label={t('Fulfillment')}
             value={fulfillmentStatus}
+            options={fulfillmentOptions}
             onChange={(value) => updateSearch({ fulfillmentStatus: value })}
             ariaLabel={t('Filter by fulfillment')}
           />

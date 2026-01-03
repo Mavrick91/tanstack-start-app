@@ -1,76 +1,29 @@
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { Check, Copy, Loader2, ShieldCheck } from 'lucide-react'
+import { Loader2, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../ui/button'
 
-const TEST_CARDS = [
-  {
-    number: '4242424242424242',
-    label: 'Visa (success)',
-    color: 'text-green-600',
-  },
-  { number: '4000000000003220', label: '3D Secure 2', color: 'text-blue-600' },
-  {
-    number: '4000000000009995',
-    label: 'Declined (insufficient)',
-    color: 'text-red-600',
-  },
-  {
-    number: '4000000000000002',
-    label: 'Declined (generic)',
-    color: 'text-red-600',
-  },
-]
-
-const TestCardHelper = () => {
-  const [copiedCard, setCopiedCard] = useState<string | null>(null)
-
-  const copyToClipboard = async (cardNumber: string) => {
-    await navigator.clipboard.writeText(cardNumber)
-    setCopiedCard(cardNumber)
-    setTimeout(() => setCopiedCard(null), 2000)
-  }
-
-  // Only show in development
-  if (import.meta.env.PROD) return null
-
-  return (
-    <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs">
-      <p className="font-semibold text-amber-800 mb-2">
-        🧪 Test Cards (click to copy)
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        {TEST_CARDS.map((card) => (
-          <button
-            key={card.number}
-            type="button"
-            onClick={() => copyToClipboard(card.number)}
-            className={`flex items-center justify-between gap-2 p-2 rounded bg-white border hover:bg-gray-50 transition-colors ${card.color}`}
-          >
-            <div className="text-left">
-              <div className="font-mono text-[10px]">{card.number}</div>
-              <div className="text-[9px] text-gray-500">{card.label}</div>
-            </div>
-            {copiedCard === card.number ? (
-              <Check className="w-3 h-3 text-green-500 shrink-0" />
-            ) : (
-              <Copy className="w-3 h-3 text-gray-400 shrink-0" />
-            )}
-          </button>
-        ))}
-      </div>
-      <p className="mt-2 text-[9px] text-amber-600">
-        Use any future date, any 3-digit CVC, any ZIP code
-      </p>
-    </div>
-  )
-}
+// const TEST_CARDS = [
+//   {
+//     number: '4242424242424242',
+//     label: 'Visa (success)',
+//   },
+//   { number: '4000000000003220', label: '3D Secure 2' },
+//   {
+//     number: '4000000000009995',
+//     label: 'Declined (insufficient)',
+//   },
+//   {
+//     number: '4000000000000002',
+//     label: 'Declined (generic)',
+//   },
+// ]
 
 type StripePaymentFormProps = {
   onSuccess: (paymentIntentId: string) => void
-  onError: (error: string) => void
+  onError?: (message: string) => void
   returnUrl: string
 }
 
@@ -83,7 +36,7 @@ export const StripePaymentForm = ({
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,10 +46,10 @@ export const StripePaymentForm = ({
     }
 
     setIsProcessing(true)
-    setErrorMessage(null)
+    setError(null)
 
     try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
+      const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: returnUrl,
@@ -104,17 +57,18 @@ export const StripePaymentForm = ({
         redirect: 'if_required',
       })
 
-      if (error) {
-        setErrorMessage(error.message || t('Payment failed'))
-        onError(error.message || t('Payment failed'))
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        onSuccess(paymentIntent.id)
+      if (result.error) {
+        const errorMessage = result.error.message || 'Payment failed'
+        setError(errorMessage)
+        onError?.(errorMessage)
+      } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+        onSuccess(result.paymentIntent.id)
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : t('An unexpected error occurred')
-      setErrorMessage(message)
-      onError(message)
+      const errorMessage = err instanceof Error ? err.message : 'Payment failed'
+      console.error('Stripe error:', errorMessage)
+      setError(errorMessage)
+      onError?.(errorMessage)
     } finally {
       setIsProcessing(false)
     }
@@ -122,11 +76,15 @@ export const StripePaymentForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <TestCardHelper />
       <div className="space-y-4">
         <h3 className="text-base font-medium text-gray-900">
           {t('Credit Card Details')}
         </h3>
+        {error && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+            {error}
+          </div>
+        )}
         <div className="rounded-lg border bg-white p-4 focus-within:border-blue-500 transition-all">
           <PaymentElement
             options={{
@@ -140,12 +98,6 @@ export const StripePaymentForm = ({
         <ShieldCheck className="w-4 h-4 text-green-500" />
         <span>{t('All transactions are secure and encrypted.')}</span>
       </div>
-
-      {errorMessage && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm text-center animate-in fade-in slide-in-from-top-2">
-          {errorMessage}
-        </div>
-      )}
 
       <Button
         type="submit"

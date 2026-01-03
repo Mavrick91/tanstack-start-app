@@ -31,6 +31,11 @@ export class CheckoutInfoPage {
     })
   }
 
+  async goto() {
+    await this.page.goto('/en/checkout/information')
+    await this.page.waitForLoadState('networkidle')
+  }
+
   async waitForCheckoutReady() {
     // Wait for checkout page to load - may redirect if cart empty
     await this.page.waitForURL('**/checkout/information', { timeout: 15000 })

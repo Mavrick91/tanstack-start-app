@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { ProductPage } from '../page-objects/product.page'
-import { CheckoutInfoPage } from '../page-objects/checkout-info.page'
-import { CheckoutShippingPage } from '../page-objects/checkout-shipping.page'
-import { CheckoutPaymentPage } from '../page-objects/checkout-payment.page'
-import { CartHelper } from '../helpers/cart.helper'
+
 import { TEST_DATA } from '../fixtures/test-data'
+import { CartHelper } from '../helpers/cart.helper'
+import { CheckoutInfoPage } from '../page-objects/checkout-info.page'
+import { CheckoutPaymentPage } from '../page-objects/checkout-payment.page'
+import { CheckoutShippingPage } from '../page-objects/checkout-shipping.page'
+import { ProductPage } from '../page-objects/product.page'
 
 test.describe('Checkout Flow - Stripe Payment', () => {
   let productPage: ProductPage

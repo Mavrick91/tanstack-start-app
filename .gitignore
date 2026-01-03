@@ -24,3 +24,8 @@ coverage
 
 # Auto Claude data directory
 .auto-claude/
+
+# Claude data directory
+.claude/
+ralph/
+docs/

@@ -6,7 +6,14 @@ import {
   useRouter,
   Link,
 } from '@tanstack/react-router'
-import { Package, MapPin, User, LogOut, ChevronRight } from 'lucide-react'
+import {
+  Package,
+  MapPin,
+  User,
+  LogOut,
+  ChevronRight,
+  Shield,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../../components/ui/button'
@@ -49,6 +56,16 @@ const AccountPage = () => {
       description: t('Manage your shipping addresses'),
       href: `/${lang}/account/addresses`,
     },
+    ...(customer?.role === 'admin'
+      ? [
+          {
+            icon: Shield,
+            label: t('Admin Panel'),
+            description: t('Manage products, orders, and site settings'),
+            href: '/admin',
+          },
+        ]
+      : []),
   ]
 
   return (

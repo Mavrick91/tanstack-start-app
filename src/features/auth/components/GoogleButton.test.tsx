@@ -41,7 +41,7 @@ describe('GoogleButton', () => {
 
       const svg = container.querySelector('svg')
       expect(svg).toBeInTheDocument()
-      expect(svg).toHaveClass('h-4 w-4')
+      expect(svg).toHaveClass('h-5 w-5')
     })
   })
 

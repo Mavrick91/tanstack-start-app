@@ -1,12 +1,9 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '../../fixtures/cleanup-fixture'
+import { type Page } from '@playwright/test'
 
 import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
-import {
-  seedProduct,
-  cleanupTestData,
-  TEST_PREFIX,
-} from '../../helpers/db.helper'
+import { seedProduct, cleanupTestData } from '../../helpers/db.helper'
 import {
   fillStripeCard,
   STRIPE_TEST_CARDS,
@@ -45,7 +42,7 @@ test.describe('Payment-Specific Scenarios', () => {
 
   async function navigateToPayment(page: Page): Promise<{ email: string }> {
     const product = await seedProduct()
-    const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+    const testEmail = 'mavrick@realadvisor.com'
 
     await productPage.goto(product.handle)
     await productPage.addToCart()
@@ -147,7 +144,7 @@ test.describe('Payment-Specific Scenarios', () => {
       await checkoutPaymentPage.selectPayPalPayment()
 
       const paypalFrame = page.frameLocator('iframe[title*="PayPal"]').first()
-      await expect(paypalFrame.locator('.paypal-button')).toBeVisible({
+      await expect(paypalFrame.getByRole('link', { name: 'PayPal' })).toBeVisible({
         timeout: 15000,
       })
 
@@ -207,7 +204,7 @@ test.describe('Payment-Specific Scenarios', () => {
   test.describe('Amount Verification', () => {
     test('checkout total includes shipping and tax', async ({ page }) => {
       const product = await seedProduct({ price: 50.0 })
-      const testEmail = `${TEST_PREFIX}${Date.now()}@playwright.dev`
+      const testEmail = 'mavrick@realadvisor.com'
 
       await productPage.goto(product.handle)
       await productPage.addToCart()
@@ -240,12 +237,9 @@ test.describe('Payment-Specific Scenarios', () => {
       await checkoutShippingPage.continueToPayment()
       await checkoutPaymentPage.waitForPage()
 
-      const totalText = await page
-        .locator('text=/total/i')
-        .locator('..')
-        .locator('text=/\\$\\d+/')
-        .textContent()
-      const total = parseFloat(totalText?.replace('$', '') || '0')
+      // Total is uniquely displayed as "USD$XX.XX"
+      const totalText = await page.getByText(/USD\$[\d.]+/).textContent()
+      const total = parseFloat(totalText?.replace(/[^\d.]/g, '') || '0')
       expect(total).toBeGreaterThan(50)
     })
   })

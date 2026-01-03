@@ -32,10 +32,12 @@ export const logRequest = (
   }
 
   if (response.status >= 500) {
+    // eslint-disable-next-line no-console
     console.error(JSON.stringify(log))
   } else if (response.status >= 400) {
     console.warn(JSON.stringify(log))
   } else {
+    // eslint-disable-next-line no-console
     console.log(JSON.stringify(log))
   }
 }
@@ -88,6 +90,7 @@ export const logInfo = (message: string, context?: Record<string, unknown>) => {
     ...context,
   }
 
+  // eslint-disable-next-line no-console
   console.log(JSON.stringify(log))
 }
 

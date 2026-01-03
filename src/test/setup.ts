@@ -12,6 +12,18 @@ import '../lib/i18n'
 // Global Mocks - Router
 // =============================================================================
 
+/**
+ * Shared mock for useNavigate - import this in tests to assert on navigation calls.
+ *
+ * Usage:
+ * ```ts
+ * import { mockNavigate } from '@/test/setup'
+ *
+ * expect(mockNavigate).toHaveBeenCalledWith({ to: '/$lang/account', params: { lang: 'en' } })
+ * ```
+ */
+export const mockNavigate = vi.fn()
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
@@ -33,7 +45,7 @@ vi.mock('@tanstack/react-router', () => ({
     }
     return React.createElement('a', { href, className }, children)
   },
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
   useParams: () => ({ lang: 'en' }),
   useSearch: () => ({}),
   useLocation: () => ({ pathname: '/' }),

@@ -29,10 +29,12 @@ Every new feature MUST follow this strict 3-phase cycle. Do NOT skip phases.
 🔴 RED PHASE: Delegating to tdd-test-writer...
 
 Invoke the `tdd-test-writer` subagent with:
+
 - Feature requirement from user request
 - Expected behavior to test
 
 The subagent returns:
+
 - Test file path
 - Failure output confirming test fails
 - Summary of what the test verifies
@@ -44,10 +46,12 @@ The subagent returns:
 🟢 GREEN PHASE: Delegating to tdd-implementer...
 
 Invoke the `tdd-implementer` subagent with:
+
 - Test file path from RED phase
 - Feature requirement context
 
 The subagent returns:
+
 - Files modified
 - Success output confirming test passes
 - Implementation summary
@@ -59,10 +63,12 @@ The subagent returns:
 🔵 REFACTOR PHASE: Delegating to tdd-refactorer...
 
 Invoke the `tdd-refactorer` subagent with:
+
 - Test file path
 - Implementation files from GREEN phase
 
 The subagent returns either:
+
 - Changes made + test success output, OR
 - "No refactoring needed" with reasoning
 
@@ -81,6 +87,7 @@ Feature 3: 🔴 → 🟢 → 🔵 ✓
 ### Phase Violations
 
 Never:
+
 - Write implementation before the test
 - Proceed to Green without seeing Red fail
 - Skip Refactor evaluation
@@ -91,11 +98,13 @@ Never:
 ### Test User Behavior, Not Implementation
 
 **DO:** Test what users see and do
+
 - Can user click this button?
 - Does the correct text appear?
 - Does form submission work?
 
 **DON'T:** Test implementation details
+
 - Does component have specific CSS classes?
 - How many separators are rendered?
 - What's the internal state shape?
@@ -114,6 +123,7 @@ const renderComponent = (
 ```
 
 **Benefits:**
+
 - No repeating default props
 - Type-safe prop overrides
 - Easy to test edge cases
@@ -147,6 +157,7 @@ await user.click(screen.getByRole('button'))
 ### Implementation Details
 
 **DON'T** test:
+
 - Number of DOM elements (separators, wrappers)
 - Specific CSS class names (unless visually different to user)
 - Internal state structure
@@ -154,6 +165,7 @@ await user.click(screen.getByRole('button'))
 - Rendering optimization details
 
 **Example of what to avoid:**
+
 ```typescript
 // ❌ Testing implementation
 expect(container.querySelectorAll('.separator')).toHaveLength(2)
@@ -175,6 +187,7 @@ If you test "button is disabled when loading", you don't need another test for "
 **DON'T** test that React works, or that libraries work correctly.
 
 **Example:**
+
 ```typescript
 // ❌ Testing React
 it('renders without crashing', () => {
@@ -265,6 +278,7 @@ src/components/
 ## Real Examples
 
 See these files for reference:
+
 - `src/components/admin/components/AdminPagination.test.tsx` - Complex logic
 - `src/components/admin/components/AdminRowActions.test.tsx` - Dropdown testing
 - `src/components/admin/components/AdminBulkActionsBar.test.tsx` - User interactions

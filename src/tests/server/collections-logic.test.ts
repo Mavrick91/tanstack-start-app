@@ -187,11 +187,8 @@ describe('Collections Logic Tests', () => {
         })
         expect.fail('Expected to throw')
       } catch (e) {
-        expect(e).toBeInstanceOf(Response)
-        const response = e as Response
-        expect(response.status).toBe(404)
-        const body = await response.json()
-        expect(body.error).toBe('Collection not found')
+        expect(e).toBeInstanceOf(Error)
+        expect((e as Error).message).toBe('Collection not found')
       }
     })
   })
@@ -225,11 +222,8 @@ describe('Collections Logic Tests', () => {
         await deleteCollectionFn({ data: { id: 'c1' } })
         expect.fail('Expected to throw')
       } catch (e) {
-        expect(e).toBeInstanceOf(Response)
-        const response = e as Response
-        expect(response.status).toBe(404)
-        const body = await response.json()
-        expect(body.error).toBe('Collection not found')
+        expect(e).toBeInstanceOf(Error)
+        expect((e as Error).message).toBe('Collection not found')
       }
     })
   })

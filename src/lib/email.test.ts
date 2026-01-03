@@ -162,7 +162,7 @@ describe('Email Service', () => {
       const result = await sendPasswordResetEmail({
         email: 'user@example.com',
         resetToken: 'abc123def456',
-        resetUrl: 'https://finenail.com/reset?token=abc123def456',
+        resetUrl: 'https://finenailseason.com/reset?token=abc123def456',
       })
 
       expect(result.success).toBe(true)
@@ -174,7 +174,7 @@ describe('Email Service', () => {
       const result = await sendPasswordResetEmail({
         email: 'user@example.com',
         resetToken: 'abc123def456',
-        resetUrl: 'https://finenail.com/reset?token=abc123def456',
+        resetUrl: 'https://finenailseason.com/reset?token=abc123def456',
       })
 
       expect(result.success).toBe(false)

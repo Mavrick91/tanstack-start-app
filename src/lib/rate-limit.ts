@@ -25,6 +25,11 @@ export const checkRateLimit = async (
   limiter: LimiterType,
   key: string,
 ): Promise<RateLimitResult> => {
+  // Bypass rate limiting in development only (not in test)
+  if (process.env.NODE_ENV === 'development') {
+    return { allowed: true }
+  }
+
   const config = limiterConfigs[limiter]
   const compositeKey = `${limiter}:${key}`
   const now = new Date()
@@ -49,7 +54,7 @@ export const checkRateLimit = async (
           END`,
           // If expired, set new expiry; otherwise keep existing
           expiresAt: sql`CASE
-            WHEN ${rateLimits.expiresAt} < NOW() THEN ${expiresAt}
+            WHEN ${rateLimits.expiresAt} < NOW() THEN ${expiresAt.toISOString()}::timestamp
             ELSE ${rateLimits.expiresAt}
           END`,
         },

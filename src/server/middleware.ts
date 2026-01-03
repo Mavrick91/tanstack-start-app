@@ -55,7 +55,7 @@ export const authMiddleware = createMiddleware({ type: 'function' }).server(
     const data = session.data
 
     if (!data?.userId || !data.email || !data.role) {
-      throw redirect({ to: '/admin/login' })
+      throw redirect({ to: '/' })
     }
 
     return next({
@@ -87,10 +87,7 @@ export const adminMiddleware = createMiddleware({ type: 'function' })
   .middleware([authMiddleware])
   .server(async ({ next, context }) => {
     if (context.user.role !== 'admin') {
-      throw new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      throw new Error('Admin access required')
     }
 
     return next({
@@ -99,47 +96,3 @@ export const adminMiddleware = createMiddleware({ type: 'function' })
       },
     })
   })
-
-// ============================================
-// ERROR HELPERS
-// ============================================
-
-/**
- * Creates a JSON error response
- */
-export const createErrorResponse = (
-  message: string,
-  status: number = 400,
-): Response => {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })
-}
-
-/** Throws a 404 Not Found error */
-export const throwNotFound = (resource: string = 'Resource'): never => {
-  throw createErrorResponse(`${resource} not found`, 404)
-}
-
-/** Throws a 400 Bad Request error */
-export const throwBadRequest = (message: string): never => {
-  throw createErrorResponse(message, 400)
-}
-
-/** Throws a 401 Unauthorized error */
-export const throwUnauthorized = (message: string = 'Unauthorized'): never => {
-  throw createErrorResponse(message, 401)
-}
-
-/** Throws a 403 Forbidden error */
-export const throwForbidden = (message: string = 'Access denied'): never => {
-  throw createErrorResponse(message, 403)
-}
-
-/** Throws a 500 Internal Server Error */
-export const throwServerError = (
-  message: string = 'Internal server error',
-): never => {
-  throw createErrorResponse(message, 500)
-}
