@@ -10,6 +10,35 @@ import { calculateTax } from '../lib/tax'
 import { normalizeEmail } from '../lib/validation'
 import { SHIPPING_RATES, FREE_SHIPPING_THRESHOLD } from '../types/checkout'
 
+// Re-export types from the types module for backwards compatibility
+export type {
+  LocalizedString,
+  CartItem,
+  CheckoutCartItem,
+  CreateCheckoutInput,
+  CreateCheckoutResult,
+  CheckoutError,
+  SaveCustomerInput,
+  SaveCustomerResult,
+  ShippingAddress,
+  ShippingAddressInput,
+  SaveShippingAddressResult,
+  SaveShippingMethodInput,
+  SaveShippingMethodResult,
+  CompleteCheckoutInput,
+  CompleteCheckoutResult,
+} from './checkout/types'
+
+import type {
+  LocalizedString,
+  CheckoutCartItem,
+  CreateCheckoutInput,
+  SaveCustomerInput,
+  ShippingAddressInput,
+  SaveShippingMethodInput,
+  CompleteCheckoutInput,
+} from './checkout/types'
+
 // Helper to dynamically import database context (prevents server code leaking to client)
 const getDbContext = async () => {
   const { db } = await import('../db')
@@ -36,50 +65,6 @@ const getDbContext = async () => {
     orders,
     orderItems,
   }
-}
-
-type LocalizedString = { en: string; fr?: string; id?: string }
-
-export type CartItem = {
-  productId: string
-  variantId?: string
-  quantity: number
-}
-
-export type CheckoutCartItem = {
-  productId: string
-  variantId: string
-  quantity: number
-  title: string
-  variantTitle?: string
-  sku?: string
-  price: number
-  imageUrl?: string
-}
-
-export type CreateCheckoutInput = {
-  items: CartItem[]
-  currency?: string
-}
-
-export type CreateCheckoutResult = {
-  success: true
-  checkout: {
-    id: string
-    cartItems: CheckoutCartItem[]
-    subtotal: number
-    shippingTotal: number
-    taxTotal: number
-    total: number
-    currency: string
-    expiresAt: Date
-  }
-}
-
-export type CheckoutError = {
-  success: false
-  error: string
-  status: number
 }
 
 export const createCheckout = async (input: CreateCheckoutInput) => {
@@ -227,22 +212,6 @@ export const createCheckout = async (input: CreateCheckoutInput) => {
   }
 }
 
-export type SaveCustomerInput = {
-  checkoutId: string
-  email: string
-  firstName?: string
-  lastName?: string
-}
-
-export type SaveCustomerResult = {
-  success: true
-  checkout: {
-    id: string
-    email: string
-    customerId: string | null
-  }
-}
-
 export const saveCustomerInfo = async (input: SaveCustomerInput) => {
   const { checkoutId, email, firstName, lastName } = input
 
@@ -317,32 +286,6 @@ export const saveCustomerInfo = async (input: SaveCustomerInput) => {
   }
 }
 
-export type ShippingAddressInput = {
-  checkoutId: string
-  address: {
-    firstName: string
-    lastName: string
-    company?: string
-    address1: string
-    address2?: string
-    city: string
-    province?: string
-    provinceCode?: string
-    country: string
-    countryCode: string
-    zip: string
-    phone?: string
-  }
-}
-
-export type SaveShippingAddressResult = {
-  success: true
-  checkout: {
-    id: string
-    shippingAddress: ShippingAddressInput['address']
-  }
-}
-
 export const saveShippingAddress = async (input: ShippingAddressInput) => {
   const { checkoutId, address } = input
 
@@ -404,22 +347,6 @@ export const saveShippingAddress = async (input: ShippingAddressInput) => {
       id: updatedCheckout.id,
       shippingAddress: updatedCheckout.shippingAddress!,
     },
-  }
-}
-
-export type SaveShippingMethodInput = {
-  checkoutId: string
-  shippingRateId: string
-}
-
-export type SaveShippingMethodResult = {
-  success: true
-  checkout: {
-    id: string
-    shippingRateId: string
-    shippingMethod: string
-    shippingTotal: number
-    total: number
   }
 }
 
@@ -486,22 +413,6 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
       shippingTotal: parseFloat(updatedCheckout.shippingTotal || '0'),
       total: parseFloat(updatedCheckout.total),
     },
-  }
-}
-
-export type CompleteCheckoutInput = {
-  checkoutId: string
-  paymentProvider: 'stripe' | 'paypal'
-  paymentId: string
-}
-
-export type CompleteCheckoutResult = {
-  success: true
-  order: {
-    id: string
-    orderNumber: number
-    email: string
-    total: number
   }
 }
 
