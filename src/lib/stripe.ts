@@ -59,12 +59,5 @@ export const constructWebhookEvent = (
   return stripe.webhooks.constructEvent(body, signature, webhookSecret)
 }
 
-// Convert dollars to cents
-export const dollarsToCents = (dollars: number) => {
-  return Math.round(dollars * 100)
-}
-
-// Convert cents to dollars
-export const centsToDollars = (cents: number) => {
-  return cents / 100
-}
+// Re-export currency utilities for backwards compatibility
+export { dollarsToCents, centsToDollars } from './currency'

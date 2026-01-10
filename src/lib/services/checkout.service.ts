@@ -2,11 +2,9 @@ import { eq } from 'drizzle-orm'
 
 import { db as defaultDb } from '../../db'
 import { checkouts, orders, orderItems } from '../../db/schema'
+import { dollarsToCents } from '../currency'
 import { getPayPalOrder as defaultGetPayPalOrder } from '../paypal'
-import {
-  retrievePaymentIntent as defaultRetrievePaymentIntent,
-  dollarsToCents,
-} from '../stripe'
+import { retrievePaymentIntent as defaultRetrievePaymentIntent } from '../stripe'
 import {
   validateCheckoutComplete,
   validatePaymentInput,

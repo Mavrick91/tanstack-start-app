@@ -13,7 +13,7 @@ vi.mock('stripe', () => ({
   })),
 }))
 
-import { dollarsToCents, centsToDollars } from './stripe'
+import { dollarsToCents, centsToDollars } from './currency'
 
 // Note: We only test the utility functions here since the Stripe SDK
 // requires actual API keys and should be tested with integration tests

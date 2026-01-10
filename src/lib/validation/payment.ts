@@ -1,5 +1,8 @@
 import type { PaymentProvider } from '../../types/checkout'
 
+// Re-export currency utilities for backwards compatibility
+export { dollarsToCents, centsToDollars } from '../currency'
+
 /**
  * Payment input for validation.
  */
@@ -132,18 +135,4 @@ export const validatePayPalPayment = (
   }
 
   return { valid: true }
-}
-
-/**
- * Converts dollars to cents (for Stripe).
- */
-export const dollarsToCents = (dollars: number) => {
-  return Math.round(dollars * 100)
-}
-
-/**
- * Converts cents to dollars (from Stripe).
- */
-export const centsToDollars = (cents: number) => {
-  return cents / 100
 }

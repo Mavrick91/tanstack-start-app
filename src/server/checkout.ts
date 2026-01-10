@@ -869,8 +869,9 @@ export const createStripePaymentIntentFn = createServerFn({ method: 'GET' })
     }
 
     // Dynamic import to prevent Node.js code from leaking into client bundle
-    const { createPaymentIntent, dollarsToCents, getStripePublishableKey } =
+    const { createPaymentIntent, getStripePublishableKey } =
       await import('../lib/stripe')
+    const { dollarsToCents } = await import('../lib/currency')
 
     // Create Stripe PaymentIntent
     const totalInCents = dollarsToCents(parseFloat(checkout.total))
