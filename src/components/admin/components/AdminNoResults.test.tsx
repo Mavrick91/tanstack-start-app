@@ -69,7 +69,7 @@ describe('AdminNoResults', () => {
 
       const icon = container.querySelector('svg')
       expect(icon).toBeInTheDocument()
-      expect(icon).toHaveClass('w-5', 'h-5', 'text-muted-foreground/50')
+      expect(icon).toHaveClass('w-5', 'h-5', 'text-stone-400')
     })
   })
 
@@ -102,7 +102,7 @@ describe('AdminNoResults', () => {
       const { container } = renderComponent()
 
       const mainContainer = container.querySelector(
-        '.text-center.py-10.bg-card.border.border-border.rounded-lg',
+        '.text-center.py-10.bg-white.border.border-stone-200.rounded-2xl.shadow-sm',
       )
       expect(mainContainer).toBeInTheDocument()
     })
@@ -111,7 +111,7 @@ describe('AdminNoResults', () => {
       const { container } = renderComponent()
 
       const iconWrapper = container.querySelector(
-        '.w-12.h-12.bg-muted\\/50.rounded-md',
+        '.w-12.h-12.bg-stone-100.rounded-xl',
       )
       expect(iconWrapper).toBeInTheDocument()
     })

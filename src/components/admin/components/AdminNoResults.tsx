@@ -17,17 +17,17 @@ export const AdminNoResults = ({
   const { t } = useTranslation()
 
   return (
-    <div className="text-center py-10 bg-card border border-border rounded-lg">
-      <div className="w-12 h-12 bg-muted/50 rounded-md flex items-center justify-center mx-auto mb-4 border border-border">
-        <Search className="w-5 h-5 text-muted-foreground/50" />
+    <div className="text-center py-10 bg-white border border-stone-200 rounded-2xl shadow-sm">
+      <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <Search className="w-5 h-5 text-stone-400" />
       </div>
-      <p className="text-muted-foreground text-sm mb-4">
+      <p className="text-stone-500 text-sm mb-4">
         {message || t('No products match your filters.')}
       </p>
       <Button
         variant="outline"
         size="sm"
-        className="rounded-md px-5"
+        className="rounded-lg px-5 border-stone-200 hover:bg-stone-50"
         onClick={onClear}
         aria-label={clearLabel || t('Clear filters')}
       >
