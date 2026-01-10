@@ -121,7 +121,7 @@ export const ProductTable = ({
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <AdminStatusBadge status={product.status} variant="product" />
+                  <AdminStatusBadge status={product.status} />
                 </td>
                 <td className="px-4 py-3">
                   <PriceDisplay

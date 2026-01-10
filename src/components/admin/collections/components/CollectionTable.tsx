@@ -125,7 +125,6 @@ export const CollectionTable = ({
                 <td className="px-4 py-3">
                   <AdminStatusBadge
                     status={collection.publishedAt ? 'active' : 'draft'}
-                    variant="collection"
                   />
                 </td>
                 <td className="px-4 py-3">

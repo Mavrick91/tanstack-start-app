@@ -10,13 +10,6 @@ import type { ProductStatus } from '../products/types'
 // Collection status is derived from publishedAt
 export type CollectionStatus = 'active' | 'draft'
 
-type StatusVariant =
-  | 'product'
-  | 'order'
-  | 'payment'
-  | 'fulfillment'
-  | 'collection'
-
 type StatusType =
   | ProductStatus
   | OrderStatus
@@ -26,7 +19,6 @@ type StatusType =
 
 export type AdminStatusBadgeProps = {
   status: StatusType
-  variant?: StatusVariant
   showDot?: boolean
   className?: string
 }

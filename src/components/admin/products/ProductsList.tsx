@@ -117,10 +117,7 @@ export const ProductsListContent = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <AdminStatusBadge
-                      status={product.status}
-                      variant="product"
-                    />
+                    <AdminStatusBadge status={product.status} />
                   </td>
                   <td className="px-6 py-4">
                     {product.minPrice !== null ? (

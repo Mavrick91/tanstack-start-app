@@ -218,19 +218,13 @@ export const OrdersTable = ({
                   })}
                 </TableCell>
                 <TableCell>
-                  <AdminStatusBadge
-                    status={order.paymentStatus}
-                    variant="payment"
-                  />
+                  <AdminStatusBadge status={order.paymentStatus} />
                 </TableCell>
                 <TableCell>
-                  <AdminStatusBadge
-                    status={order.fulfillmentStatus}
-                    variant="fulfillment"
-                  />
+                  <AdminStatusBadge status={order.fulfillmentStatus} />
                 </TableCell>
                 <TableCell>
-                  <AdminStatusBadge status={order.status} variant="order" />
+                  <AdminStatusBadge status={order.status} />
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {formatDate(order.createdAt, 'datetime')}
