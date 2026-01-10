@@ -37,92 +37,92 @@ type StatusStyle = {
   dot: string
 }
 
-// Unified status styling with full dark mode support
+// Unified status styling with coral theme
 const statusStyles: Record<string, StatusStyle> = {
   // Product & Collection statuses
   active: {
-    bg: 'bg-emerald-100 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30',
-    text: 'text-emerald-800 dark:text-emerald-400',
+    bg: 'bg-emerald-50 border-emerald-200',
+    text: 'text-emerald-700',
     dot: 'bg-emerald-500',
   },
   draft: {
-    bg: 'bg-amber-100 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30',
-    text: 'text-amber-800 dark:text-amber-400',
-    dot: 'bg-amber-500',
+    bg: 'bg-stone-50 border-stone-200',
+    text: 'text-stone-700',
+    dot: 'bg-stone-400',
   },
   archived: {
-    bg: 'bg-gray-100 dark:bg-gray-500/10 border-gray-200 dark:border-gray-500/30',
-    text: 'text-gray-800 dark:text-gray-400',
-    dot: 'bg-gray-500',
+    bg: 'bg-stone-50 border-stone-200',
+    text: 'text-stone-700',
+    dot: 'bg-stone-400',
   },
 
   // Order statuses
   pending: {
-    bg: 'bg-yellow-100 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/30',
-    text: 'text-yellow-800 dark:text-yellow-400',
-    dot: 'bg-yellow-500',
+    bg: 'bg-amber-50 border-amber-200',
+    text: 'text-amber-700',
+    dot: 'bg-amber-500',
   },
   processing: {
-    bg: 'bg-blue-100 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30',
-    text: 'text-blue-800 dark:text-blue-400',
-    dot: 'bg-blue-500',
+    bg: 'bg-coral-50 border-coral-200',
+    text: 'text-coral-700',
+    dot: 'bg-coral-500',
   },
   shipped: {
-    bg: 'bg-purple-100 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/30',
-    text: 'text-purple-800 dark:text-purple-400',
-    dot: 'bg-purple-500',
+    bg: 'bg-sky-50 border-sky-200',
+    text: 'text-sky-700',
+    dot: 'bg-sky-500',
   },
   delivered: {
-    bg: 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/30',
-    text: 'text-green-800 dark:text-green-400',
-    dot: 'bg-green-500',
+    bg: 'bg-emerald-50 border-emerald-200',
+    text: 'text-emerald-700',
+    dot: 'bg-emerald-500',
   },
   cancelled: {
-    bg: 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/30',
-    text: 'text-red-800 dark:text-red-400',
-    dot: 'bg-red-500',
+    bg: 'bg-stone-50 border-stone-200',
+    text: 'text-stone-700',
+    dot: 'bg-stone-400',
   },
 
   // Payment statuses
   paid: {
-    bg: 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/30',
-    text: 'text-green-800 dark:text-green-400',
-    dot: 'bg-green-500',
+    bg: 'bg-emerald-50 border-emerald-200',
+    text: 'text-emerald-700',
+    dot: 'bg-emerald-500',
   },
   failed: {
-    bg: 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/30',
-    text: 'text-red-800 dark:text-red-400',
+    bg: 'bg-red-50 border-red-200',
+    text: 'text-red-700',
     dot: 'bg-red-500',
   },
   refunded: {
-    bg: 'bg-orange-100 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30',
-    text: 'text-orange-800 dark:text-orange-400',
-    dot: 'bg-orange-500',
+    bg: 'bg-amber-50 border-amber-200',
+    text: 'text-amber-700',
+    dot: 'bg-amber-500',
   },
 
   // Fulfillment statuses
   unfulfilled: {
-    bg: 'bg-gray-100 dark:bg-gray-500/10 border-gray-200 dark:border-gray-500/30',
-    text: 'text-gray-800 dark:text-gray-400',
-    dot: 'bg-gray-500',
+    bg: 'bg-stone-50 border-stone-200',
+    text: 'text-stone-700',
+    dot: 'bg-stone-400',
   },
   partial: {
-    bg: 'bg-yellow-100 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/30',
-    text: 'text-yellow-800 dark:text-yellow-400',
-    dot: 'bg-yellow-500',
+    bg: 'bg-amber-50 border-amber-200',
+    text: 'text-amber-700',
+    dot: 'bg-amber-500',
   },
   fulfilled: {
-    bg: 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/30',
-    text: 'text-green-800 dark:text-green-400',
-    dot: 'bg-green-500',
+    bg: 'bg-emerald-50 border-emerald-200',
+    text: 'text-emerald-700',
+    dot: 'bg-emerald-500',
   },
 }
 
 // Default fallback style
 const defaultStyle: StatusStyle = {
-  bg: 'bg-gray-100 dark:bg-gray-500/10 border-gray-200 dark:border-gray-500/30',
-  text: 'text-gray-800 dark:text-gray-400',
-  dot: 'bg-gray-500',
+  bg: 'bg-stone-50 border-stone-200',
+  text: 'text-stone-700',
+  dot: 'bg-stone-400',
 }
 
 // Human-readable labels for status values
@@ -168,7 +168,7 @@ export const AdminStatusBadge = ({
       )}
       <span
         className={cn(
-          'text-[10px] font-bold uppercase tracking-wider',
+          'text-xs font-medium',
           style.text,
         )}
       >
