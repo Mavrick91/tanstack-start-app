@@ -102,21 +102,21 @@ export const ProductsListContent = () => {
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
+            <thead>
+              <tr className="bg-muted/30 border-b border-border">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                   Product
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                   Status
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                   Price
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                   Variants
                 </th>
-                <th className="px-6 py-3"></th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -125,7 +125,7 @@ export const ProductsListContent = () => {
                   key={product.id}
                   className="hover:bg-muted/30 transition-colors"
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <a
                       href={`/admin/products/${product.id}`}
                       className="font-medium hover:text-pink-500 transition-colors"
@@ -138,20 +138,20 @@ export const ProductsListContent = () => {
                       </p>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <AdminStatusBadge status={product.status} />
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <PriceDisplay
                       minPrice={product.minPrice}
                       maxPrice={product.maxPrice}
                     />
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     {product.variantCount}{' '}
                     {product.variantCount === 1 ? 'variant' : 'variants'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <Button variant="ghost" size="sm">
                       <MoreHorizontal className="w-4 h-4" />
                     </Button>
