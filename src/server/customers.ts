@@ -50,20 +50,6 @@ export type CustomerAddress = {
 }
 
 // ============================================
-// HELPERS
-// ============================================
-
-// Get customer profile for the authenticated user (used by getCustomerSessionFn)
-const getCustomerForUser = async (userId: string) => {
-  const [customer] = await db
-    .select()
-    .from(customers)
-    .where(eq(customers.userId, userId))
-    .limit(1)
-  return customer
-}
-
-// ============================================
 // SERVER FUNCTIONS
 // ============================================
 
@@ -75,7 +61,11 @@ export const getCustomerSessionFn = createServerFn().handler(async () => {
     return { customer: null }
   }
 
-  const customer = await getCustomerForUser(user.id)
+  const [customer] = await db
+    .select()
+    .from(customers)
+    .where(eq(customers.userId, user.id))
+    .limit(1)
   if (!customer) {
     return { customer: null }
   }
