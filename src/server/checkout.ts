@@ -8,6 +8,16 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_RATES } from '../types/checkout'
+import {
+  createCheckout,
+  saveCustomerInfo,
+  saveShippingAddress,
+  saveShippingMethod,
+  completeCheckout,
+  getDbContext,
+} from './checkout/logic'
+
+import type { CheckoutCartItem } from './checkout/types'
 
 // Re-export types from the types module for backwards compatibility
 export type {
@@ -36,18 +46,8 @@ export {
   saveShippingMethod,
   completeCheckout,
   getDbContext,
-} from './checkout/logic'
+}
 
-import type { CheckoutCartItem } from './checkout/types'
-
-import {
-  createCheckout,
-  saveCustomerInfo,
-  saveShippingAddress,
-  saveShippingMethod,
-  completeCheckout,
-  getDbContext,
-} from './checkout/logic'
 
 // Input schemas
 const cartItemSchema = z.object({
