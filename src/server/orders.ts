@@ -24,6 +24,13 @@ import { z } from 'zod'
 import { db } from '../db'
 import { adminMiddleware } from './middleware'
 import { customers, orderItems, orders, orderStatusHistory } from '../db/schema'
+// Import and re-export helper functions for backwards compatibility
+import {
+  getOrderItemCounts,
+  getOrderItemsByOrderIds,
+  parseDecimal,
+  toDecimalString,
+} from './orders/helpers'
 // Import and re-export refund functions for backwards compatibility
 import {
   cancelOrderWithRefund,
@@ -34,6 +41,12 @@ import {
 
 import type { SQL } from 'drizzle-orm'
 
+export {
+  getOrderItemCounts,
+  getOrderItemsByOrderIds,
+  parseDecimal,
+  toDecimalString,
+}
 export type { CancellationResult, RefundResult } from './orders/refunds'
 export {
   cancelOrderWithRefund,
@@ -59,74 +72,6 @@ export interface OrderStatusChange {
   changedBy: string
   changedAt: Date
   reason?: string
-}
-
-export const parseDecimal = (value: string) => {
-  const parsed = parseFloat(value)
-  return Math.round(parsed * 100) / 100
-}
-
-export const toDecimalString = (value: number) => {
-  return value.toFixed(2)
-}
-
-export const getOrderItemCounts = async (orderIds: string[]) => {
-  if (orderIds.length === 0) {
-    return new Map()
-  }
-
-  const results = await db
-    .select({
-      orderId: orderItems.orderId,
-      itemCount: sql<number>`count(*)::int`,
-    })
-    .from(orderItems)
-    .where(inArray(orderItems.orderId, orderIds))
-    .groupBy(orderItems.orderId)
-
-  const countMap = new Map()
-  for (const row of results) {
-    countMap.set(row.orderId, row.itemCount)
-  }
-
-  // Set 0 for orders with no items
-  for (const orderId of orderIds) {
-    if (!countMap.has(orderId)) {
-      countMap.set(orderId, 0)
-    }
-  }
-
-  return countMap
-}
-
-/**
- * Get all items for multiple orders in a single query
- * Fixes N+1 query problem in customer orders listing
- */
-export const getOrderItemsByOrderIds = async (orderIds: string[]) => {
-  if (orderIds.length === 0) {
-    return new Map()
-  }
-
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(inArray(orderItems.orderId, orderIds))
-
-  const itemsMap = new Map<string, (typeof orderItems.$inferSelect)[]>()
-
-  // Initialize all orders with empty arrays
-  for (const orderId of orderIds) {
-    itemsMap.set(orderId, [])
-  }
-
-  // Group items by order
-  for (const item of items) {
-    const orderItemsList = itemsMap.get(item.orderId)!
-    orderItemsList.push(item)
-  }
-
-  return itemsMap
 }
 
 // Record an order status change in the audit trail
