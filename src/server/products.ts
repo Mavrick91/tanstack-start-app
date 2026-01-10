@@ -812,6 +812,7 @@ export const getProductsListFn = createServerFn()
         ? await db
             .select()
             .from(productImages)
+            .where(inArray(productImages.productId, productIds))
             .orderBy(asc(productImages.position))
         : []
 
@@ -827,6 +828,7 @@ export const getProductsListFn = createServerFn()
         ? await db
             .select()
             .from(productVariants)
+            .where(inArray(productVariants.productId, productIds))
             .orderBy(asc(productVariants.position))
         : []
 
