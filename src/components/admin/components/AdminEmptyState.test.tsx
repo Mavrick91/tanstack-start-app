@@ -76,7 +76,7 @@ describe('AdminEmptyState', () => {
 
       const icon = container.querySelector('svg')
       expect(icon).toBeInTheDocument()
-      expect(icon).toHaveClass('w-7', 'h-7', 'text-pink-500/40')
+      expect(icon).toHaveClass('w-7', 'h-7', 'text-coral-400')
     })
 
     it('renders with different icon', () => {
@@ -92,7 +92,7 @@ describe('AdminEmptyState', () => {
       const { container } = renderComponent()
 
       const mainContainer = container.querySelector(
-        '.text-center.py-12.bg-card.border.border-border.rounded-lg',
+        '.text-center.py-12.bg-white.border.border-stone-200.rounded-2xl.shadow-sm',
       )
       expect(mainContainer).toBeInTheDocument()
     })

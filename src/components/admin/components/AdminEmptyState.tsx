@@ -20,16 +20,16 @@ export const AdminEmptyState = ({
   actionHref,
 }: AdminEmptyStateProps) => {
   return (
-    <div className="text-center py-12 bg-card border border-border rounded-lg">
-      <div className="w-14 h-14 bg-pink-500/5 rounded-md flex items-center justify-center mx-auto mb-4">
-        <Icon className="w-7 h-7 text-pink-500/40" />
+    <div className="text-center py-12 bg-white border border-stone-200 rounded-2xl shadow-sm">
+      <div className="w-14 h-14 bg-coral-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <Icon className="w-7 h-7 text-coral-400" />
       </div>
-      <h3 className="text-lg font-bold mb-1">{title}</h3>
-      <p className="text-muted-foreground text-xs mb-5 max-w-xs mx-auto">
+      <h3 className="text-lg font-semibold text-stone-900 mb-1">{title}</h3>
+      <p className="text-stone-500 text-sm mb-5 max-w-xs mx-auto">
         {description}
       </p>
       <Link to={actionHref}>
-        <Button variant="outline" className="rounded-md h-9 px-5 font-semibold">
+        <Button className="bg-coral-500 hover:bg-coral-600 text-white rounded-xl h-9 px-5 font-medium">
           {actionLabel}
         </Button>
       </Link>
