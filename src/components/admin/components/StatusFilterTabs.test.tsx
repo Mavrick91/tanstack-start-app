@@ -82,23 +82,23 @@ describe('StatusFilterTabs', () => {
       renderComponent({ value: 'active' })
 
       const activeButton = screen.getByText('Active')
-      expect(activeButton).toHaveClass('bg-background')
-      expect(activeButton).toHaveClass('text-foreground')
+      expect(activeButton).toHaveClass('bg-white')
+      expect(activeButton).toHaveClass('text-stone-900')
     })
 
     it('does not highlight unselected options', () => {
       renderComponent({ value: 'active' })
 
       const allButton = screen.getByText('All')
-      expect(allButton).not.toHaveClass('bg-background')
-      expect(allButton).toHaveClass('text-muted-foreground')
+      expect(allButton).not.toHaveClass('bg-white')
+      expect(allButton).toHaveClass('text-stone-500')
     })
 
     it('updates highlighting when value changes', () => {
       const { rerender } = renderComponent({ value: 'all' })
 
       let allButton = screen.getByText('All')
-      expect(allButton).toHaveClass('bg-background')
+      expect(allButton).toHaveClass('bg-white')
 
       rerender(
         <StatusFilterTabs
@@ -111,22 +111,22 @@ describe('StatusFilterTabs', () => {
       allButton = screen.getByText('All')
       const activeButton = screen.getByText('Active')
 
-      expect(allButton).not.toHaveClass('bg-background')
-      expect(activeButton).toHaveClass('bg-background')
+      expect(allButton).not.toHaveClass('bg-white')
+      expect(activeButton).toHaveClass('bg-white')
     })
 
     it('highlights first option when value matches', () => {
       renderComponent({ value: 'all' })
 
       const firstButton = screen.getByText('All')
-      expect(firstButton).toHaveClass('bg-background')
+      expect(firstButton).toHaveClass('bg-white')
     })
 
     it('highlights last option when value matches', () => {
       renderComponent({ value: 'inactive' })
 
       const lastButton = screen.getByText('Inactive')
-      expect(lastButton).toHaveClass('bg-background')
+      expect(lastButton).toHaveClass('bg-white')
     })
   })
 
@@ -316,7 +316,7 @@ describe('StatusFilterTabs', () => {
       // No button should be highlighted
       const buttons = screen.getAllByRole('button')
       buttons.forEach((button) => {
-        expect(button).not.toHaveClass('bg-background')
+        expect(button).not.toHaveClass('bg-white')
       })
     })
 
@@ -337,8 +337,8 @@ describe('StatusFilterTabs', () => {
       const firstButton = screen.getByText('First')
       const secondButton = screen.getByText('Second')
 
-      expect(firstButton).toHaveClass('bg-background')
-      expect(secondButton).toHaveClass('bg-background')
+      expect(firstButton).toHaveClass('bg-white')
+      expect(secondButton).toHaveClass('bg-white')
 
       // Clicking should still work
       await user.click(firstButton)
@@ -354,7 +354,7 @@ describe('StatusFilterTabs', () => {
       renderComponent({ value: 'all' })
 
       const activeButton = screen.getByText('Active')
-      expect(activeButton).toHaveClass('hover:text-foreground')
+      expect(activeButton).toHaveClass('hover:text-stone-700')
     })
 
     it('applies transition classes to all buttons', () => {
@@ -415,8 +415,8 @@ describe('StatusFilterTabs', () => {
 
       renderComponent({ options: twoOptions, value: 'yes' })
 
-      expect(screen.getByText('Yes')).toHaveClass('bg-background')
-      expect(screen.getByText('No')).not.toHaveClass('bg-background')
+      expect(screen.getByText('Yes')).toHaveClass('bg-white')
+      expect(screen.getByText('No')).not.toHaveClass('bg-white')
     })
   })
 })

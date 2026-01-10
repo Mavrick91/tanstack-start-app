@@ -15,7 +15,7 @@ export const StatusFilterTabs = <T extends string>({
 }: StatusFilterTabsProps<T>) => {
   return (
     <div
-      className="flex gap-1.5 p-1 bg-muted/50 rounded-lg border border-border"
+      className="flex gap-1.5 p-1 bg-stone-100 rounded-lg"
       role="group"
       aria-label={ariaLabel}
     >
@@ -24,10 +24,10 @@ export const StatusFilterTabs = <T extends string>({
           key={opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            'px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all',
+            'px-3.5 py-1.5 rounded-md text-xs font-medium transition-all',
             value === opt.value
-              ? 'bg-background text-foreground'
-              : 'text-muted-foreground hover:text-foreground',
+              ? 'bg-white text-stone-900 shadow-sm'
+              : 'text-stone-500 hover:text-stone-700',
           )}
           aria-pressed={value === opt.value}
         >
