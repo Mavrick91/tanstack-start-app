@@ -30,6 +30,10 @@ import {
 } from '../db/schema'
 import { emptyToNull } from '../lib/api'
 import {
+  generateVariantCombinations,
+  type SelectedOption,
+} from './products/variants'
+import {
   productIdSchema,
   productInputSchema,
   updateProductStatusSchema,
@@ -38,27 +42,12 @@ import {
   type ProductVariantInput,
 } from './schemas/products'
 
-type SelectedOption = { name: string; value: string }
-
 // Re-export types for backwards compatibility
 export type { ProductInput, ProductOptionInput, ProductVariantInput }
 
-// Helper: Generate all variant combinations from options
-export const generateVariantCombinations = (
-  options: ProductOptionInput[],
-): SelectedOption[][] => {
-  if (options.length === 0) return [[]]
-
-  const [first, ...rest] = options
-  const restCombinations: SelectedOption[][] = generateVariantCombinations(rest)
-
-  return first.values.flatMap((value: string) =>
-    restCombinations.map((combo: SelectedOption[]) => [
-      { name: first.name, value },
-      ...combo,
-    ]),
-  )
-}
+// Re-export variant utilities for backwards compatibility
+export { generateVariantCombinations }
+export type { SelectedOption }
 
 export const getProductsFn = createServerFn({ method: 'GET' })
   .middleware([adminMiddleware])
