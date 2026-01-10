@@ -1,7 +1,10 @@
-/**
- * Cookie and session utilities.
- * Provides helpers for HTTP-only session cookie management.
- */
+// Cookie and session utilities
+// Provides helpers for HTTP-only session cookie management
+
+import {
+  SESSION_DURATION_MS,
+  SESSION_DURATION_SECONDS,
+} from '../../server/session'
 
 export const getCookie = (
   request: Request,
@@ -23,12 +26,13 @@ const secureFlag = isProduction ? ' Secure;' : ''
 
 export const createSessionCookie = (
   sessionId: string,
-  maxAge = 7 * 24 * 60 * 60,
+  maxAge = SESSION_DURATION_SECONDS,
 ) =>
   `session=${sessionId}; Path=/; HttpOnly;${secureFlag} SameSite=Lax; Max-Age=${maxAge}`
 
 export const clearSessionCookie = () =>
   `session=; Path=/; HttpOnly;${secureFlag} SameSite=Lax; Max-Age=0`
 
-export const getSessionExpiry = (days = 7) =>
-  new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+// Default uses SESSION_DURATION_MS, or pass custom days
+export const getSessionExpiry = (durationMs = SESSION_DURATION_MS) =>
+  new Date(Date.now() + durationMs)

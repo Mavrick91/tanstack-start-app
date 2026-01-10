@@ -7,7 +7,7 @@ import {
   exchangeCodeForTokens,
   getGoogleUser,
 } from '../../../../features/auth/lib/google-oauth'
-import { getAppSession } from '../../../../server/session'
+import { getAppSession, SESSION_DURATION_MS } from '../../../../server/session'
 
 export const Route = createFileRoute('/api/auth/google/callback')({
   server: {
@@ -99,7 +99,7 @@ export const Route = createFileRoute('/api/auth/google/callback')({
           }
 
           // Create DB session (for audit/revocation)
-          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
           await db.insert(sessions).values({ userId: user.id, expiresAt })
 
           // Set TanStack session (this is what getMeFn checks)

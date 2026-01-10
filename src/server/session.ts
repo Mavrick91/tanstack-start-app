@@ -1,6 +1,12 @@
 // Shared session helper for TanStack Start
 // Uses dynamic import to prevent server code leaking to client
 
+// 7 days in milliseconds (for database session expiry)
+export const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000
+
+// 7 days in seconds (for cookie maxAge)
+export const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60
+
 export type SessionUser = {
   userId: string
   email: string
@@ -18,7 +24,7 @@ export const getAppSession = async () => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: SESSION_DURATION_SECONDS,
     },
   })
 }

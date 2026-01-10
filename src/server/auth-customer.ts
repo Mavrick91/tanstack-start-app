@@ -164,11 +164,11 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
       // If user already verified, auto-login them
       if (user.emailVerified) {
         // Create session
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        const { getAppSession, SESSION_DURATION_MS } = await import('./session')
+        const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
         await db.insert(sessions).values({ userId: user.id, expiresAt })
 
         // Set cookie session
-        const { getAppSession } = await import('./session')
         const appSession = await getAppSession()
         await appSession.update({
           userId: user.id,
@@ -215,11 +215,11 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
     }
 
     // Create session
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const { getAppSession, SESSION_DURATION_MS } = await import('./session')
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
     await db.insert(sessions).values({ userId: user.id, expiresAt })
 
     // Set cookie session using shared helper
-    const { getAppSession } = await import('./session')
     const appSession = await getAppSession()
     await appSession.update({
       userId: user.id,

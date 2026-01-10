@@ -14,7 +14,7 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '../db'
-import { getAppSession, type SessionUser } from './session'
+import { getAppSession, SESSION_DURATION_MS, type SessionUser } from './session'
 import { sessions, users } from '../db/schema'
 
 // Re-export SessionUser for consumers
@@ -81,7 +81,7 @@ export const loginFn = createServerFn({ method: 'POST' })
     }
 
     // Create DB session (for audit/revocation)
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
     await db.insert(sessions).values({ userId: user.id, expiresAt })
 
     // Set cookie session
