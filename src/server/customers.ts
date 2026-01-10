@@ -119,10 +119,13 @@ export const updateCustomerMeFn = createServerFn({ method: 'POST' })
 
     // Build update object only with provided fields
     const updates: Record<string, unknown> = { updatedAt: new Date() }
-    if (data.firstName !== undefined) updates.firstName = data.firstName?.trim() || null
-    if (data.lastName !== undefined) updates.lastName = data.lastName?.trim() || null
+    if (data.firstName !== undefined)
+      updates.firstName = data.firstName?.trim() || null
+    if (data.lastName !== undefined)
+      updates.lastName = data.lastName?.trim() || null
     if (data.phone !== undefined) updates.phone = data.phone?.trim() || null
-    if (data.acceptsMarketing !== undefined) updates.acceptsMarketing = data.acceptsMarketing
+    if (data.acceptsMarketing !== undefined)
+      updates.acceptsMarketing = data.acceptsMarketing
 
     const [updatedCustomer] = await db
       .update(customers)

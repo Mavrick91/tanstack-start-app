@@ -19,7 +19,12 @@ import type {
 } from './types'
 
 type CheckoutValidationResult =
-  | { valid: true; checkout: Awaited<ReturnType<typeof getDbContext>>['checkouts']['$inferSelect'] }
+  | {
+      valid: true
+      checkout: Awaited<
+        ReturnType<typeof getDbContext>
+      >['checkouts']['$inferSelect']
+    }
   | { valid: false; error: string; status: number }
 
 /**
@@ -241,7 +246,11 @@ export const saveCustomerInfo = async (input: SaveCustomerInput) => {
 
   const validation = await validateCheckout(checkoutId)
   if (!validation.valid) {
-    return { success: false, error: validation.error, status: validation.status }
+    return {
+      success: false,
+      error: validation.error,
+      status: validation.status,
+    }
   }
   const { checkout } = validation
 
@@ -306,7 +315,11 @@ export const saveShippingAddress = async (input: ShippingAddressInput) => {
 
   const validation = await validateCheckout(checkoutId)
   if (!validation.valid) {
-    return { success: false, error: validation.error, status: validation.status }
+    return {
+      success: false,
+      error: validation.error,
+      status: validation.status,
+    }
   }
 
   // Dynamic import to prevent server code leaking to client
@@ -360,7 +373,11 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
 
   const validation = await validateCheckout(checkoutId)
   if (!validation.valid) {
-    return { success: false, error: validation.error, status: validation.status }
+    return {
+      success: false,
+      error: validation.error,
+      status: validation.status,
+    }
   }
   const { checkout } = validation
 

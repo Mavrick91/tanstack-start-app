@@ -49,7 +49,9 @@ const OptionalSortHeader = ({
       onSort={onSort}
     />
   ) : (
-    <TableHead className="text-muted-foreground font-semibold">{label}</TableHead>
+    <TableHead className="text-muted-foreground font-semibold">
+      {label}
+    </TableHead>
   )
 
 type OrdersTableProps = {

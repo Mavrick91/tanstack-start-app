@@ -20,10 +20,10 @@ export const SortableHeader = <T extends string>({
   const isActive = sortKey === currentSortKey
 
   return (
-    <th className="text-left px-6 py-3 bg-stone-50">
+    <th className="text-left px-4 py-3">
       <button
         onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors group/header"
+        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 hover:text-muted-foreground transition-colors group/header"
       >
         {label}
         <span className="w-3.5 h-3.5">

@@ -82,7 +82,8 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
     // Determine sort column (productCount sorted in-memory after query)
     const sortColumn =
       data.sortKey === 'name' ? collections.name : collections.createdAt
-    const orderBy = data.sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
+    const orderBy =
+      data.sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
 
     // Get Total
     const [{ total }] = await db
@@ -486,7 +487,9 @@ export const duplicateCollectionFn = createServerFn({ method: 'POST' })
       handle = `${baseHandle}-${attempt + 1}`
 
       if (attempt === MAX_HANDLE_ATTEMPTS - 1) {
-        throw new Error('Failed to generate unique handle after maximum attempts')
+        throw new Error(
+          'Failed to generate unique handle after maximum attempts',
+        )
       }
     }
 

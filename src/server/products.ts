@@ -419,7 +419,9 @@ export const getProductStatsFn = createServerFn()
         total: count(),
         active: count(sql`CASE WHEN ${products.status} = 'active' THEN 1 END`),
         draft: count(sql`CASE WHEN ${products.status} = 'draft' THEN 1 END`),
-        archived: count(sql`CASE WHEN ${products.status} = 'archived' THEN 1 END`),
+        archived: count(
+          sql`CASE WHEN ${products.status} = 'archived' THEN 1 END`,
+        ),
       })
       .from(products)
 

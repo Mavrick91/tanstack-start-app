@@ -8,7 +8,11 @@ const getBaseUrl = () => {
 }
 
 // Helper to create a session for a user (reduces duplication in verify/login flows)
-const createUserSession = async (user: { id: string; email: string; role: string }) => {
+const createUserSession = async (user: {
+  id: string
+  email: string
+  role: string
+}) => {
   const { db } = await import('../db')
   const { sessions } = await import('../db/schema')
   const { getAppSession, SESSION_DURATION_MS } = await import('./session')

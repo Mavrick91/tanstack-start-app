@@ -12,7 +12,9 @@ vi.mock('@/server/products', () => ({
 
 const mockGetAdminProducts = vi.mocked(getAdminProductsFn)
 
-type MockProduct = Awaited<ReturnType<typeof getAdminProductsFn>>['data'][number]
+type MockProduct = Awaited<
+  ReturnType<typeof getAdminProductsFn>
+>['data'][number]
 
 // Helper to create complete mock products
 const createMockProduct = (overrides: Partial<MockProduct> = {}): MockProduct =>
@@ -82,7 +84,10 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
+    mockGetAdminProducts.mockResolvedValue({
+      success: true,
+      data: mockProducts,
+    })
 
     render(<ProductsListContent />)
 
@@ -137,7 +142,10 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
+    mockGetAdminProducts.mockResolvedValue({
+      success: true,
+      data: mockProducts,
+    })
 
     render(<ProductsListContent />)
 
@@ -158,7 +166,10 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
+    mockGetAdminProducts.mockResolvedValue({
+      success: true,
+      data: mockProducts,
+    })
 
     render(<ProductsListContent />)
 
