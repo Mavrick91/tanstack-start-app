@@ -72,7 +72,9 @@ export const ForgotPasswordForm = () => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        {t("Enter your email address and we'll send you a link to reset your password.")}
+        {t(
+          "Enter your email address and we'll send you a link to reset your password.",
+        )}
       </p>
 
       <AnimatePresence>

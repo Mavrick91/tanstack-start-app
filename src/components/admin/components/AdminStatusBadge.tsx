@@ -166,14 +166,7 @@ export const AdminStatusBadge = ({
       {showDot && (
         <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', style.dot)} />
       )}
-      <span
-        className={cn(
-          'text-[10px] font-bold uppercase tracking-wider',
-          style.text,
-        )}
-      >
-        {label}
-      </span>
+      <span className={cn('text-xs font-medium', style.text)}>{label}</span>
     </span>
   )
 }

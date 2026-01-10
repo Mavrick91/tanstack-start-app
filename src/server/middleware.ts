@@ -20,8 +20,8 @@ import { createMiddleware } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../db'
-import { customers } from '../db/schema'
 import { getAppSession, type SessionUser } from './session'
+import { customers } from '../db/schema'
 
 // ============================================
 // TYPES

@@ -46,10 +46,10 @@ const AdminLayout = () => {
             <span className="text-xs font-black italic">FN</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">FineNail</h1>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-pink-500">
-              Control Panel
-            </p>
+            <h1 className="text-lg font-bold tracking-tight text-stone-900">
+              FineNail
+            </h1>
+            <p className="text-xs font-medium text-coral-500">Control Panel</p>
           </div>
         </div>
 
@@ -87,9 +87,7 @@ const AdminLayout = () => {
               <p className="text-xs font-bold truncate">
                 {user?.email?.split('@')[0]}
               </p>
-              <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest">
-                Admin
-              </p>
+              <p className="text-xs text-stone-500">Admin</p>
             </div>
           </div>
           <Button
@@ -99,9 +97,7 @@ const AdminLayout = () => {
             onClick={handleLogout}
           >
             <LogOut className="size-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Logout
-            </span>
+            <span className="text-sm font-medium">Logout</span>
           </Button>
         </div>
       </aside>

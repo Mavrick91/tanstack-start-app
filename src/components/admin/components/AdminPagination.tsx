@@ -57,9 +57,7 @@ export const AdminPagination = ({
 
             return (
               <div key={page} className="flex items-center">
-                {showEllipsis && (
-                  <span className="px-2 text-muted-foreground">…</span>
-                )}
+                {showEllipsis && <span className="px-2 text-stone-400">…</span>}
                 <Button
                   variant={page === currentPage ? 'default' : 'outline'}
                   size="icon"

@@ -224,24 +224,58 @@ import { products, orders, users } from '@/db/schema'
 - `customerMiddleware` provides typed `context.customer` for customer-authenticated operations
 - Middleware chains correctly: `adminMiddleware` and `customerMiddleware` inherit `authMiddleware`
 
-### Top-Level Imports in Server Functions
+### Import Patterns in Server Functions
+
+Server functions support two import patterns: **top-level imports** (default) and **dynamic imports** (for client-shared files).
+
+#### Top-Level Imports (Default)
 
 **Why**: Prevents runtime module loading issues, better performance
 
 ```typescript
-// ✅ CORRECT - Top-level
+// ✅ CORRECT - Top-level imports for server-only modules
 import { db } from '../db'
 import { products } from '../db/schema'
+import { adminMiddleware } from './middleware'
 
-export const getProductsFn = createServerFn().handler(async () => {
-  return await db.select().from(products)
-})
-
-// ❌ WRONG - Inside handler
-export const getProductsFn = createServerFn().handler(async () => {
-  const { db } = await import('../db') // Don't do this
-})
+export const getProductsFn = createServerFn()
+  .middleware([adminMiddleware])
+  .handler(async () => {
+    return await db.select().from(products)
+  })
 ```
+
+**Use top-level imports for:**
+- Database (`db`, schemas)
+- Middleware (`authMiddleware`, `adminMiddleware`, `customerMiddleware`)
+- Server-only utilities
+- Validation schemas (Zod)
+
+#### Dynamic Imports (For Client-Shared Files)
+
+**Why**: Prevents Node.js-specific code from leaking into the client bundle
+
+Some modules contain Node.js dependencies (like `stripe` SDK) that cause build errors if bundled into client code. When a server function is imported by a client-side file, TanStack Start extracts the server code, but static imports at the top of the file are analyzed during bundling.
+
+```typescript
+// ✅ CORRECT - Dynamic import for Node.js-specific modules
+export const createStripePaymentIntentFn = createServerFn({ method: 'GET' })
+  .handler(async ({ data }) => {
+    // Dynamic import prevents Stripe SDK from bundling into client
+    const { createPaymentIntent, getStripePublishableKey } =
+      await import('../lib/stripe')
+    const { dollarsToCents } = await import('../lib/currency')
+
+    // ... use the imported functions
+  })
+```
+
+**Use dynamic imports when:**
+- The module uses Node.js-only dependencies (Stripe SDK, PayPal SDK, Node crypto)
+- The server function file is imported by client components
+- You see build errors about missing Node.js modules in the client bundle
+
+**Reference**: See `src/server/checkout.ts` for comprehensive examples of dynamic imports for payment processing, cookies, and auth utilities.
 
 ### FNForm Standardization
 

@@ -29,21 +29,18 @@ export const OrderStatsCards = ({
       value: stats.pending,
       icon: Clock,
       color: 'yellow' as const,
-      hasAttention: stats.pending > 0,
     },
     {
       label: t('Awaiting Payment'),
       value: stats.unpaid,
       icon: CreditCard,
       color: 'yellow' as const,
-      hasAttention: stats.unpaid > 0,
     },
     {
       label: t('Unfulfilled'),
       value: stats.unfulfilled,
       icon: Package,
       color: 'blue' as const,
-      hasAttention: stats.unfulfilled > 0,
     },
     {
       label: t("Today's Revenue"),
@@ -53,7 +50,6 @@ export const OrderStatsCards = ({
       }),
       icon: DollarSign,
       color: 'green' as const,
-      hasAttention: stats.todayRevenue > 0,
     },
   ]
 

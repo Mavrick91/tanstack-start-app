@@ -122,7 +122,7 @@ export const OrderDetail = ({
             <div className="space-y-4">
               {order.items?.map((item) => (
                 <div key={item.id} className="flex gap-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}

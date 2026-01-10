@@ -49,8 +49,8 @@ export const AdminBulkActionsBar = ({
               variant="ghost"
               className={
                 isDestructive
-                  ? 'h-8 px-3 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 gap-1.5 font-medium'
-                  : 'h-8 px-3 text-background hover:bg-background/10 hover:text-background gap-1.5 font-medium'
+                  ? 'h-8 px-3 text-red-400 hover:bg-red-500/20 hover:text-red-300 gap-1.5 font-medium'
+                  : 'h-8 px-3 text-white hover:bg-white/50 gap-1.5 font-medium'
               }
               onClick={() => onAction(action.key)}
               disabled={isPending}

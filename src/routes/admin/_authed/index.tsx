@@ -88,9 +88,7 @@ const AdminDashboard = (): React.ReactNode => {
               <p className="text-2xl font-bold text-foreground mb-0.5">
                 {stat.value}
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                {stat.label}
-              </p>
+              <p className="text-sm font-medium text-stone-500">{stat.label}</p>
             </div>
           </div>
         ))}

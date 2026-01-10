@@ -12,9 +12,9 @@ import { and, count, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '../db'
+import { customerMiddleware } from './middleware'
 import { getOrderItemsByOrderIds, parseDecimal } from './orders'
 import { addresses, customers, orderItems, orders } from '../db/schema'
-import { customerMiddleware } from './middleware'
 
 // ============================================
 // TYPES

@@ -18,7 +18,6 @@ export type AdminStatsCardProps = {
   icon: LucideIcon
   color: StatsCardColor
   isLoading?: boolean
-  hasAttention?: boolean
 }
 
 export type AdminStatsGridProps = {
@@ -27,49 +26,38 @@ export type AdminStatsGridProps = {
   columns?: 2 | 3 | 4
 }
 
-const colorStyles: Record<
-  StatsCardColor,
-  { bg: string; text: string; attention: string }
-> = {
+const colorStyles: Record<StatsCardColor, { bg: string; text: string }> = {
   pink: {
     bg: 'bg-pink-500/5',
     text: 'text-pink-500',
-    attention: 'border-pink-500/30 bg-pink-500/5',
   },
   emerald: {
     bg: 'bg-emerald-500/5',
     text: 'text-emerald-500',
-    attention: 'border-emerald-500/30 bg-emerald-500/5',
   },
   amber: {
     bg: 'bg-amber-500/5',
     text: 'text-amber-500',
-    attention: 'border-amber-500/30 bg-amber-500/5',
   },
   rose: {
     bg: 'bg-rose-500/5',
     text: 'text-rose-500',
-    attention: 'border-rose-500/30 bg-rose-500/5',
   },
   violet: {
     bg: 'bg-violet-500/5',
     text: 'text-violet-500',
-    attention: 'border-violet-500/30 bg-violet-500/5',
   },
   blue: {
     bg: 'bg-blue-500/5',
     text: 'text-blue-500',
-    attention: 'border-blue-500/30 bg-blue-500/5',
   },
   yellow: {
     bg: 'bg-yellow-500/5',
     text: 'text-yellow-500',
-    attention: 'border-yellow-500/30 bg-yellow-500/5',
   },
   green: {
     bg: 'bg-green-500/5',
     text: 'text-green-500',
-    attention: 'border-green-500/30 bg-green-500/5',
   },
 }
 
@@ -79,7 +67,6 @@ export const AdminStatsCard = ({
   icon: Icon,
   color,
   isLoading = false,
-  hasAttention = false,
 }: AdminStatsCardProps) => {
   const styles = colorStyles[color]
 
@@ -98,8 +85,7 @@ export const AdminStatsCard = ({
   return (
     <div
       className={cn(
-        'bg-card border rounded-lg p-4 flex items-center gap-4',
-        hasAttention ? styles.attention : 'border-border',
+        'bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-4 transition-all duration-200',
       )}
     >
       <div className={cn('p-3 rounded-md', styles.bg)}>

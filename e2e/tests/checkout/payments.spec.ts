@@ -1,6 +1,6 @@
-import { test, expect } from '../../fixtures/cleanup-fixture'
 import { type Page } from '@playwright/test'
 
+import { test, expect } from '../../fixtures/cleanup-fixture'
 import { TEST_DATA } from '../../fixtures/test-data'
 import { CartHelper } from '../../helpers/cart.helper'
 import { seedProduct, cleanupTestData } from '../../helpers/db.helper'
@@ -40,7 +40,7 @@ test.describe('Payment-Specific Scenarios', () => {
     await cleanupTestData()
   })
 
-  async function navigateToPayment(page: Page): Promise<{ email: string }> {
+  const navigateToPayment = async (page: Page): Promise<{ email: string }> => {
     const product = await seedProduct()
     const testEmail = 'mavrick@realadvisor.com'
 
@@ -144,7 +144,9 @@ test.describe('Payment-Specific Scenarios', () => {
       await checkoutPaymentPage.selectPayPalPayment()
 
       const paypalFrame = page.frameLocator('iframe[title*="PayPal"]').first()
-      await expect(paypalFrame.getByRole('link', { name: 'PayPal' })).toBeVisible({
+      await expect(
+        paypalFrame.getByRole('link', { name: 'PayPal' }),
+      ).toBeVisible({
         timeout: 15000,
       })
 
