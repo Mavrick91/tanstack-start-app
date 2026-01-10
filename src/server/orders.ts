@@ -103,9 +103,6 @@ export const getOrderAuditTrail = async (orderId: string) => {
   }))
 }
 
-// Clear audit trail (for testing only)
-export const clearAuditTrail = async () => {}
-
 export const validateManualPaymentStatusChange = (
   currentStatus: PaymentStatus,
   newStatus: PaymentStatus,
