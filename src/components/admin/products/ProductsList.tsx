@@ -6,8 +6,6 @@ import { formatCurrency } from '../../../lib/format'
 import { getAdminProductsFn } from '../../../server/products'
 import { AdminStatusBadge } from '../components/AdminStatusBadge'
 
-type AdminProduct = Awaited<ReturnType<typeof getAdminProductsFn>>[number]
-
 export type Product = {
   id: string
   handle: string
@@ -51,7 +49,7 @@ export const ProductsListContent = () => {
     )
   }
 
-  const products = (data as AdminProduct[]) || []
+  const products = data?.data ?? []
 
   return (
     <div className="space-y-6">

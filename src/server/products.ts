@@ -355,7 +355,7 @@ export const getAdminProductsFn = createServerFn()
       .orderBy(desc(products.createdAt))
 
     if (allProducts.length === 0) {
-      return []
+      return { success: true as const, data: [] }
     }
 
     const productIds = allProducts.map((p) => p.id)
@@ -406,7 +406,7 @@ export const getAdminProductsFn = createServerFn()
       }
     })
 
-    return productsWithData
+    return { success: true as const, data: productsWithData }
   })
 
 export const getProductStatsFn = createServerFn()

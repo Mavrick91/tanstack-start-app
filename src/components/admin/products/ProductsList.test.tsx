@@ -12,7 +12,7 @@ vi.mock('@/server/products', () => ({
 
 const mockGetAdminProducts = vi.mocked(getAdminProductsFn)
 
-type MockProduct = Awaited<ReturnType<typeof getAdminProductsFn>>[number]
+type MockProduct = Awaited<ReturnType<typeof getAdminProductsFn>>['data'][number]
 
 // Helper to create complete mock products
 const createMockProduct = (overrides: Partial<MockProduct> = {}): MockProduct =>
@@ -49,7 +49,7 @@ describe('Products List Page', () => {
   })
 
   it('should show empty state when no products', async () => {
-    mockGetAdminProducts.mockResolvedValue([])
+    mockGetAdminProducts.mockResolvedValue({ success: true, data: [] })
 
     render(<ProductsListContent />)
 
@@ -82,7 +82,7 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue(mockProducts)
+    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
 
     render(<ProductsListContent />)
 
@@ -111,7 +111,7 @@ describe('Products List Page', () => {
   })
 
   it('should have Add Product button linking to new page', async () => {
-    mockGetAdminProducts.mockResolvedValue([])
+    mockGetAdminProducts.mockResolvedValue({ success: true, data: [] })
 
     render(<ProductsListContent />)
 
@@ -137,7 +137,7 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue(mockProducts)
+    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
 
     render(<ProductsListContent />)
 
@@ -158,7 +158,7 @@ describe('Products List Page', () => {
       }),
     ]
 
-    mockGetAdminProducts.mockResolvedValue(mockProducts)
+    mockGetAdminProducts.mockResolvedValue({ success: true, data: mockProducts })
 
     render(<ProductsListContent />)
 
