@@ -3,6 +3,7 @@ import {
   Outlet,
   createFileRoute,
   useRouter,
+  useLocation,
   Link,
 } from '@tanstack/react-router'
 import {
@@ -27,6 +28,7 @@ const navItems = [
 const AdminLayout = () => {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const location = useLocation()
   const { user } = Route.useRouteContext()
 
   const handleLogout = async () => {
