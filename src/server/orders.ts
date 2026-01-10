@@ -39,6 +39,11 @@ import {
   refundStripePayment,
 } from './orders/refunds'
 
+import type {
+  OrderStatus,
+  PaymentStatus,
+  FulfillmentStatus,
+} from '../types/checkout'
 import type { SQL } from 'drizzle-orm'
 
 export {
@@ -54,15 +59,7 @@ export {
   refundPayPalPayment,
   refundStripePayment,
 }
-
-export type OrderStatus =
-  | 'pending'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled'
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
-export type FulfillmentStatus = 'unfulfilled' | 'partial' | 'fulfilled'
+export type { OrderStatus, PaymentStatus, FulfillmentStatus }
 
 export interface OrderStatusChange {
   orderId: string
