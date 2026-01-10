@@ -16,7 +16,6 @@ import { Route as LangIndexRouteImport } from './routes/$lang/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
 import { Route as LangAccountRouteImport } from './routes/$lang/account'
-import { Route as ApiOrdersIndexRouteImport } from './routes/api/orders/index'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
 import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
 import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/index'
@@ -28,9 +27,6 @@ import { Route as LangAccountIndexRouteImport } from './routes/$lang/account/ind
 import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as ApiWebhooksPaypalRouteImport } from './routes/api/webhooks/paypal'
 import { Route as ApiProductsStatsRouteImport } from './routes/api/products/stats'
-import { Route as ApiOrdersStatsRouteImport } from './routes/api/orders/stats'
-import { Route as ApiOrdersBulkRouteImport } from './routes/api/orders/bulk'
-import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -49,8 +45,6 @@ import { Route as ApiAuthGoogleIndexRouteImport } from './routes/api/auth/google
 import { Route as AdminAuthedProductsIndexRouteImport } from './routes/admin/_authed/products/index'
 import { Route as AdminAuthedOrdersIndexRouteImport } from './routes/admin/_authed/orders/index'
 import { Route as AdminAuthedCollectionsIndexRouteImport } from './routes/admin/_authed/collections/index'
-import { Route as ApiOrdersOrderIdRefundRouteImport } from './routes/api/orders/$orderId/refund'
-import { Route as ApiOrdersOrderIdHistoryRouteImport } from './routes/api/orders/$orderId/history'
 import { Route as ApiAuthGoogleCallbackRouteImport } from './routes/api/auth/google/callback'
 import { Route as AdminAuthedProductsNewRouteImport } from './routes/admin/_authed/products/new'
 import { Route as AdminAuthedProductsProductIdRouteImport } from './routes/admin/_authed/products/$productId'
@@ -101,11 +95,6 @@ const LangAccountRoute = LangAccountRouteImport.update({
   id: '/account',
   path: '/account',
   getParentRoute: () => LangRoute,
-} as any)
-const ApiOrdersIndexRoute = ApiOrdersIndexRouteImport.update({
-  id: '/api/orders/',
-  path: '/api/orders/',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMediaIndexRoute = ApiMediaIndexRouteImport.update({
   id: '/api/media/',
@@ -160,21 +149,6 @@ const ApiWebhooksPaypalRoute = ApiWebhooksPaypalRouteImport.update({
 const ApiProductsStatsRoute = ApiProductsStatsRouteImport.update({
   id: '/api/products/stats',
   path: '/api/products/stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiOrdersStatsRoute = ApiOrdersStatsRouteImport.update({
-  id: '/api/orders/stats',
-  path: '/api/orders/stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiOrdersBulkRoute = ApiOrdersBulkRouteImport.update({
-  id: '/api/orders/bulk',
-  path: '/api/orders/bulk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiOrdersOrderIdRoute = ApiOrdersOrderIdRouteImport.update({
-  id: '/api/orders/$orderId',
-  path: '/api/orders/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
@@ -270,16 +244,6 @@ const AdminAuthedCollectionsIndexRoute =
     path: '/collections/',
     getParentRoute: () => AdminAuthedRoute,
   } as any)
-const ApiOrdersOrderIdRefundRoute = ApiOrdersOrderIdRefundRouteImport.update({
-  id: '/refund',
-  path: '/refund',
-  getParentRoute: () => ApiOrdersOrderIdRoute,
-} as any)
-const ApiOrdersOrderIdHistoryRoute = ApiOrdersOrderIdHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => ApiOrdersOrderIdRoute,
-} as any)
 const ApiAuthGoogleCallbackRoute = ApiAuthGoogleCallbackRouteImport.update({
   id: '/api/auth/google/callback',
   path: '/api/auth/google/callback',
@@ -391,9 +355,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
-  '/api/orders/bulk': typeof ApiOrdersBulkRoute
-  '/api/orders/stats': typeof ApiOrdersStatsRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -405,7 +366,6 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminAuthedIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
-  '/api/orders': typeof ApiOrdersIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -416,8 +376,6 @@ export interface FileRoutesByFullPath {
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
-  '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
-  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
@@ -448,9 +406,6 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
-  '/api/orders/bulk': typeof ApiOrdersBulkRoute
-  '/api/orders/stats': typeof ApiOrdersStatsRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -461,7 +416,6 @@ export interface FileRoutesByTo {
   '/$lang/products': typeof LangProductsIndexRoute
   '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
-  '/api/orders': typeof ApiOrdersIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -472,8 +426,6 @@ export interface FileRoutesByTo {
   '/admin/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthedProductsNewRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
-  '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
-  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/collections': typeof AdminAuthedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthedOrdersIndexRoute
   '/admin/products': typeof AdminAuthedProductsIndexRoute
@@ -508,9 +460,6 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/orders/$orderId': typeof ApiOrdersOrderIdRouteWithChildren
-  '/api/orders/bulk': typeof ApiOrdersBulkRoute
-  '/api/orders/stats': typeof ApiOrdersStatsRoute
   '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
@@ -522,7 +471,6 @@ export interface FileRoutesById {
   '/admin/_authed/': typeof AdminAuthedIndexRoute
   '/api/collections/': typeof ApiCollectionsIndexRoute
   '/api/media/': typeof ApiMediaIndexRoute
-  '/api/orders/': typeof ApiOrdersIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
   '/$lang/demo/start/api-request': typeof LangDemoStartApiRequestRoute
@@ -533,8 +481,6 @@ export interface FileRoutesById {
   '/admin/_authed/products/$productId': typeof AdminAuthedProductsProductIdRoute
   '/admin/_authed/products/new': typeof AdminAuthedProductsNewRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
-  '/api/orders/$orderId/history': typeof ApiOrdersOrderIdHistoryRoute
-  '/api/orders/$orderId/refund': typeof ApiOrdersOrderIdRefundRoute
   '/admin/_authed/collections/': typeof AdminAuthedCollectionsIndexRoute
   '/admin/_authed/orders/': typeof AdminAuthedOrdersIndexRoute
   '/admin/_authed/products/': typeof AdminAuthedProductsIndexRoute
@@ -569,9 +515,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/orders/$orderId'
-    | '/api/orders/bulk'
-    | '/api/orders/stats'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -583,7 +526,6 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/collections'
     | '/api/media'
-    | '/api/orders'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -594,8 +536,6 @@ export interface FileRouteTypes {
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/api/auth/google/callback'
-    | '/api/orders/$orderId/history'
-    | '/api/orders/$orderId/refund'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
@@ -626,9 +566,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/orders/$orderId'
-    | '/api/orders/bulk'
-    | '/api/orders/stats'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -639,7 +576,6 @@ export interface FileRouteTypes {
     | '/$lang/products'
     | '/api/collections'
     | '/api/media'
-    | '/api/orders'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -650,8 +586,6 @@ export interface FileRouteTypes {
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/api/auth/google/callback'
-    | '/api/orders/$orderId/history'
-    | '/api/orders/$orderId/refund'
     | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
@@ -685,9 +619,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/orders/$orderId'
-    | '/api/orders/bulk'
-    | '/api/orders/stats'
     | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
@@ -699,7 +630,6 @@ export interface FileRouteTypes {
     | '/admin/_authed/'
     | '/api/collections/'
     | '/api/media/'
-    | '/api/orders/'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
     | '/$lang/demo/start/api-request'
@@ -710,8 +640,6 @@ export interface FileRouteTypes {
     | '/admin/_authed/products/$productId'
     | '/admin/_authed/products/new'
     | '/api/auth/google/callback'
-    | '/api/orders/$orderId/history'
-    | '/api/orders/$orderId/refund'
     | '/admin/_authed/collections/'
     | '/admin/_authed/orders/'
     | '/admin/_authed/products/'
@@ -732,15 +660,11 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
-  ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRouteWithChildren
-  ApiOrdersBulkRoute: typeof ApiOrdersBulkRoute
-  ApiOrdersStatsRoute: typeof ApiOrdersStatsRoute
   ApiProductsStatsRoute: typeof ApiProductsStatsRoute
   ApiWebhooksPaypalRoute: typeof ApiWebhooksPaypalRoute
   ApiWebhooksStripeRoute: typeof ApiWebhooksStripeRoute
   ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
   ApiMediaIndexRoute: typeof ApiMediaIndexRoute
-  ApiOrdersIndexRoute: typeof ApiOrdersIndexRoute
   ApiAuthGoogleCallbackRoute: typeof ApiAuthGoogleCallbackRoute
   ApiAuthGoogleIndexRoute: typeof ApiAuthGoogleIndexRoute
   ApiCheckoutCheckoutIdPaymentPaypalRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalRouteWithChildren
@@ -796,13 +720,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/account'
       preLoaderRoute: typeof LangAccountRouteImport
       parentRoute: typeof LangRoute
-    }
-    '/api/orders/': {
-      id: '/api/orders/'
-      path: '/api/orders'
-      fullPath: '/api/orders'
-      preLoaderRoute: typeof ApiOrdersIndexRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/media/': {
       id: '/api/media/'
@@ -879,27 +796,6 @@ declare module '@tanstack/react-router' {
       path: '/api/products/stats'
       fullPath: '/api/products/stats'
       preLoaderRoute: typeof ApiProductsStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/orders/stats': {
-      id: '/api/orders/stats'
-      path: '/api/orders/stats'
-      fullPath: '/api/orders/stats'
-      preLoaderRoute: typeof ApiOrdersStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/orders/bulk': {
-      id: '/api/orders/bulk'
-      path: '/api/orders/bulk'
-      fullPath: '/api/orders/bulk'
-      preLoaderRoute: typeof ApiOrdersBulkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/orders/$orderId': {
-      id: '/api/orders/$orderId'
-      path: '/api/orders/$orderId'
-      fullPath: '/api/orders/$orderId'
-      preLoaderRoute: typeof ApiOrdersOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/cleanup-checkouts': {
@@ -1027,20 +923,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/collections'
       preLoaderRoute: typeof AdminAuthedCollectionsIndexRouteImport
       parentRoute: typeof AdminAuthedRoute
-    }
-    '/api/orders/$orderId/refund': {
-      id: '/api/orders/$orderId/refund'
-      path: '/refund'
-      fullPath: '/api/orders/$orderId/refund'
-      preLoaderRoute: typeof ApiOrdersOrderIdRefundRouteImport
-      parentRoute: typeof ApiOrdersOrderIdRoute
-    }
-    '/api/orders/$orderId/history': {
-      id: '/api/orders/$orderId/history'
-      path: '/history'
-      fullPath: '/api/orders/$orderId/history'
-      preLoaderRoute: typeof ApiOrdersOrderIdHistoryRouteImport
-      parentRoute: typeof ApiOrdersOrderIdRoute
     }
     '/api/auth/google/callback': {
       id: '/api/auth/google/callback'
@@ -1275,19 +1157,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface ApiOrdersOrderIdRouteChildren {
-  ApiOrdersOrderIdHistoryRoute: typeof ApiOrdersOrderIdHistoryRoute
-  ApiOrdersOrderIdRefundRoute: typeof ApiOrdersOrderIdRefundRoute
-}
-
-const ApiOrdersOrderIdRouteChildren: ApiOrdersOrderIdRouteChildren = {
-  ApiOrdersOrderIdHistoryRoute: ApiOrdersOrderIdHistoryRoute,
-  ApiOrdersOrderIdRefundRoute: ApiOrdersOrderIdRefundRoute,
-}
-
-const ApiOrdersOrderIdRouteWithChildren =
-  ApiOrdersOrderIdRoute._addFileChildren(ApiOrdersOrderIdRouteChildren)
-
 interface ApiCheckoutCheckoutIdPaymentPaypalRouteChildren {
   ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute: typeof ApiCheckoutCheckoutIdPaymentPaypalCaptureRoute
 }
@@ -1311,15 +1180,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
-  ApiOrdersOrderIdRoute: ApiOrdersOrderIdRouteWithChildren,
-  ApiOrdersBulkRoute: ApiOrdersBulkRoute,
-  ApiOrdersStatsRoute: ApiOrdersStatsRoute,
   ApiProductsStatsRoute: ApiProductsStatsRoute,
   ApiWebhooksPaypalRoute: ApiWebhooksPaypalRoute,
   ApiWebhooksStripeRoute: ApiWebhooksStripeRoute,
   ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
   ApiMediaIndexRoute: ApiMediaIndexRoute,
-  ApiOrdersIndexRoute: ApiOrdersIndexRoute,
   ApiAuthGoogleCallbackRoute: ApiAuthGoogleCallbackRoute,
   ApiAuthGoogleIndexRoute: ApiAuthGoogleIndexRoute,
   ApiCheckoutCheckoutIdPaymentPaypalRoute:
