@@ -3,6 +3,7 @@ import { cn } from '../../../lib/utils'
 import type { LucideIcon } from 'lucide-react'
 
 export type StatsCardColor =
+  | 'coral'
   | 'pink'
   | 'emerald'
   | 'amber'
@@ -31,6 +32,11 @@ const colorStyles: Record<
   StatsCardColor,
   { bg: string; text: string; attention: string }
 > = {
+  coral: {
+    bg: 'bg-coral-50',
+    text: 'text-coral-500',
+    attention: 'border-coral-500/30 bg-coral-50',
+  },
   pink: {
     bg: 'bg-pink-500/5',
     text: 'text-pink-500',
@@ -85,11 +91,11 @@ export const AdminStatsCard = ({
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 animate-pulse">
-        <div className="p-3 rounded-md bg-muted/50 w-11 h-11" />
+      <div className="bg-white border border-stone-200 rounded-2xl shadow-sm p-4 flex items-center gap-4 animate-pulse">
+        <div className="p-3 rounded-xl bg-stone-100 w-11 h-11" />
         <div className="space-y-2">
-          <div className="h-7 w-12 bg-muted/50 rounded" />
-          <div className="h-3 w-20 bg-muted/50 rounded" />
+          <div className="h-7 w-12 bg-stone-100 rounded" />
+          <div className="h-4 w-20 bg-stone-100 rounded" />
         </div>
       </div>
     )
@@ -98,16 +104,17 @@ export const AdminStatsCard = ({
   return (
     <div
       className={cn(
-        'bg-card border rounded-lg p-4 flex items-center gap-4',
-        hasAttention ? styles.attention : 'border-border',
+        'bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-4 transition-all duration-200',
+        hasAttention ? styles.attention : 'border-stone-200',
+        'hover:border-coral-200 hover:shadow-md',
       )}
     >
-      <div className={cn('p-3 rounded-md', styles.bg)}>
+      <div className={cn('p-3 rounded-xl', styles.bg)}>
         <Icon className={cn('w-5 h-5', styles.text)} />
       </div>
       <div>
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <p className="text-2xl font-semibold text-stone-900">{value}</p>
+        <p className="text-sm font-medium text-stone-500">{label}</p>
       </div>
     </div>
   )
@@ -130,12 +137,12 @@ export const AdminStatsGrid = ({
         {Array.from({ length: columns }).map((_, i) => (
           <div
             key={i}
-            className="bg-card border border-border rounded-lg p-4 flex items-center gap-4 animate-pulse"
+            className="bg-white border border-stone-200 rounded-2xl shadow-sm p-4 flex items-center gap-4 animate-pulse"
           >
-            <div className="p-3 rounded-md bg-muted/50 w-11 h-11" />
+            <div className="p-3 rounded-xl bg-stone-100 w-11 h-11" />
             <div className="space-y-2">
-              <div className="h-7 w-12 bg-muted/50 rounded" />
-              <div className="h-3 w-20 bg-muted/50 rounded" />
+              <div className="h-7 w-12 bg-stone-100 rounded" />
+              <div className="h-4 w-20 bg-stone-100 rounded" />
             </div>
           </div>
         ))}
