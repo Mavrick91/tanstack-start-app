@@ -168,10 +168,7 @@ import {
 import {
   authMiddleware, // Requires valid session
   adminMiddleware, // Requires admin role
-  throwNotFound, // 404 error
-  throwBadRequest, // 400 error
-  throwUnauthorized, // 401 error
-  throwForbidden, // 403 error
+  customerMiddleware, // Requires customer profile
 } from '@/server/middleware'
 ```
 
@@ -224,8 +221,8 @@ import { products, orders, users } from '@/db/schema'
 **Why**: Type safety, reusability, consistent error handling
 
 - `adminMiddleware` and `authMiddleware` provide typed `context.user`
-- Error helpers (`throwNotFound`, `throwBadRequest`) ensure consistent response format
-- Middleware chains correctly: `adminMiddleware` inherits `authMiddleware`
+- `customerMiddleware` provides typed `context.customer` for customer-authenticated operations
+- Middleware chains correctly: `adminMiddleware` and `customerMiddleware` inherit `authMiddleware`
 
 ### Top-Level Imports in Server Functions
 
