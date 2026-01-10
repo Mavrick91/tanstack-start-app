@@ -47,6 +47,9 @@ import {
 // Re-export types for backwards compatibility
 export type { CollectionInput, CollectionsState }
 
+// Safety limit for handle generation attempts
+const MAX_HANDLE_ATTEMPTS = 100
+
 export const getCollectionsFn = createServerFn({ method: 'GET' })
   .middleware([adminMiddleware])
   .inputValidator((data: unknown) => collectionsStateSchema.parse(data))
@@ -76,27 +79,10 @@ export const getCollectionsFn = createServerFn({ method: 'GET' })
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-    // Determine sort
-    let orderBy
-    if (data.sortKey === 'name') {
-      orderBy =
-        data.sortOrder === 'asc'
-          ? asc(collections.name)
-          : desc(collections.name)
-    } else if (data.sortKey === 'productCount') {
-      // Sorting by computed column is tricky in simple select,
-      // but we can sort by logical subquery or just default to createdAt if complex
-      // For now, let's keep it simple and default to createdAt if specific logic needed
-      orderBy =
-        data.sortOrder === 'asc'
-          ? asc(collections.createdAt)
-          : desc(collections.createdAt)
-    } else {
-      orderBy =
-        data.sortOrder === 'asc'
-          ? asc(collections.createdAt)
-          : desc(collections.createdAt)
-    }
+    // Determine sort column (productCount sorted in-memory after query)
+    const sortColumn =
+      data.sortKey === 'name' ? collections.name : collections.createdAt
+    const orderBy = data.sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)
 
     // Get Total
     const [{ total }] = await db
@@ -489,16 +475,19 @@ export const duplicateCollectionFn = createServerFn({ method: 'POST' })
     // Generate unique handle
     const baseHandle = `${original.handle}-copy`
     let handle = baseHandle
-    let suffix = 1
 
-    for (;;) {
+    for (let attempt = 0; attempt < MAX_HANDLE_ATTEMPTS; attempt++) {
       const [existing] = await db
         .select({ id: collections.id })
         .from(collections)
         .where(eq(collections.handle, handle))
 
       if (!existing) break
-      handle = `${baseHandle}-${suffix++}`
+      handle = `${baseHandle}-${attempt + 1}`
+
+      if (attempt === MAX_HANDLE_ATTEMPTS - 1) {
+        throw new Error('Failed to generate unique handle after maximum attempts')
+      }
     }
 
     // Create duplicate

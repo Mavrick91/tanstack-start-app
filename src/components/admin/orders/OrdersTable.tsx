@@ -26,6 +26,32 @@ export type OrderSortKey =
   | 'createdAt'
 export type SortOrder = 'asc' | 'desc'
 
+// Helper to render sortable or static header based on onSort availability
+const OptionalSortHeader = ({
+  label,
+  sortKey,
+  currentSortKey,
+  sortOrder,
+  onSort,
+}: {
+  label: string
+  sortKey: OrderSortKey
+  currentSortKey: OrderSortKey
+  sortOrder: SortOrder
+  onSort?: (key: OrderSortKey) => void
+}) =>
+  onSort ? (
+    <SortableHeader
+      label={label}
+      sortKey={sortKey}
+      currentSortKey={currentSortKey}
+      sortOrder={sortOrder}
+      onSort={onSort}
+    />
+  ) : (
+    <TableHead className="text-muted-foreground font-semibold">{label}</TableHead>
+  )
+
 type OrdersTableProps = {
   orders: OrderListItem[]
   selectedIds?: Set<string>
@@ -93,77 +119,47 @@ export const OrdersTable = ({
                 />
               </TableHead>
             )}
-            {onSort ? (
-              <SortableHeader
-                label={t('Order')}
-                sortKey="orderNumber"
-                currentSortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={onSort}
-              />
-            ) : (
-              <TableHead className="text-muted-foreground font-semibold">
-                {t('Order')}
-              </TableHead>
-            )}
+            <OptionalSortHeader
+              label={t('Order')}
+              sortKey="orderNumber"
+              currentSortKey={sortKey}
+              sortOrder={sortOrder}
+              onSort={onSort}
+            />
             <TableHead className="text-muted-foreground font-semibold">
               {t('Customer')}
             </TableHead>
-            {onSort ? (
-              <SortableHeader
-                label={t('Total')}
-                sortKey="total"
-                currentSortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={onSort}
-              />
-            ) : (
-              <TableHead className="text-muted-foreground font-semibold">
-                {t('Total')}
-              </TableHead>
-            )}
-            {onSort ? (
-              <SortableHeader
-                label={t('Payment')}
-                sortKey="paymentStatus"
-                currentSortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={onSort}
-              />
-            ) : (
-              <TableHead className="text-muted-foreground font-semibold">
-                {t('Payment')}
-              </TableHead>
-            )}
+            <OptionalSortHeader
+              label={t('Total')}
+              sortKey="total"
+              currentSortKey={sortKey}
+              sortOrder={sortOrder}
+              onSort={onSort}
+            />
+            <OptionalSortHeader
+              label={t('Payment')}
+              sortKey="paymentStatus"
+              currentSortKey={sortKey}
+              sortOrder={sortOrder}
+              onSort={onSort}
+            />
             <TableHead className="text-muted-foreground font-semibold">
               {t('Fulfillment')}
             </TableHead>
-            {onSort ? (
-              <SortableHeader
-                label={t('Status')}
-                sortKey="status"
-                currentSortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={onSort}
-              />
-            ) : (
-              <TableHead className="text-muted-foreground font-semibold">
-                {t('Status')}
-              </TableHead>
-            )}
-            {onSort ? (
-              <SortableHeader
-                label={t('Date')}
-                sortKey="createdAt"
-                currentSortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={onSort}
-              />
-            ) : (
-              <TableHead className="text-muted-foreground font-semibold">
-                {t('Date')}
-              </TableHead>
-            )}
+            <OptionalSortHeader
+              label={t('Status')}
+              sortKey="status"
+              currentSortKey={sortKey}
+              sortOrder={sortOrder}
+              onSort={onSort}
+            />
+            <OptionalSortHeader
+              label={t('Date')}
+              sortKey="createdAt"
+              currentSortKey={sortKey}
+              sortOrder={sortOrder}
+              onSort={onSort}
+            />
             {onQuickStatusChange && <TableHead className="w-12" />}
           </TableRow>
         </TableHeader>

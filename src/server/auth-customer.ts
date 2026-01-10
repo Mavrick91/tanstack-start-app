@@ -7,6 +7,23 @@ const getBaseUrl = () => {
   return process.env.BASE_URL || 'http://localhost:3000'
 }
 
+// Helper to create a session for a user (reduces duplication in verify/login flows)
+const createUserSession = async (user: { id: string; email: string; role: string }) => {
+  const { db } = await import('../db')
+  const { sessions } = await import('../db/schema')
+  const { getAppSession, SESSION_DURATION_MS } = await import('./session')
+
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
+  await db.insert(sessions).values({ userId: user.id, expiresAt })
+
+  const appSession = await getAppSession()
+  await appSession.update({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  })
+}
+
 // ============================================
 // REGISTER
 // ============================================
@@ -124,7 +141,7 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { and, eq } = await import('drizzle-orm')
     const { db } = await import('../db')
-    const { users, customers, emailVerificationTokens, sessions } =
+    const { users, customers, emailVerificationTokens } =
       await import('../db/schema')
 
     const tokenHash = hashToken(data.token)
@@ -163,19 +180,7 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
     if (tokenRecord.usedAt) {
       // If user already verified, auto-login them
       if (user.emailVerified) {
-        // Create session
-        const { getAppSession, SESSION_DURATION_MS } = await import('./session')
-        const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
-        await db.insert(sessions).values({ userId: user.id, expiresAt })
-
-        // Set cookie session
-        const appSession = await getAppSession()
-        await appSession.update({
-          userId: user.id,
-          email: user.email,
-          role: user.role,
-        })
-
+        await createUserSession(user)
         return {
           success: true,
           user: { id: user.id, email: user.email, role: user.role },
@@ -215,17 +220,7 @@ export const verifyEmailFn = createServerFn({ method: 'POST' })
     }
 
     // Create session
-    const { getAppSession, SESSION_DURATION_MS } = await import('./session')
-    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
-    await db.insert(sessions).values({ userId: user.id, expiresAt })
-
-    // Set cookie session using shared helper
-    const appSession = await getAppSession()
-    await appSession.update({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
+    await createUserSession(user)
 
     return {
       success: true,

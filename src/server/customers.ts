@@ -117,24 +117,16 @@ export const updateCustomerMeFn = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { customer } = context
 
-    const { firstName, lastName, phone, acceptsMarketing } = data
+    // Build update object only with provided fields
+    const updates: Record<string, unknown> = { updatedAt: new Date() }
+    if (data.firstName !== undefined) updates.firstName = data.firstName?.trim() || null
+    if (data.lastName !== undefined) updates.lastName = data.lastName?.trim() || null
+    if (data.phone !== undefined) updates.phone = data.phone?.trim() || null
+    if (data.acceptsMarketing !== undefined) updates.acceptsMarketing = data.acceptsMarketing
 
     const [updatedCustomer] = await db
       .update(customers)
-      .set({
-        firstName:
-          firstName !== undefined
-            ? firstName?.trim() || null
-            : customer.firstName,
-        lastName:
-          lastName !== undefined ? lastName?.trim() || null : customer.lastName,
-        phone: phone !== undefined ? phone?.trim() || null : customer.phone,
-        acceptsMarketing:
-          acceptsMarketing !== undefined
-            ? acceptsMarketing
-            : customer.acceptsMarketing,
-        updatedAt: new Date(),
-      })
+      .set(updates)
       .where(eq(customers.id, customer.id))
       .returning()
 

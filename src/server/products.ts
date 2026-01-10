@@ -16,6 +16,7 @@ import {
   eq,
   ilike,
   inArray,
+  sql,
   type SQL,
 } from 'drizzle-orm'
 import { z } from 'zod'
@@ -412,30 +413,21 @@ export const getAdminProductsFn = createServerFn()
 export const getProductStatsFn = createServerFn()
   .middleware([adminMiddleware])
   .handler(async () => {
-    const [totalProductsResult] = await db
-      .select({ count: count() })
+    // Single query with conditional counts instead of 4 separate queries
+    const [stats] = await db
+      .select({
+        total: count(),
+        active: count(sql`CASE WHEN ${products.status} = 'active' THEN 1 END`),
+        draft: count(sql`CASE WHEN ${products.status} = 'draft' THEN 1 END`),
+        archived: count(sql`CASE WHEN ${products.status} = 'archived' THEN 1 END`),
+      })
       .from(products)
-
-    const [activeCountResult] = await db
-      .select({ count: count() })
-      .from(products)
-      .where(eq(products.status, 'active'))
-
-    const [draftCountResult] = await db
-      .select({ count: count() })
-      .from(products)
-      .where(eq(products.status, 'draft'))
-
-    const [archivedCountResult] = await db
-      .select({ count: count() })
-      .from(products)
-      .where(eq(products.status, 'archived'))
 
     return {
-      totalProducts: totalProductsResult.count,
-      activeCount: activeCountResult.count,
-      draftCount: draftCountResult.count,
-      archivedCount: archivedCountResult.count,
+      totalProducts: stats.total,
+      activeCount: stats.active,
+      draftCount: stats.draft,
+      archivedCount: stats.archived,
     }
   })
 

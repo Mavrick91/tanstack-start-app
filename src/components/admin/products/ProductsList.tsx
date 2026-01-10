@@ -20,6 +20,28 @@ export type Product = {
   createdAt: string
 }
 
+type PriceDisplayProps = {
+  minPrice: number | null
+  maxPrice: number | null
+}
+
+const PriceDisplay = ({ minPrice, maxPrice }: PriceDisplayProps) => {
+  if (minPrice === null) {
+    return <span className="text-muted-foreground">-</span>
+  }
+
+  if (minPrice === maxPrice) {
+    return <span>{formatCurrency({ value: minPrice })}</span>
+  }
+
+  return (
+    <span>
+      {formatCurrency({ value: minPrice })} -{' '}
+      {formatCurrency({ value: maxPrice })}
+    </span>
+  )
+}
+
 /**
  * Extracted component for testing (without route wrapper)
  */
@@ -120,20 +142,10 @@ export const ProductsListContent = () => {
                     <AdminStatusBadge status={product.status} />
                   </td>
                   <td className="px-6 py-4">
-                    {product.minPrice !== null ? (
-                      product.minPrice === product.maxPrice ? (
-                        <span>
-                          {formatCurrency({ value: product.minPrice })}
-                        </span>
-                      ) : (
-                        <span>
-                          {formatCurrency({ value: product.minPrice })} -{' '}
-                          {formatCurrency({ value: product.maxPrice })}
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
+                    <PriceDisplay
+                      minPrice={product.minPrice}
+                      maxPrice={product.maxPrice}
+                    />
                   </td>
                   <td className="px-6 py-4">
                     {product.variantCount}{' '}

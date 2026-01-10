@@ -18,6 +18,40 @@ import type {
   CompleteCheckoutInput,
 } from './types'
 
+type CheckoutValidationResult =
+  | { valid: true; checkout: Awaited<ReturnType<typeof getDbContext>>['checkouts']['$inferSelect'] }
+  | { valid: false; error: string; status: number }
+
+/**
+ * Validates a checkout session exists, is not completed, and is not expired.
+ * Reduces duplication across checkout operations.
+ */
+const validateCheckout = async (
+  checkoutId: string,
+): Promise<CheckoutValidationResult> => {
+  const { db, eq, checkouts } = await getDbContext()
+
+  const [checkout] = await db
+    .select()
+    .from(checkouts)
+    .where(eq(checkouts.id, checkoutId))
+    .limit(1)
+
+  if (!checkout) {
+    return { valid: false, error: 'Checkout not found', status: 404 }
+  }
+
+  if (checkout.completedAt) {
+    return { valid: false, error: 'Checkout already completed', status: 410 }
+  }
+
+  if (checkout.expiresAt < new Date()) {
+    return { valid: false, error: 'Checkout expired', status: 410 }
+  }
+
+  return { valid: true, checkout }
+}
+
 /**
  * Dynamically imports database context to prevent server code leaking to client.
  * This pattern is used because checkout.ts uses dynamic imports throughout.
@@ -205,27 +239,14 @@ export const createCheckout = async (input: CreateCheckoutInput) => {
 export const saveCustomerInfo = async (input: SaveCustomerInput) => {
   const { checkoutId, email, firstName, lastName } = input
 
+  const validation = await validateCheckout(checkoutId)
+  if (!validation.valid) {
+    return { success: false, error: validation.error, status: validation.status }
+  }
+  const { checkout } = validation
+
   // Dynamic import to prevent server code leaking to client
   const { db, eq, checkouts, customers } = await getDbContext()
-
-  // Get checkout
-  const [checkout] = await db
-    .select()
-    .from(checkouts)
-    .where(eq(checkouts.id, checkoutId))
-    .limit(1)
-
-  if (!checkout) {
-    return { success: false, error: 'Checkout not found', status: 404 }
-  }
-
-  if (checkout.completedAt) {
-    return { success: false, error: 'Checkout already completed', status: 410 }
-  }
-
-  if (checkout.expiresAt < new Date()) {
-    return { success: false, error: 'Checkout expired', status: 410 }
-  }
 
   const normalized = normalizeEmail(email)
   let customerId = checkout.customerId
@@ -283,27 +304,13 @@ export const saveCustomerInfo = async (input: SaveCustomerInput) => {
 export const saveShippingAddress = async (input: ShippingAddressInput) => {
   const { checkoutId, address } = input
 
+  const validation = await validateCheckout(checkoutId)
+  if (!validation.valid) {
+    return { success: false, error: validation.error, status: validation.status }
+  }
+
   // Dynamic import to prevent server code leaking to client
   const { db, eq, checkouts } = await getDbContext()
-
-  // Get checkout
-  const [checkout] = await db
-    .select()
-    .from(checkouts)
-    .where(eq(checkouts.id, checkoutId))
-    .limit(1)
-
-  if (!checkout) {
-    return { success: false, error: 'Checkout not found', status: 404 }
-  }
-
-  if (checkout.completedAt) {
-    return { success: false, error: 'Checkout already completed', status: 410 }
-  }
-
-  if (checkout.expiresAt < new Date()) {
-    return { success: false, error: 'Checkout expired', status: 410 }
-  }
 
   // Validate required fields
   const required = [
@@ -351,27 +358,11 @@ export const saveShippingAddress = async (input: ShippingAddressInput) => {
 export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
   const { checkoutId, shippingRateId } = input
 
-  // Dynamic import to prevent server code leaking to client
-  const { db, eq, checkouts } = await getDbContext()
-
-  // Get checkout
-  const [checkout] = await db
-    .select()
-    .from(checkouts)
-    .where(eq(checkouts.id, checkoutId))
-    .limit(1)
-
-  if (!checkout) {
-    return { success: false, error: 'Checkout not found', status: 404 }
+  const validation = await validateCheckout(checkoutId)
+  if (!validation.valid) {
+    return { success: false, error: validation.error, status: validation.status }
   }
-
-  if (checkout.completedAt) {
-    return { success: false, error: 'Checkout already completed', status: 410 }
-  }
-
-  if (checkout.expiresAt < new Date()) {
-    return { success: false, error: 'Checkout expired', status: 410 }
-  }
+  const { checkout } = validation
 
   if (!checkout.shippingAddress) {
     return {
@@ -394,6 +385,7 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
   const total = subtotal + taxTotal + shippingTotal
 
   // Update checkout
+  const { db, eq, checkouts } = await getDbContext()
   const [updatedCheckout] = await db
     .update(checkouts)
     .set({
