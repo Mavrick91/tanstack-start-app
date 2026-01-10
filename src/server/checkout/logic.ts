@@ -369,6 +369,10 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
     return { success: false, error: 'Checkout already completed', status: 410 }
   }
 
+  if (checkout.expiresAt < new Date()) {
+    return { success: false, error: 'Checkout expired', status: 410 }
+  }
+
   if (!checkout.shippingAddress) {
     return {
       success: false,
@@ -386,7 +390,7 @@ export const saveShippingMethod = async (input: SaveShippingMethodInput) => {
   // Recalculate total
   const subtotal = parseFloat(checkout.subtotal)
   const taxTotal = parseFloat(checkout.taxTotal || '0')
-  const shippingTotal = rate.price
+  const shippingTotal = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : rate.price
   const total = subtotal + taxTotal + shippingTotal
 
   // Update checkout
