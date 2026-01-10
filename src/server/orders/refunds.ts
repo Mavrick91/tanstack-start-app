@@ -10,6 +10,8 @@ import { desc, eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { orders, orderStatusHistory } from '../../db/schema'
 
+import type { OrderStatusChange } from '../orders'
+
 export interface RefundResult {
   success: boolean
   refundId?: string
@@ -20,16 +22,6 @@ export interface CancellationResult {
   success: boolean
   refundResult?: RefundResult
   error?: string
-}
-
-export interface OrderStatusChange {
-  orderId: string
-  field: 'status' | 'paymentStatus' | 'fulfillmentStatus'
-  previousValue: string
-  newValue: string
-  changedBy: string
-  changedAt: Date
-  reason?: string
 }
 
 const PAYPAL_API_BASE =
