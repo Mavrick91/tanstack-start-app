@@ -441,5 +441,7 @@
   "Your password has been reset. You can now": "Your password has been reset. You can now",
   "ZIP code": "ZIP code",
   "Send": "Send",
-  "Verification email sent": "Verification email sent"
+  "Verification email sent": "Verification email sent",
+  "If an account exists with that email, we sent a password reset link.": "If an account exists with that email, we sent a password reset link.",
+  "Enter your email address and we'll send you a link to reset your password.": "Enter your email address and we'll send you a link to reset your password."
 }
