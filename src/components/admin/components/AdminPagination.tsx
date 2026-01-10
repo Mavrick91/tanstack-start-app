@@ -28,7 +28,7 @@ export const AdminPagination = ({
 
   return (
     <div className="flex items-center justify-between pt-4">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-stone-500">
         {t('Showing {{start}}–{{end}} of {{total}}', {
           start,
           end,
@@ -39,7 +39,7 @@ export const AdminPagination = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8 rounded-md"
+          className="h-8 w-8 rounded-lg"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           icon={<ChevronLeft className="w-4 h-4" />}
@@ -58,12 +58,12 @@ export const AdminPagination = ({
             return (
               <div key={page} className="flex items-center">
                 {showEllipsis && (
-                  <span className="px-2 text-muted-foreground">…</span>
+                  <span className="px-2 text-stone-400">…</span>
                 )}
                 <Button
                   variant={page === currentPage ? 'default' : 'outline'}
                   size="icon"
-                  className={`h-8 w-8 rounded-md ${page === currentPage ? 'bg-pink-500 hover:bg-pink-600 text-white' : ''}`}
+                  className={`h-8 w-8 rounded-lg ${page === currentPage ? 'bg-coral-500 hover:bg-coral-600 text-white' : ''}`}
                   onClick={() => onPageChange(page)}
                 >
                   {page}
@@ -74,7 +74,7 @@ export const AdminPagination = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8 rounded-md"
+          className="h-8 w-8 rounded-lg"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           icon={<ChevronRight className="w-4 h-4" />}
