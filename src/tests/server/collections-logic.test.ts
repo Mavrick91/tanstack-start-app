@@ -301,33 +301,36 @@ describe('Collections Logic Tests', () => {
   })
 
   describe('reorderCollectionProductsFn', () => {
-    it('should update positions in transaction', async () => {
+    it('should update positions with batch CASE expression', async () => {
       const productIds = ['p1', 'p2', 'p3']
-      const txUpdate = vi.fn().mockReturnThis()
-      const txSet = vi.fn().mockReturnThis()
-      const txWhere = vi.fn().mockResolvedValue({})
+      const updateSet = vi.fn().mockReturnThis()
+      const updateWhere = vi.fn().mockResolvedValue({})
 
-      // Mock transaction implementation
-      vi.mocked(db.transaction).mockImplementation(async (cb) => {
-        const tx = {
-          update: txUpdate.mockReturnValue({
-            set: txSet.mockReturnValue({
-              where: txWhere,
-            }),
-          }),
-        }
-        return cb(tx as unknown as Parameters<typeof cb>[0])
-      })
+      // Mock db.update chain for batch update
+      vi.mocked(db.update).mockReturnValue({
+        set: updateSet.mockReturnValue({
+          where: updateWhere,
+        }),
+      } as unknown as ReturnType<typeof db.update>)
 
       await reorderCollectionProductsFn({
         data: { collectionId: 'c1', productIds },
       })
 
-      expect(txSet).toHaveBeenCalledTimes(3)
-      // Verify call order and values
-      expect(txSet).toHaveBeenNthCalledWith(1, { position: 0 })
-      expect(txSet).toHaveBeenNthCalledWith(2, { position: 1 })
-      expect(txSet).toHaveBeenNthCalledWith(3, { position: 2 })
+      // Should be called once with a CASE expression (not 3 times)
+      expect(updateSet).toHaveBeenCalledTimes(1)
+      expect(updateSet).toHaveBeenCalledWith({
+        position: expect.anything(), // sql CASE expression
+      })
+    })
+
+    it('should return early for empty productIds', async () => {
+      const result = await reorderCollectionProductsFn({
+        data: { collectionId: 'c1', productIds: [] },
+      })
+
+      expect(result).toEqual({ success: true })
+      expect(db.update).not.toHaveBeenCalled()
     })
   })
 

@@ -379,20 +379,30 @@ export const reorderCollectionProductsFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { collectionId, productIds } = data
 
-    // Update positions in a transaction
-    await db.transaction(async (tx) => {
-      for (let i = 0; i < productIds.length; i++) {
-        await tx
-          .update(collectionProducts)
-          .set({ position: i })
-          .where(
-            and(
-              eq(collectionProducts.collectionId, collectionId),
-              eq(collectionProducts.productId, productIds[i]),
-            ),
-          )
-      }
-    })
+    if (productIds.length === 0) {
+      return { success: true }
+    }
+
+    // Batch update positions using CASE expression (replaces N individual updates)
+    const caseExpression = sql.join(
+      productIds.map(
+        (productId, index) =>
+          sql`WHEN ${collectionProducts.productId} = ${productId} THEN ${index}`,
+      ),
+      sql` `,
+    )
+
+    await db
+      .update(collectionProducts)
+      .set({
+        position: sql`CASE ${caseExpression} END`,
+      })
+      .where(
+        and(
+          eq(collectionProducts.collectionId, collectionId),
+          inArray(collectionProducts.productId, productIds),
+        ),
+      )
 
     return { success: true }
   })
