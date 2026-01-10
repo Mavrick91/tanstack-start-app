@@ -5,22 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '../ui/button'
 
-// const TEST_CARDS = [
-//   {
-//     number: '4242424242424242',
-//     label: 'Visa (success)',
-//   },
-//   { number: '4000000000003220', label: '3D Secure 2' },
-//   {
-//     number: '4000000000009995',
-//     label: 'Declined (insufficient)',
-//   },
-//   {
-//     number: '4000000000000002',
-//     label: 'Declined (generic)',
-//   },
-// ]
-
 type StripePaymentFormProps = {
   onSuccess: (paymentIntentId: string) => void
   onError?: (message: string) => void
