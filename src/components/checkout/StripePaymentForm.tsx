@@ -61,7 +61,10 @@ export const StripePaymentForm = ({
         const errorMessage = result.error.message || 'Payment failed'
         setError(errorMessage)
         onError?.(errorMessage)
-      } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+      } else if (
+        result.paymentIntent &&
+        result.paymentIntent.status === 'succeeded'
+      ) {
         onSuccess(result.paymentIntent.id)
       }
     } catch (err) {
