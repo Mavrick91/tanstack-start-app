@@ -10,6 +10,26 @@ export type SortableHeaderProps<T extends string> = {
   onSort: (key: T) => void
 }
 
+const SortIcon = ({
+  isActive,
+  sortOrder,
+}: {
+  isActive: boolean
+  sortOrder: SortOrder
+}) => {
+  if (!isActive) {
+    return (
+      <ArrowUpDown className="w-3.5 h-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />
+    )
+  }
+
+  if (sortOrder === 'asc') {
+    return <ArrowUp className="w-3.5 h-3.5 text-coral-500" />
+  }
+
+  return <ArrowDown className="w-3.5 h-3.5 text-coral-500" />
+}
+
 export const SortableHeader = <T extends string>({
   label,
   sortKey,
@@ -27,15 +47,7 @@ export const SortableHeader = <T extends string>({
       >
         {label}
         <span className="w-3.5 h-3.5">
-          {isActive ? (
-            sortOrder === 'asc' ? (
-              <ArrowUp className="w-3.5 h-3.5 text-coral-500" />
-            ) : (
-              <ArrowDown className="w-3.5 h-3.5 text-coral-500" />
-            )
-          ) : (
-            <ArrowUpDown className="w-3.5 h-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />
-          )}
+          <SortIcon isActive={isActive} sortOrder={sortOrder} />
         </span>
       </button>
     </th>

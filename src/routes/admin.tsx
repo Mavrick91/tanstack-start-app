@@ -32,14 +32,11 @@ const AdminLayout = () => {
   const { user } = Route.useRouteContext()
 
   const handleLogout = async () => {
-    // Call server function directly instead of Zustand action
     await logoutFn()
-    // Invalidate cached auth to force re-fetch on next login
     queryClient.removeQueries({ queryKey: ['admin', 'auth'] })
     router.navigate({ to: '/' })
   }
 
-  // Auth is handled by _authed.tsx beforeLoad - if we get here, user is authenticated
   return (
     <div className="h-screen flex overflow-hidden bg-stone-50">
       <aside className="w-60 bg-white border-r border-stone-100 p-4 pt-8 flex flex-col shrink-0 z-20">

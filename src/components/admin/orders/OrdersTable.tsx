@@ -26,33 +26,39 @@ export type OrderSortKey =
   | 'createdAt'
 export type SortOrder = 'asc' | 'desc'
 
-// Helper to render sortable or static header based on onSort availability
+type OptionalSortHeaderProps = {
+  label: string
+  sortKey: OrderSortKey
+  currentSortKey: OrderSortKey
+  sortOrder: SortOrder
+  onSort?: (key: OrderSortKey) => void
+}
+
 const OptionalSortHeader = ({
   label,
   sortKey,
   currentSortKey,
   sortOrder,
   onSort,
-}: {
-  label: string
-  sortKey: OrderSortKey
-  currentSortKey: OrderSortKey
-  sortOrder: SortOrder
-  onSort?: (key: OrderSortKey) => void
-}) =>
-  onSort ? (
-    <SortableHeader
-      label={label}
-      sortKey={sortKey}
-      currentSortKey={currentSortKey}
-      sortOrder={sortOrder}
-      onSort={onSort}
-    />
-  ) : (
+}: OptionalSortHeaderProps) => {
+  if (onSort) {
+    return (
+      <SortableHeader
+        label={label}
+        sortKey={sortKey}
+        currentSortKey={currentSortKey}
+        sortOrder={sortOrder}
+        onSort={onSort}
+      />
+    )
+  }
+
+  return (
     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
       {label}
     </TableHead>
   )
+}
 
 type OrdersTableProps = {
   orders: OrderListItem[]
