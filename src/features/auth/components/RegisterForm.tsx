@@ -77,24 +77,6 @@ export const RegisterForm = () => {
     ],
   }
 
-  const handleFieldChange = (name: string, value: unknown) => {
-    if (name === 'password' || name === 'confirmPassword') {
-      const password =
-        name === 'password' ? value : formRef.current?.getFieldValue('password')
-      const confirmPassword =
-        name === 'confirmPassword'
-          ? value
-          : formRef.current?.getFieldValue('confirmPassword')
-
-      if (confirmPassword && password !== confirmPassword) {
-        formRef.current?.setFieldError(
-          'confirmPassword',
-          t('Passwords do not match'),
-        )
-      }
-    }
-  }
-
   const handleSubmit = (values: Record<string, unknown>) => {
     const email = String(values.email)
     const password = String(values.password)
@@ -160,7 +142,6 @@ export const RegisterForm = () => {
             : t('Create account')
         }
         formRef={formRef}
-        onFieldChange={handleFieldChange}
         className="space-y-4"
         submitButtonClassName="w-full"
       />
