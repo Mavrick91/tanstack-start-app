@@ -17,7 +17,6 @@ import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AdminAuthedRouteImport } from './routes/admin/_authed'
 import { Route as LangAccountRouteImport } from './routes/$lang/account'
 import { Route as ApiMediaIndexRouteImport } from './routes/api/media/index'
-import { Route as ApiCollectionsIndexRouteImport } from './routes/api/collections/index'
 import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/index'
 import { Route as LangProductsIndexRouteImport } from './routes/$lang/products/index'
 import { Route as LangCollectionsIndexRouteImport } from './routes/$lang/collections/index'
@@ -26,7 +25,6 @@ import { Route as LangAuthIndexRouteImport } from './routes/$lang/auth/index'
 import { Route as LangAccountIndexRouteImport } from './routes/$lang/account/index'
 import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as ApiWebhooksPaypalRouteImport } from './routes/api/webhooks/paypal'
-import { Route as ApiProductsStatsRouteImport } from './routes/api/products/stats'
 import { Route as ApiCronCleanupCheckoutsRouteImport } from './routes/api/cron/cleanup-checkouts'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -101,11 +99,6 @@ const ApiMediaIndexRoute = ApiMediaIndexRouteImport.update({
   path: '/api/media/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCollectionsIndexRoute = ApiCollectionsIndexRouteImport.update({
-  id: '/api/collections/',
-  path: '/api/collections/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminAuthedIndexRoute = AdminAuthedIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -144,11 +137,6 @@ const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
 const ApiWebhooksPaypalRoute = ApiWebhooksPaypalRouteImport.update({
   id: '/api/webhooks/paypal',
   path: '/api/webhooks/paypal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProductsStatsRoute = ApiProductsStatsRouteImport.update({
-  id: '/api/products/stats',
-  path: '/api/products/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronCleanupCheckoutsRoute = ApiCronCleanupCheckoutsRouteImport.update({
@@ -355,7 +343,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account/': typeof LangAccountIndexRoute
@@ -364,7 +351,6 @@ export interface FileRoutesByFullPath {
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
   '/admin/': typeof AdminAuthedIndexRoute
-  '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -406,7 +392,6 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account': typeof LangAccountIndexRoute
@@ -414,7 +399,6 @@ export interface FileRoutesByTo {
   '/$lang/checkout': typeof LangCheckoutIndexRoute
   '/$lang/collections': typeof LangCollectionsIndexRoute
   '/$lang/products': typeof LangProductsIndexRoute
-  '/api/collections': typeof ApiCollectionsIndexRoute
   '/api/media': typeof ApiMediaIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -460,7 +444,6 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/cron/cleanup-checkouts': typeof ApiCronCleanupCheckoutsRoute
-  '/api/products/stats': typeof ApiProductsStatsRoute
   '/api/webhooks/paypal': typeof ApiWebhooksPaypalRoute
   '/api/webhooks/stripe': typeof ApiWebhooksStripeRoute
   '/$lang/account/': typeof LangAccountIndexRoute
@@ -469,7 +452,6 @@ export interface FileRoutesById {
   '/$lang/collections/': typeof LangCollectionsIndexRoute
   '/$lang/products/': typeof LangProductsIndexRoute
   '/admin/_authed/': typeof AdminAuthedIndexRoute
-  '/api/collections/': typeof ApiCollectionsIndexRoute
   '/api/media/': typeof ApiMediaIndexRoute
   '/$lang/account/orders/$orderId': typeof LangAccountOrdersOrderIdRoute
   '/$lang/demo/api/names': typeof LangDemoApiNamesRoute
@@ -515,7 +497,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account/'
@@ -524,7 +505,6 @@ export interface FileRouteTypes {
     | '/$lang/collections'
     | '/$lang/products'
     | '/admin/'
-    | '/api/collections'
     | '/api/media'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
@@ -566,7 +546,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account'
@@ -574,7 +553,6 @@ export interface FileRouteTypes {
     | '/$lang/checkout'
     | '/$lang/collections'
     | '/$lang/products'
-    | '/api/collections'
     | '/api/media'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
@@ -619,7 +597,6 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/cron/cleanup-checkouts'
-    | '/api/products/stats'
     | '/api/webhooks/paypal'
     | '/api/webhooks/stripe'
     | '/$lang/account/'
@@ -628,7 +605,6 @@ export interface FileRouteTypes {
     | '/$lang/collections/'
     | '/$lang/products/'
     | '/admin/_authed/'
-    | '/api/collections/'
     | '/api/media/'
     | '/$lang/account/orders/$orderId'
     | '/$lang/demo/api/names'
@@ -660,10 +636,8 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiCronCleanupCheckoutsRoute: typeof ApiCronCleanupCheckoutsRoute
-  ApiProductsStatsRoute: typeof ApiProductsStatsRoute
   ApiWebhooksPaypalRoute: typeof ApiWebhooksPaypalRoute
   ApiWebhooksStripeRoute: typeof ApiWebhooksStripeRoute
-  ApiCollectionsIndexRoute: typeof ApiCollectionsIndexRoute
   ApiMediaIndexRoute: typeof ApiMediaIndexRoute
   ApiAuthGoogleCallbackRoute: typeof ApiAuthGoogleCallbackRoute
   ApiAuthGoogleIndexRoute: typeof ApiAuthGoogleIndexRoute
@@ -728,13 +702,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/collections/': {
-      id: '/api/collections/'
-      path: '/api/collections'
-      fullPath: '/api/collections'
-      preLoaderRoute: typeof ApiCollectionsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/_authed/': {
       id: '/admin/_authed/'
       path: '/'
@@ -789,13 +756,6 @@ declare module '@tanstack/react-router' {
       path: '/api/webhooks/paypal'
       fullPath: '/api/webhooks/paypal'
       preLoaderRoute: typeof ApiWebhooksPaypalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/products/stats': {
-      id: '/api/products/stats'
-      path: '/api/products/stats'
-      fullPath: '/api/products/stats'
-      preLoaderRoute: typeof ApiProductsStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/cleanup-checkouts': {
@@ -1180,10 +1140,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiCronCleanupCheckoutsRoute: ApiCronCleanupCheckoutsRoute,
-  ApiProductsStatsRoute: ApiProductsStatsRoute,
   ApiWebhooksPaypalRoute: ApiWebhooksPaypalRoute,
   ApiWebhooksStripeRoute: ApiWebhooksStripeRoute,
-  ApiCollectionsIndexRoute: ApiCollectionsIndexRoute,
   ApiMediaIndexRoute: ApiMediaIndexRoute,
   ApiAuthGoogleCallbackRoute: ApiAuthGoogleCallbackRoute,
   ApiAuthGoogleIndexRoute: ApiAuthGoogleIndexRoute,
