@@ -49,7 +49,7 @@ const OptionalSortHeader = ({
       onSort={onSort}
     />
   ) : (
-    <TableHead className="text-muted-foreground font-semibold">
+    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
       {label}
     </TableHead>
   )
@@ -109,7 +109,7 @@ export const OrdersTable = ({
     <div className="rounded-lg border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="border-border hover:bg-muted/50">
+          <TableRow className="bg-muted/30 border-b border-border hover:bg-transparent">
             {onSelectionChange && (
               <TableHead className="w-12">
                 <Checkbox
@@ -128,7 +128,7 @@ export const OrdersTable = ({
               sortOrder={sortOrder}
               onSort={onSort}
             />
-            <TableHead className="text-muted-foreground font-semibold">
+            <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
               {t('Customer')}
             </TableHead>
             <OptionalSortHeader
@@ -145,7 +145,7 @@ export const OrdersTable = ({
               sortOrder={sortOrder}
               onSort={onSort}
             />
-            <TableHead className="text-muted-foreground font-semibold">
+            <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
               {t('Fulfillment')}
             </TableHead>
             <OptionalSortHeader
