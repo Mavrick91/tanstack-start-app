@@ -64,9 +64,7 @@ const getPayPalAccessToken = async () => {
   return data.access_token
 }
 
-/**
- * Process refund for Stripe payment
- */
+// Process refund for Stripe payment
 export const refundStripePayment = async (
   paymentId: string,
 ): Promise<RefundResult> => {
@@ -88,9 +86,7 @@ export const refundStripePayment = async (
   }
 }
 
-/**
- * Process refund for PayPal payment
- */
+// Process refund for PayPal payment
 export const refundPayPalPayment = async (
   paymentId: string,
 ): Promise<RefundResult> => {
@@ -151,9 +147,7 @@ export const refundPayPalPayment = async (
   }
 }
 
-/**
- * Process refund based on payment provider
- */
+// Process refund based on payment provider
 export const processRefund = async (
   paymentProvider: string | null,
   paymentId: string | null,
@@ -215,9 +209,7 @@ export const getRefundAuditTrail = async (orderId: string) => {
     }))
 }
 
-/**
- * Process order cancellation with automatic refund if payment was made
- */
+// Process order cancellation with automatic refund if payment was made
 export const cancelOrderWithRefund = async (
   orderId: string,
   changedBy: string,
