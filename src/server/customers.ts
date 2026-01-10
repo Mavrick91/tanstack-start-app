@@ -3,10 +3,8 @@
  *
  * Uses standardized patterns:
  * - Top-level imports for database
+ * - customerMiddleware for customer authentication
  * - Error helpers for consistent responses
- *
- * Note: Customer auth is handled inline (not via adminMiddleware)
- * because customers have different auth requirements than admins.
  */
 
 import { createServerFn } from '@tanstack/react-start'
@@ -16,6 +14,7 @@ import { z } from 'zod'
 import { db } from '../db'
 import { getOrderItemsByOrderIds, parseDecimal } from './orders'
 import { addresses, customers, orderItems, orders } from '../db/schema'
+import { customerMiddleware } from './middleware'
 
 // ============================================
 // TYPES
@@ -54,7 +53,7 @@ export type CustomerAddress = {
 // HELPERS
 // ============================================
 
-// Get customer profile for the authenticated user
+// Get customer profile for the authenticated user (used by getCustomerSessionFn)
 const getCustomerForUser = async (userId: string) => {
   const [customer] = await db
     .select()
@@ -62,22 +61,6 @@ const getCustomerForUser = async (userId: string) => {
     .where(eq(customers.userId, userId))
     .limit(1)
   return customer
-}
-
-// Require authenticated user with customer profile
-const requireCustomer = async () => {
-  const { getMeFn } = await import('./auth')
-  const user = await getMeFn()
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const customer = await getCustomerForUser(user.id)
-  if (!customer) {
-    throw new Error('Customer profile not found')
-  }
-
-  return { user, customer }
 }
 
 // ============================================
@@ -112,21 +95,23 @@ export const getCustomerSessionFn = createServerFn().handler(async () => {
 })
 
 // Get customer profile
-export const getCustomerMeFn = createServerFn().handler(async () => {
-  const { customer } = await requireCustomer()
+export const getCustomerMeFn = createServerFn()
+  .middleware([customerMiddleware])
+  .handler(async ({ context }) => {
+    const { customer } = context
 
-  return {
-    customer: {
-      id: customer.id,
-      email: customer.email,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      phone: customer.phone,
-      acceptsMarketing: customer.acceptsMarketing,
-      createdAt: customer.createdAt,
-    } satisfies CustomerProfile,
-  }
-})
+    return {
+      customer: {
+        id: customer.id,
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        phone: customer.phone,
+        acceptsMarketing: customer.acceptsMarketing,
+        createdAt: customer.createdAt,
+      } satisfies CustomerProfile,
+    }
+  })
 
 // Update customer profile
 const updateCustomerInputSchema = z.object({
@@ -137,9 +122,10 @@ const updateCustomerInputSchema = z.object({
 })
 
 export const updateCustomerMeFn = createServerFn({ method: 'POST' })
+  .middleware([customerMiddleware])
   .inputValidator((data: unknown) => updateCustomerInputSchema.parse(data))
-  .handler(async ({ data }) => {
-    const { customer } = await requireCustomer()
+  .handler(async ({ data, context }) => {
+    const { customer } = context
 
     const { firstName, lastName, phone, acceptsMarketing } = data
 
@@ -176,37 +162,39 @@ export const updateCustomerMeFn = createServerFn({ method: 'POST' })
   })
 
 // Get customer addresses
-export const getCustomerAddressesFn = createServerFn().handler(async () => {
-  const { customer } = await requireCustomer()
+export const getCustomerAddressesFn = createServerFn()
+  .middleware([customerMiddleware])
+  .handler(async ({ context }) => {
+    const { customer } = context
 
-  const customerAddresses = await db
-    .select()
-    .from(addresses)
-    .where(eq(addresses.customerId, customer.id))
+    const customerAddresses = await db
+      .select()
+      .from(addresses)
+      .where(eq(addresses.customerId, customer.id))
 
-  return {
-    addresses: customerAddresses.map(
-      (addr) =>
-        ({
-          id: addr.id,
-          type: addr.type,
-          firstName: addr.firstName,
-          lastName: addr.lastName,
-          company: addr.company,
-          address1: addr.address1,
-          address2: addr.address2,
-          city: addr.city,
-          province: addr.province,
-          provinceCode: addr.provinceCode,
-          country: addr.country,
-          countryCode: addr.countryCode,
-          zip: addr.zip,
-          phone: addr.phone,
-          isDefault: addr.isDefault,
-        }) satisfies CustomerAddress,
-    ),
-  }
-})
+    return {
+      addresses: customerAddresses.map(
+        (addr) =>
+          ({
+            id: addr.id,
+            type: addr.type,
+            firstName: addr.firstName,
+            lastName: addr.lastName,
+            company: addr.company,
+            address1: addr.address1,
+            address2: addr.address2,
+            city: addr.city,
+            province: addr.province,
+            provinceCode: addr.provinceCode,
+            country: addr.country,
+            countryCode: addr.countryCode,
+            zip: addr.zip,
+            phone: addr.phone,
+            isDefault: addr.isDefault,
+          }) satisfies CustomerAddress,
+      ),
+    }
+  })
 
 // Create address
 const createAddressInputSchema = z.object({
@@ -227,9 +215,10 @@ const createAddressInputSchema = z.object({
 })
 
 export const createAddressFn = createServerFn({ method: 'POST' })
+  .middleware([customerMiddleware])
   .inputValidator((data: unknown) => createAddressInputSchema.parse(data))
-  .handler(async ({ data }) => {
-    const { customer } = await requireCustomer()
+  .handler(async ({ data, context }) => {
+    const { customer } = context
 
     const {
       type,
@@ -306,9 +295,10 @@ const deleteAddressInputSchema = z.object({
 })
 
 export const deleteAddressFn = createServerFn({ method: 'POST' })
+  .middleware([customerMiddleware])
   .inputValidator((data: unknown) => deleteAddressInputSchema.parse(data))
-  .handler(async ({ data }) => {
-    const { customer } = await requireCustomer()
+  .handler(async ({ data, context }) => {
+    const { customer } = context
     const { addressId } = data
 
     // Verify address belongs to customer
@@ -336,9 +326,10 @@ const getCustomerOrdersInputSchema = z.object({
 })
 
 export const getCustomerOrdersFn = createServerFn()
+  .middleware([customerMiddleware])
   .inputValidator((data: unknown) => getCustomerOrdersInputSchema.parse(data))
-  .handler(async ({ data }) => {
-    const { customer } = await requireCustomer()
+  .handler(async ({ data, context }) => {
+    const { customer } = context
 
     const { page, limit } = data
 
@@ -405,11 +396,12 @@ const getCustomerOrderByIdInputSchema = z.object({
 })
 
 export const getCustomerOrderByIdFn = createServerFn()
+  .middleware([customerMiddleware])
   .inputValidator((data: unknown) =>
     getCustomerOrderByIdInputSchema.parse(data),
   )
-  .handler(async ({ data }) => {
-    const { customer } = await requireCustomer()
+  .handler(async ({ data, context }) => {
+    const { customer } = context
     const { orderId } = data
 
     // Fetch order and verify it belongs to the customer
