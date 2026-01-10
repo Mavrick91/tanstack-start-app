@@ -1,5 +1,4 @@
 import { test, expect } from '../fixtures/cleanup-fixture'
-
 import { getVerificationTokenByEmail } from '../helpers/db.helper'
 import { CustomerAccountPage } from '../page-objects/customer-account.page'
 
@@ -118,7 +117,6 @@ test.describe('Customer Registration Flow', () => {
     test('should show error when registering with existing email', async ({
       page,
     }) => {
-      const uniqueId = `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       const email = 'mavrick@realadvisor.com'
       const password = 'TestPassword123!'
 
@@ -231,7 +229,6 @@ test.describe('Customer Registration Flow', () => {
 
   test.describe('Loading States', () => {
     test('should show loading state during registration', async ({ page }) => {
-      const uniqueId = `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       const email = 'mavrick@realadvisor.com'
       const password = 'TestPassword123!'
 
@@ -249,7 +246,6 @@ test.describe('Customer Registration Flow', () => {
 
   test.describe('Multi-Language Support', () => {
     test('should work with French language route', async ({ page }) => {
-      const uniqueId = `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       const email = 'mavrick@realadvisor.com'
       const password = 'TestPassword123!'
 
@@ -296,7 +292,6 @@ test.describe('Customer Registration Flow', () => {
     test('should persist session after verification and page refresh', async ({
       page,
     }) => {
-      const uniqueId = `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       const email = 'mavrick@realadvisor.com'
       const password = 'TestPassword123!'
 
