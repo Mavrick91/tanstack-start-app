@@ -167,7 +167,7 @@ const AdminOrdersPage = () => {
   ]
 
   return (
-    <div className="space-y-6 pb-20 max-w-7xl mx-auto">
+    <div className="space-y-6 pb-20 max-w-6xl mx-auto">
       {/* Header */}
       <AdminPageHeader
         title={t('Orders')}
@@ -227,12 +227,14 @@ const AdminOrdersPage = () => {
 
       {/* Orders table */}
       {orders.length === 0 ? (
-        <div className="text-center py-20 bg-card border border-border/50 rounded-2xl shadow-sm">
-          <div className="w-14 h-14 bg-pink-500/5 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Package className="w-7 h-7 text-pink-500/40" />
+        <div className="text-center py-20 bg-white border border-stone-200 rounded-2xl shadow-sm">
+          <div className="w-14 h-14 bg-coral-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Package className="w-7 h-7 text-coral-400" />
           </div>
-          <h3 className="text-lg font-bold mb-1">{t('No orders yet')}</h3>
-          <p className="text-muted-foreground text-xs max-w-xs mx-auto">
+          <h3 className="text-lg font-semibold text-stone-900 mb-1">
+            {t('No orders yet')}
+          </h3>
+          <p className="text-stone-500 text-sm max-w-xs mx-auto">
             {t(
               'Orders will appear here when customers complete their purchases.',
             )}
