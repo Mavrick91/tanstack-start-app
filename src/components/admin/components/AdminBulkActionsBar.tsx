@@ -33,11 +33,11 @@ export const AdminBulkActionsBar = ({
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-200">
-      <div className="flex items-center gap-3 px-5 py-3 bg-foreground text-background rounded-lg border border-background/10">
+      <div className="flex items-center gap-3 px-5 py-3 bg-stone-900 text-white rounded-xl shadow-lg">
         <span className="text-sm font-semibold">
           {t('{{count}} selected', { count: selectedCount })}
         </span>
-        <div className="w-px h-5 bg-background/20" />
+        <div className="w-px h-5 bg-white/20" />
         {actions.map((action) => {
           const Icon = action.icon
           const isDestructive = action.variant === 'destructive'
@@ -60,10 +60,10 @@ export const AdminBulkActionsBar = ({
             </Button>
           )
         })}
-        <div className="w-px h-5 bg-background/20" />
+        <div className="w-px h-5 bg-white/20" />
         <button
           onClick={onClear}
-          className="p-1.5 hover:bg-background/10 rounded-md transition-colors"
+          className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
           disabled={isPending}
           aria-label={t('Clear selection')}
         >

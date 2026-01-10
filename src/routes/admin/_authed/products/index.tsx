@@ -119,11 +119,11 @@ const AdminProductsPage = (): React.ReactNode => {
 
   if (table.error) {
     return (
-      <div className="text-center py-24 bg-card rounded-2xl border border-destructive/10 max-w-2xl mx-auto shadow-sm">
-        <p className="text-destructive font-bold text-lg mb-1">
+      <div className="text-center py-24 bg-white border border-stone-200 rounded-2xl max-w-2xl mx-auto shadow-sm">
+        <p className="text-red-600 font-semibold text-lg mb-1">
           {t('Failed to load catalog')}
         </p>
-        <p className="text-muted-foreground text-xs font-medium">
+        <p className="text-stone-500 text-sm">
           {t('Please check your connection or try logging in again.')}
         </p>
       </div>
@@ -138,7 +138,7 @@ const AdminProductsPage = (): React.ReactNode => {
   ]
 
   return (
-    <div className="space-y-6 pb-20 max-w-7xl mx-auto">
+    <div className="space-y-6 pb-20 max-w-6xl mx-auto">
       {/* Header */}
       <AdminPageHeader
         title={t('Product Catalog')}

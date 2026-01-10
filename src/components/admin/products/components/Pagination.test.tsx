@@ -75,13 +75,13 @@ describe('Pagination', () => {
     it('highlights current page button', () => {
       renderComponent({ currentPage: 3, totalPages: 5 })
       const currentPageButton = screen.getByRole('button', { name: '3' })
-      expect(currentPageButton).toHaveClass('bg-pink-500')
+      expect(currentPageButton).toHaveClass('bg-coral-500')
     })
 
     it('does not highlight other page buttons', () => {
       renderComponent({ currentPage: 3, totalPages: 5 })
       const otherPageButton = screen.getByRole('button', { name: '1' })
-      expect(otherPageButton).not.toHaveClass('bg-pink-500')
+      expect(otherPageButton).not.toHaveClass('bg-coral-500')
     })
   })
 

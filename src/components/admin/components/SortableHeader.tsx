@@ -20,18 +20,18 @@ export const SortableHeader = <T extends string>({
   const isActive = sortKey === currentSortKey
 
   return (
-    <th className="text-left px-6 py-3">
+    <th className="text-left px-6 py-3 bg-stone-50">
       <button
         onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 hover:text-foreground transition-colors group/header"
+        className="flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors group/header"
       >
         {label}
         <span className="w-3.5 h-3.5">
           {isActive ? (
             sortOrder === 'asc' ? (
-              <ArrowUp className="w-3.5 h-3.5 text-pink-500" />
+              <ArrowUp className="w-3.5 h-3.5 text-coral-500" />
             ) : (
-              <ArrowDown className="w-3.5 h-3.5 text-pink-500" />
+              <ArrowDown className="w-3.5 h-3.5 text-coral-500" />
             )
           ) : (
             <ArrowUpDown className="w-3.5 h-3.5 opacity-0 group-hover/header:opacity-50 transition-opacity" />

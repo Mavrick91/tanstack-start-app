@@ -29,6 +29,17 @@ code {
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /* Coral color palette */
+  --color-coral-50: #FFF5F4;
+  --color-coral-100: #FFEDEB;
+  --color-coral-200: #FFDAD6;
+  --color-coral-300: #FFB8B1;
+  --color-coral-400: #FF8F83;
+  --color-coral-500: #F97066;
+  --color-coral-600: #E64D42;
+  --color-coral-700: #C33A30;
+  --color-coral-800: #A1332B;
+  --color-coral-900: #853129;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

@@ -185,16 +185,16 @@ describe('AdminBulkActionsBar', () => {
       renderComponent()
 
       const deleteButton = screen.getByRole('button', { name: /delete/i })
-      expect(deleteButton).toHaveClass('text-rose-400')
-      expect(deleteButton).toHaveClass('hover:bg-rose-500/20')
+      expect(deleteButton).toHaveClass('text-red-400')
+      expect(deleteButton).toHaveClass('hover:bg-red-500/20')
     })
 
     it('applies default styling for non-destructive actions', () => {
       renderComponent()
 
       const archiveButton = screen.getByRole('button', { name: /archive/i })
-      expect(archiveButton).toHaveClass('text-background')
-      expect(archiveButton).toHaveClass('hover:bg-background/10')
+      expect(archiveButton).toHaveClass('text-white')
+      expect(archiveButton).toHaveClass('hover:bg-white/50')
     })
   })
 })

@@ -54,25 +54,25 @@ describe('SortableHeader', () => {
       ).toBeInTheDocument()
     })
 
-    it('displays label in uppercase', () => {
+    it('displays label in sentence case', () => {
       renderComponent()
 
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('uppercase')
+      expect(button).not.toHaveClass('uppercase')
     })
 
     it('uses small font size', () => {
       renderComponent()
 
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('text-[10px]')
+      expect(button).toHaveClass('text-xs')
     })
 
-    it('applies bold font weight', () => {
+    it('applies medium font weight', () => {
       renderComponent()
 
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('font-bold')
+      expect(button).toHaveClass('font-medium')
     })
   })
 
@@ -110,7 +110,7 @@ describe('SortableHeader', () => {
       expect(arrowUpDown).toBeInTheDocument()
     })
 
-    it('active ascending icon has pink color', () => {
+    it('active ascending icon has coral color', () => {
       const { container } = renderComponent({
         sortKey: 'name',
         currentSortKey: 'name',
@@ -118,10 +118,10 @@ describe('SortableHeader', () => {
       })
 
       const arrowUp = container.querySelector('.lucide-arrow-up')
-      expect(arrowUp).toHaveClass('text-pink-500')
+      expect(arrowUp).toHaveClass('text-coral-500')
     })
 
-    it('active descending icon has pink color', () => {
+    it('active descending icon has coral color', () => {
       const { container } = renderComponent({
         sortKey: 'name',
         currentSortKey: 'name',
@@ -129,7 +129,7 @@ describe('SortableHeader', () => {
       })
 
       const arrowDown = container.querySelector('.lucide-arrow-down')
-      expect(arrowDown).toHaveClass('text-pink-500')
+      expect(arrowDown).toHaveClass('text-coral-500')
     })
 
     it('inactive icon is initially hidden', () => {
@@ -259,7 +259,7 @@ describe('SortableHeader', () => {
 
       // Active state shows colored arrow icon
       const arrowUp = container.querySelector('.lucide-arrow-up')
-      expect(arrowUp).toHaveClass('text-pink-500')
+      expect(arrowUp).toHaveClass('text-coral-500')
     })
 
     it('is inactive when sortKey does not match currentSortKey', () => {
@@ -342,7 +342,7 @@ describe('SortableHeader', () => {
       renderComponent()
 
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('hover:text-foreground')
+      expect(button).toHaveClass('hover:text-stone-700')
     })
 
     it('applies transition to colors', () => {
@@ -386,18 +386,18 @@ describe('SortableHeader', () => {
       expect(th).toHaveClass('py-3')
     })
 
-    it('uses muted text color by default', () => {
+    it('uses stone text color by default', () => {
       renderComponent()
 
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('text-muted-foreground/70')
+      expect(button).toHaveClass('text-stone-500')
     })
 
-    it('applies letter spacing', () => {
-      renderComponent()
+    it('applies stone background to header', () => {
+      const { container } = renderComponent()
 
-      const button = screen.getByRole('button')
-      expect(button).toHaveClass('tracking-widest')
+      const th = container.querySelector('th')
+      expect(th).toHaveClass('bg-stone-50')
     })
   })
 

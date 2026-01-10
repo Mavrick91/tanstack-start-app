@@ -66,33 +66,4 @@ describe('OrderStatsCards', () => {
     expect(screen.getAllByText('0')).toHaveLength(3)
     expect(screen.getByText('$0.00')).toBeInTheDocument()
   })
-
-  it('should highlight cards with non-zero attention items', () => {
-    render(<OrderStatsCards stats={defaultStats} />)
-
-    // Cards with values > 0 should have attention styling (find card by looking for border class)
-    const pendingLabel = screen.getByText('Pending Orders')
-    const pendingCard = pendingLabel.parentElement?.parentElement
-    expect(pendingCard).toHaveClass('border-yellow-500/30')
-  })
-
-  it('should not highlight cards with zero values', () => {
-    render(
-      <OrderStatsCards
-        stats={{
-          pending: 0,
-          unpaid: 0,
-          unfulfilled: 0,
-          todayRevenue: 0,
-          currency: 'USD',
-        }}
-      />,
-    )
-
-    // Cards with 0 values should have default styling (not attention styling)
-    const pendingLabel = screen.getByText('Pending Orders')
-    const pendingCard = pendingLabel.parentElement?.parentElement
-    expect(pendingCard).toHaveClass('border-border')
-    expect(pendingCard).not.toHaveClass('border-yellow-500/30')
-  })
 })

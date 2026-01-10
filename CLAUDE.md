@@ -246,6 +246,7 @@ export const getProductsFn = createServerFn()
 ```
 
 **Use top-level imports for:**
+
 - Database (`db`, schemas)
 - Middleware (`authMiddleware`, `adminMiddleware`, `customerMiddleware`)
 - Server-only utilities
@@ -259,18 +260,20 @@ Some modules contain Node.js dependencies (like `stripe` SDK) that cause build e
 
 ```typescript
 // ✅ CORRECT - Dynamic import for Node.js-specific modules
-export const createStripePaymentIntentFn = createServerFn({ method: 'GET' })
-  .handler(async ({ data }) => {
-    // Dynamic import prevents Stripe SDK from bundling into client
-    const { createPaymentIntent, getStripePublishableKey } =
-      await import('../lib/stripe')
-    const { dollarsToCents } = await import('../lib/currency')
+export const createStripePaymentIntentFn = createServerFn({
+  method: 'GET',
+}).handler(async ({ data }) => {
+  // Dynamic import prevents Stripe SDK from bundling into client
+  const { createPaymentIntent, getStripePublishableKey } =
+    await import('../lib/stripe')
+  const { dollarsToCents } = await import('../lib/currency')
 
-    // ... use the imported functions
-  })
+  // ... use the imported functions
+})
 ```
 
 **Use dynamic imports when:**
+
 - The module uses Node.js-only dependencies (Stripe SDK, PayPal SDK, Node crypto)
 - The server function file is imported by client components
 - You see build errors about missing Node.js modules in the client bundle

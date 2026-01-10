@@ -36,7 +36,7 @@ describe('AdminPageHeader', () => {
     it('does not render description when not provided', () => {
       const { container } = renderComponent()
 
-      const description = container.querySelector('.text-muted-foreground')
+      const description = container.querySelector('.text-stone-500')
       expect(description).not.toBeInTheDocument()
     })
 
@@ -226,7 +226,7 @@ describe('AdminPageHeader', () => {
       renderComponent()
 
       const heading = screen.getByRole('heading', { level: 1 })
-      expect(heading).toHaveClass('text-2xl', 'font-bold', 'tracking-tight')
+      expect(heading).toHaveClass('text-2xl', 'font-semibold', 'text-stone-900')
     })
 
     it('has correct description styles', () => {
@@ -234,7 +234,7 @@ describe('AdminPageHeader', () => {
         description: 'Manage your product catalog',
       })
 
-      const description = container.querySelector('.text-muted-foreground')
+      const description = container.querySelector('.text-stone-500')
       expect(description).toHaveClass('text-sm')
     })
   })

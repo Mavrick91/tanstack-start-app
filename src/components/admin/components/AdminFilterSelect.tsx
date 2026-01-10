@@ -31,11 +31,12 @@ export const AdminFilterSelect = <T extends string = string>({
 }: AdminFilterSelectProps<T>) => {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-        {label}
-      </span>
+      <span className="text-xs font-medium text-stone-500">{label}</span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label={ariaLabel} className="w-[140px]">
+        <SelectTrigger
+          aria-label={ariaLabel}
+          className="w-[140px] border-stone-200 rounded-lg focus-visible:border-coral-400 focus-visible:ring-coral-500/20 focus-visible:ring-2"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
